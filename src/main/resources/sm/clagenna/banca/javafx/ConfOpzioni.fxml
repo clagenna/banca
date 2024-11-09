@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.ConfOpzioniController">
+   <children>
+      <TitledPane animated="false" text="Filtri da applicare">
+        <content>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+               <children>
+                  <CheckBox fx:id="ckDtmov" layoutX="39.0" layoutY="6.0" mnemonicParsing="false" text="Data Movimento" />
+                  <CheckBox fx:id="ckDtval" layoutX="39.0" layoutY="31.0" mnemonicParsing="false" text="Data Valuta" />
+                  <CheckBox fx:id="ckImpdare" layoutX="39.0" layoutY="56.0" mnemonicParsing="false" text="Imp. Dare" />
+                  <CheckBox fx:id="ckImpavere" layoutX="167.0" layoutY="6.0" mnemonicParsing="false" text="Imp. Avere" />
+                  <CheckBox fx:id="ckDescr" layoutX="167.0" layoutY="31.0" mnemonicParsing="false" text="Descrizione" />
+                  <CheckBox fx:id="ckCausABI" layoutX="167.0" layoutY="56.0" mnemonicParsing="false" text="Causale ABI" />
+                  <CheckBox fx:id="ckcredhold" layoutX="167.0" layoutY="82.0" mnemonicParsing="false" text="Credit Holder" />
+                  <Button fx:id="btTutti" layoutX="39.0" layoutY="113.0" mnemonicParsing="false" onAction="#btTuttiClick" text="Tutti" />
+                  <Button fx:id="btNessuno" layoutX="123.0" layoutY="113.0" mnemonicParsing="false" onAction="#btNessunoClick" text="Nessuno" />
+               </children>
+            </AnchorPane>
+        </content>
+      </TitledPane>
+   </children>
+</VBox>

@@ -1,0 +1,63 @@
+
+.button {
+	-fx-text-fill: black;
+	/* background-color: #7AECC6; */  
+	background-color: #3396CF;  
+	-fx-background-color: #3396CF;
+	-fx-background-radius: 20 20 0 20;
+	-fx-padding: 5 10 5 10;
+	padding: 5 10 5 10;
+/*	-fx-border-color: #f4f4; */
+/*	-fx-border-width: 3; */
+}
+
+.button:hover {
+	-fx-text-fill: #333;
+	-fx-background-color: chartreuse;
+	background-color: chartreuse;
+}
+
+.button:disabled {
+	-fx-text-fill: #333;
+	-fx-background-color: darkgray;
+	background-color: darkgray;
+}
+
+
+.button:pressed {
+	-fx-text-fill: #333;
+	-fx-background-color: darkcyan;
+	background-color: darkcyan;
+	-fx-padding: 5 10 13 10;
+	padding: 5 10 13 10;
+}
+
+.list-cell:nuovo {
+	-webkit-text-fill-color: darkgreen;
+	-fx-text-fill: darkgreen;
+}
+
+.list-cell:analizzato {
+	-webkit-text-fill-color: blue;
+	-fx-text-fill: blue;
+}
+
+.newPdf {
+	-webkit-text-fill-color: darkgreen;
+	-fx-text-fill: darkgreen;
+	-fx-background-color: #FAECC6;
+	-webkit-background-color: #FAECC6;
+}
+
+.newPdfsel {
+	-webkit-text-fill-color: darkgreen;
+	-fx-text-fill: darkgreen;
+	-fx-background-color: #C45F0E;
+	-webkit-background-color: #C45F0E;
+}
+
+.oldPdf {
+	-webkit-text-fill-color: black;
+	-fx-text-fill: black;
+}
+
