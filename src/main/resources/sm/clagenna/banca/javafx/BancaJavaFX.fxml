@@ -26,9 +26,10 @@
 	            <MenuItem mnemonicParsing="false" onAction="#mnuExitClick" text="Quit" />
 	          </items>
 	        </Menu>
-            <Menu mnemonicParsing="false" text="Configura">
+            <Menu mnemonicParsing="false" text="Gestione">
               <items>
                 <MenuItem mnemonicParsing="false" onAction="#mnuConfOpzioniClick" text="Opzioni" />
+                  <MenuItem mnemonicParsing="false" onAction="#mnuConfMostraDatiClick" text="Mostra Dati" />
               </items>
             </Menu>
 	        <Menu mnemonicParsing="false" text="Help">

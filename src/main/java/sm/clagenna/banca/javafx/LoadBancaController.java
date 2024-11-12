@@ -56,6 +56,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import sm.clagenna.banca.dati.CsvImportBanca;
+import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ILog4jReader;
@@ -102,6 +103,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private Path                  pthDirCSV;
   private AppProperties         props;
   private ConfOpzioniController cntrlConfOpz;
+  private int                   qtaActiveTasks;
+  private ResultView            cntrResultView;
 
   public LoadBancaController() {
     //
@@ -366,7 +369,48 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       cntrlConfOpz.initApp(props);
     }
     stageViewConf.show();
+  }
 
+  @FXML
+  void mnuConfMostraDatiClick(ActionEvent event) {
+    LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
+    Stage primaryStage = mainApp.getPrimaryStage();
+
+    URL url = getClass().getResource(ResultView.CSZ_FXMLNAME);
+    if (url == null)
+      url = getClass().getClassLoader().getResource(ResultView.CSZ_FXMLNAME);
+    Parent radice;
+    cntrResultView = null;
+    FXMLLoader fxmlLoad = new FXMLLoader(url);
+    try {
+      // radice = FXMLLoader.load(url);
+      radice = fxmlLoad.load();
+      cntrResultView = fxmlLoad.getController();
+    } catch (IOException e) {
+      s_log.error("Errore caricamento FXML {}", ResultView.CSZ_FXMLNAME, e);
+      return;
+    }
+    //    Node nod = radice;
+    //    do {
+    //      controller = (ResultView) nod.getProperties().get("refToCntrl");
+    //      nod = nod.getParent();
+    //    } while (controller == null && nod != null);
+
+    Stage stageResults = new Stage();
+    Scene scene = new Scene(radice, 600, 440);
+    stageResults.setScene(scene);
+    stageResults.setWidth(800);
+    stageResults.setHeight(600);
+    stageResults.initOwner(primaryStage);
+    stageResults.initModality(Modality.NONE);
+    stageResults.setTitle("Visualizzazione dei dati del DB");
+    // verifica che nel FXML ci sia la dichiarazione:
+    // <userData> <fx:reference source="controller" /> </userData>
+    if (cntrResultView != null) {
+      cntrResultView.setMyScene(scene);
+      cntrResultView.initApp(props);
+    }
+    stageResults.show();
   }
 
   @FXML
@@ -376,9 +420,11 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   }
 
   private void eseguiConversioneRunTask() {
-    s_log.debug("Lancio la conversione {} in background");
+    qtaActiveTasks = 0;
     ObservableList<Path> sels = liBanca.getSelectionModel().getSelectedItems();
-    ExecutorService backGrService = Executors.newFixedThreadPool(1);
+    DataController data = DataController.getInst();
+    s_log.debug("conversione di {} CSV in background con {} threads", sels.size(), data.getQtaThreads());
+    ExecutorService backGrService = Executors.newFixedThreadPool(data.getQtaThreads());
     btConvCSV.setDisable(true);
     for (Path pth : sels) {
       try {
@@ -387,34 +433,16 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         lbProgressione.textProperty().bind(cvsimp.messageProperty());
         cvsimp.setOnRunning(ev -> {
           // System.out.println("LoadBancaController.eseguiConversioneRunTask() RUNNING");
-          Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-              getStage().getScene().setCursor(Cursor.WAIT);
-              btConvCSV.setDisable(true);
-            }
-          });
+          setSemafore(1);
         });
         cvsimp.setOnSucceeded(ev -> {
           // System.out.println("LoadBancaController.eseguiConversioneRunTask() SUCCEDED");
-          s_log.debug("Fine del Task Background per {}", pth.toString());
-          Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-              getStage().getScene().setCursor(Cursor.DEFAULT);
-              btConvCSV.setDisable(false);
-            }
-          });
+          setSemafore(0);
+          s_log.info("Fine del Task Background per {}", pth.toString());
         });
         cvsimp.setOnFailed(ev -> {
-          s_log.warn("LoadBancaController.eseguiConversioneRunTask() !! FAILED !!");
-          Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-              getStage().getScene().setCursor(Cursor.DEFAULT);
-              btConvCSV.setDisable(false);
-            }
-          });
+          setSemafore(0);
+          s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!", pth.toString());
         });
         DBConn connSQL = LoadBancaMainApp.getInst().getConnSQL();
         cvsimp.setConnSql(connSQL);
@@ -425,8 +453,41 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       }
     }
     backGrService.shutdown();
-    btConvCSV.setDisable(false);
-    s_log.debug("Fine conversione in background");
+    // btConvCSV.setDisable(false);
+    // s_log.debug("Fine conversione in background");
+  }
+
+  private synchronized void setSemafore(int nTask) {
+    // nTask : 1 - start, 0 - finish
+    switch (nTask) {
+      case 0:
+        if (qtaActiveTasks > 0)
+          qtaActiveTasks--;
+        else
+          System.err.println("Active Tasks < 0 !");
+        if (qtaActiveTasks == 0) {
+          Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+              getStage().getScene().setCursor(Cursor.DEFAULT);
+              btConvCSV.setDisable(false);
+            }
+          });
+        }
+        break;
+      case 1:
+        qtaActiveTasks++;
+        if (qtaActiveTasks == 1) {
+          Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+              getStage().getScene().setCursor(Cursor.WAIT);
+              btConvCSV.setDisable(true);
+            }
+          });
+        }
+        break;
+    }
   }
 
   public void messageDialog(AlertType typ, String p_msg) {

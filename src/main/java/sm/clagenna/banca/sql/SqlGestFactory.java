@@ -31,7 +31,7 @@ public class SqlGestFactory {
         conn = new SqlServerGest();
         break;
     }
-    s_log.info("Connessione al DB di tipo {}", tip);
+    // s_log.info("Connessione al DB di tipo {}", tip);
     return conn;
 
   }

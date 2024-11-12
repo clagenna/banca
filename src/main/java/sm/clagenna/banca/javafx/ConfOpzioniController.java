@@ -12,6 +12,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,6 +29,11 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   private static final String CSZ_PROP_POSVIEW_Y = "viewopts.y";
   private static final String CSZ_PROP_DIMVIEW_X = "viewopts.lx";
   private static final String CSZ_PROP_DIMVIEW_Y = "viewopts.ly";
+
+  @FXML
+  private CheckBox         ckoverwrite;
+  @FXML
+  private Spinner<Integer> spinQtaThread;
 
   @FXML
   private Button   btTutti;
@@ -65,6 +72,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     m_appmain = LoadBancaMainApp.getInst();
     m_mainProps = m_appmain.getProps();
     bSema = false;
+
     int filtr = dataCntr.getFiltriQuery();
     ckDtmov.setSelected(ESqlFiltri.Dtmov.isSet(filtr));
     ckDtval.setSelected(ESqlFiltri.Dtval.isSet(filtr));
@@ -108,6 +116,15 @@ public class ConfOpzioniController implements Initializable, IStartApp {
       s_log.error("Non trovo lo stage per ConfOpzioniView");
       return;
     }
+
+    ckoverwrite.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.setOverwrite(n);
+    });
+    int qtaTh = dataCntr.getQtaThreads();
+    spinQtaThread.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, qtaTh, 1));
+    spinQtaThread.valueProperty().addListener((obj, ov, nv) -> changeQtaThreads(nv));
+
     ckDtmov.selectedProperty().addListener((obs, o, n) -> {
       if (bSema)
         dataCntr.mettiFiltro(ESqlFiltri.Dtmov, n);
@@ -150,6 +167,12 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     lstage.setOnHiding(ev -> {
       closeApp(m_mainProps);
     });
+  }
+
+  private Object changeQtaThreads(Integer nv) {
+    System.out.printf("ConfOpzioniController.changeQtaThreads(%d)\n", nv);
+    dataCntr.setQtaThreads(nv);
+    return null;
   }
 
   @FXML

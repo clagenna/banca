@@ -19,6 +19,7 @@ import sm.clagenna.stdcla.utils.AppProperties;
 public class DataController implements IStartApp {
   private static final Logger   s_log           = LogManager.getLogger(DataController.class);
   private static final String   CSZ_FLAG_FILTRI = "FLAG_FILTRI";
+  private static final String   CSZ_QTA_THREADS = "QTA_THREADS";
   private static DataController s_inst;
 
   @Getter @Setter
@@ -26,6 +27,8 @@ public class DataController implements IStartApp {
   @Getter @Setter
   private int                  filtriQuery;
   @Getter @Setter
+  private int                  qtaThreads;
+  @Getter
   private boolean              overwrite;
   private AppProperties        props;
 
@@ -96,11 +99,13 @@ public class DataController implements IStartApp {
   public void initApp(AppProperties p_props) {
     AppProperties prop = LoadBancaMainApp.getInst().getProps();
     filtriQuery = prop.getIntProperty(CSZ_FLAG_FILTRI, ESqlFiltri.AllSets.getFlag());
+    qtaThreads = prop.getIntProperty(CSZ_QTA_THREADS, 1);
   }
 
   @Override
   public void closeApp(AppProperties prop) {
     prop.setIntProperty(CSZ_FLAG_FILTRI, filtriQuery);
+    prop.setIntProperty(CSZ_QTA_THREADS, qtaThreads);
   }
 
   public AppProperties getProps() {
@@ -111,6 +116,11 @@ public class DataController implements IStartApp {
 
   public String getDBType() {
     return getProps().getProperty(AppProperties.CSZ_PROP_DB_Type);
+  }
+
+  public void setOverwrite(boolean bv) {
+    overwrite = bv;
+    System.out.printf("DataController.setOverwrite(%s)\n", Boolean.valueOf(bv).toString());
   }
 
 }

@@ -3,6 +3,8 @@ package sm.clagenna.banca.javafx;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,6 +45,8 @@ public class LoadBancaMainApp extends Application implements IStartApp {
   private DBConn         connSQL;
   @Getter @Setter
   private DataController data;
+
+  List<ResultView> m_liResViews;
 
   public LoadBancaMainApp() {
     //
@@ -141,7 +145,7 @@ public class LoadBancaMainApp extends Application implements IStartApp {
 
     if (controller != null)
       controller.closeApp(prop);
-    if ( data != null)
+    if (data != null)
       data.closeApp(prop);
 
     prop.salvaSuProperties();
@@ -204,6 +208,19 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     webView.setPrefSize(300, 60);
     alert.getDialogPane().setContent(webView);
     alert.showAndWait();
+  }
+
+  public void addResView(ResultView resultView) {
+    if (m_liResViews == null)
+      m_liResViews = new ArrayList<>();
+    m_liResViews.add(resultView);
+  }
+
+  public void removeResView(ResultView resultView) {
+    if (m_liResViews == null || m_liResViews.size() == 0)
+      return;
+    if (m_liResViews.contains(resultView))
+      m_liResViews.remove(resultView);
   }
 
 }

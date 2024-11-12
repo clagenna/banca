@@ -25,7 +25,7 @@ import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class CsvImportBanca extends Task<String> {
+public class CsvImportBanca extends Task<String>  /* implements Thread.UncaughtExceptionHandler */ {
   private static final Logger s_log = LogManager.getLogger(CsvImportBanca.class);
 
   private Path                      csvFile;
@@ -58,6 +58,8 @@ public class CsvImportBanca extends Task<String> {
     nomiCols.put("avere", Arrays.asList(new String[] { "avere", "*no*" }));
     nomiCols.put("descr", Arrays.asList(new String[] { "causale", "descrizione" }));
     nomiCols.put("caus", Arrays.asList(new String[] { "causale abi", "categoria" }));
+    
+    // Thread.setDefaultUncaughtExceptionHandler(this);
   }
 
   @Override
@@ -265,4 +267,10 @@ public class CsvImportBanca extends Task<String> {
       return "*null*";
     return dtsCsv.toString();
   }
+
+//  @Override
+//  public void uncaughtException(Thread t, Throwable e) {
+//    s_log.error("Exception on thread, {}", e.getMessage(), e);
+//  }
+  
 }

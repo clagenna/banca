@@ -4,6 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +21,12 @@ import sm.clagenna.stdcla.sql.DBConn;
 
 public class SQLiteGest implements ISQLGest {
   private static final Logger s_log = LogManager.getLogger(SQLiteGest.class);
+
+  private static final String QRY_LIST_CARDS = "SELECT DISTINCT tipo FROM ListaMovimentiUNION";
+  private static final String QRY_LIST_ANNI  = "SELECT DISTINCT strftime('%Y', dtmov) as anno FROM ListaMovimentiUNION";
+  private static final String QRY_LIST_MESI  = "SELECT DISTINCT movstr FROM ListaMovimentiUNION ORDER BY movstr";
+  private static final String QRY_LIST_VIEWS = "SELECT name FROM sqlite_master WHERE type = 'view'";
+  private static final String QRY_VIEW_PATT  = "SELECT * from %s WHERE 1=1 ORDER BY dtMov,dtval;";
 
   private static final String QRY_INS_Mov =     //
       "INSERT INTO movimenti%s"                 //
@@ -70,16 +81,20 @@ public class SQLiteGest implements ISQLGest {
 
   @Override
   public void write(RigaBanca ri) {
-    if (existMovimento(tableName, ri)) {
-      if ( !overwrite) {
-        s_log.debug("Il movimento esiste! scarto {} ", ri.toString());
-        scarti++;
-        return;
+    try {
+      if (existMovimento(tableName, ri)) {
+        if ( !overwrite) {
+          s_log.debug("Il movimento esiste! scarto {} ", ri.toString());
+          scarti++;
+          return;
+        }
+        deleted += deleteMovimento(tableName, ri);
       }
-      deleted += deleteMovimento(tableName, ri);
+      insertMovimento(tableName, ri);
+      added++;
+    } catch (Exception e) {
+      s_log.error("!err scrittura DB, {}", e.getMessage(), e);
     }
-    insertMovimento(tableName, ri);
-    added++;
   }
 
   @Override
@@ -157,12 +172,15 @@ public class SQLiteGest implements ISQLGest {
 
     try {
       int k = 1;
+      String szCaus = p_rig.getCaus();
+      if ( null != szCaus)
+        szCaus = szCaus.replace(".0", "");
       dbconn.setStmtDate(stmtIns, k++, p_rig.getDtmov());
       dbconn.setStmtDate(stmtIns, k++, p_rig.getDtval());
       dbconn.setStmtImporto(stmtIns, k++, p_rig.getDare());
       dbconn.setStmtImporto(stmtIns, k++, p_rig.getAvere());
       dbconn.setStmtString(stmtIns, k++, p_rig.getDescr());
-      dbconn.setStmtString(stmtIns, k++, p_rig.getCaus());
+      dbconn.setStmtString(stmtIns, k++, szCaus);
       dbconn.setStmtString(stmtIns, k++, p_rig.getCardid());
 
       stmtIns.executeUpdate();
@@ -172,6 +190,71 @@ public class SQLiteGest implements ISQLGest {
     // System.out.println(tm.stop());
     return bRet;
   }
+
+  @Override
+  public List<String> getListTipoCard() {
+    Connection conn = dbconn.getConn();
+    List<String> liTipic = new ArrayList<>();
+    // liTipic.add((String) null);
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(QRY_LIST_CARDS)) {
+      while (rs.next()) {
+        String anno = rs.getString(1);
+        liTipic.add(anno);
+      }
+    } catch (SQLException e) {
+      s_log.error("Query {}; err={}", QRY_LIST_CARDS, e.getMessage(), e);
+    }
+    return liTipic;
+  }
+
+  @Override
+  public List<Integer> getListAnni() {
+    Connection conn = dbconn.getConn();
+    List<Integer> liAnno = new ArrayList<>();
+    // liAnno.add((Integer) null);
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(QRY_LIST_ANNI)) {
+      while (rs.next()) {
+        int anno = rs.getInt(1);
+        liAnno.add(anno);
+      }
+    } catch (SQLException e) {
+      s_log.error("Query {}; err={}", QRY_LIST_ANNI, e.getMessage(), e);
+    }
+    return liAnno;
+  }
+
+  @Override
+  public List<String> getListMeseComp() {
+    Connection conn = dbconn.getConn();
+    List<String> liMesi = new ArrayList<>();
+    // liMesi.add((String) null);
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(QRY_LIST_MESI)) {
+      while (rs.next()) {
+        String mese = rs.getString(1);
+        liMesi.add(mese);
+      }
+    } catch (SQLException e) {
+      s_log.error("Query {}; err={}", QRY_LIST_MESI, e.getMessage(), e);
+    }
+    return liMesi;
+  }
+
+  @Override
+  public Map<String, String> getListDBViews() {
+    Connection conn = dbconn.getConn();
+    Map<String, String> liViews = new HashMap<>();
+    // liViews.put((String)null, null);
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(QRY_LIST_VIEWS)) {
+      while (rs.next()) {
+        String view = rs.getString(1);
+        liViews.put(view, String.format(QRY_VIEW_PATT, view));
+      }
+    } catch (SQLException e) {
+      s_log.error("Query {}; err={}", QRY_LIST_VIEWS, e.getMessage(), e);
+    }
+    return liViews;
+  }
+
   //
   //  private PreparedStatement applicaFiltri(PreparedStatement p_stmt, RigaBanca p_rig) throws SQLException {
   //    int qtFiltri = maxFilter > 0 ? maxFilter : QRY_Filtri.length;
