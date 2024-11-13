@@ -2,6 +2,7 @@ package sm.clagenna.banca.javafx;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -49,13 +50,16 @@ public class TableViewFiller extends Task<String> {
       s_log.warn("Nulla da mostrare sulla tabella");
       return ".. nulla da mostrare";
     }
+    // creato semaforo altrimenti la "runlater" parte dopo la fillTableView
+    Semaphore semaf = new Semaphore(0);
     Platform.runLater(new Runnable() {
       @Override
       public void run() {
         creaTableView(m_dts);
+        semaf.release();
       }
     });
-
+    semaf.acquire();
     fillTableView();
     return "..Finito!";
   }
@@ -91,6 +95,7 @@ public class TableViewFiller extends Task<String> {
   }
 
   private void creaTableView(Dataset p_dts) {
+    System.out.println("TableViewFiller.creaTableView()");
     DtsCols cols = p_dts.getColumns();
     // tableview = new TableView<>();
     tableview.getItems().clear();
@@ -141,6 +146,7 @@ public class TableViewFiller extends Task<String> {
   }
 
   private void fillTableView() {
+    System.out.println("TableViewFiller.fillTableView()");
     ObservableList<List<Object>> dati = FXCollections.observableArrayList();
     List<DtsRow> righe = m_dts.getRighe();
     if (righe == null) {
