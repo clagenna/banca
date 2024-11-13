@@ -559,6 +559,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     ContextMenu menu = new ContextMenu();
     menu.getItems().add(mi1);
     liBanca.setContextMenu(menu);
+    btConvCSV.setDisable(false);
 
     s_log.debug("Ricaricata lista files dal dir \"{}\"", pthDirCSV.toString());
   }

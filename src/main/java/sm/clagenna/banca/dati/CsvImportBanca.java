@@ -66,9 +66,13 @@ public class CsvImportBanca extends Task<String>  /* implements Thread.UncaughtE
   protected String call() throws Exception {
     // System.out.println("GestPDFFatt Runner .call()");
     s_log.debug("Start background import of {}", getCsvFile().toString());
-    importCSV();
-    analizzaBanca();
-    saveSuDB();
+    try {
+      importCSV();
+      analizzaBanca();
+      saveSuDB();
+    } catch (Exception e) {
+      s_log.error("Errore background Job:{}", e.getMessage(),e);
+    }
     // System.out.println("RunTask() ... Sleep!");
     // Thread.sleep(500);
     return "...done!";
