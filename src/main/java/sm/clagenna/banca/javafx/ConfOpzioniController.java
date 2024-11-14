@@ -47,6 +47,8 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   private CheckBox         ckoverwrite;
   @FXML
   private Spinner<Integer> spinQtaThread;
+  @FXML
+  private TextField        txFilesFiltro;
 
   @FXML
   private Button   btTutti;
@@ -309,6 +311,8 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     int qtaTh = dataCntr.getQtaThreads();
     spinQtaThread.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, qtaTh, 1));
     spinQtaThread.valueProperty().addListener((obj, ov, nv) -> changeQtaThreads(nv));
+    txFilesFiltro.setText(p_props.getProperty(LoadBancaController.CSZ_FILTER_FILES));
+    txFilesFiltro.textProperty().addListener((obj, ov, nv) -> changedFiltroFiles(nv));
 
     ckDtmov.selectedProperty().addListener((obs, o, n) -> {
       if (bSema)
@@ -357,6 +361,11 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   private Object changeQtaThreads(Integer nv) {
     System.out.printf("ConfOpzioniController.changeQtaThreads(%d)\n", nv);
     dataCntr.setQtaThreads(nv);
+    return null;
+  }
+
+  private Object changedFiltroFiles(String nv) {
+    m_mainProps.setProperty(LoadBancaController.CSZ_FILTER_FILES, nv);
     return null;
   }
 

@@ -26,7 +26,7 @@ public class SqlServerGest implements ISQLGest {
   private static final String QRY_LIST_ANNI  = "SELECT DISTINCT YEAR(dtmov) as anno FROM ListaMovimentiUNION ORDER BY 1";
   private static final String QRY_LIST_MESI  = "SELECT DISTINCT movstr FROM dbo.ListaMovimentiUNION ORDER BY movstr";
   private static final String QRY_LIST_VIEWS = "SELECT name FROM sys.views ORDER BY name";
-  private static final String QRY_VIEW_PATT = "SELECT * from %s WHERE 1=1 ORDER BY dtMov,dtval";
+  private static final String QRY_VIEW_PATT  = "SELECT * from %s WHERE 1=1 ORDER BY dtMov,dtval";
 
   private static final String QRY_INS_Mov =     //
       "INSERT INTO dbo.movimenti%s"             //
@@ -40,15 +40,15 @@ public class SqlServerGest implements ISQLGest {
           + "           VALUES (?,?,?,?,?,?,?)";
   private PreparedStatement   stmtIns;
 
-  private static final String QRY_SEL_Mov =     //
-      "SELECT COUNT(*)"                         //
-          + "  FROM dbo.movimenti%s"            //
-          + " WHERE 1=1";                       //
+  private static final String QRY_SEL_Mov =   //
+      "SELECT COUNT(*)"                       //
+          + "  FROM dbo.movimenti%s"          //
+          + " WHERE 1=1";                     //
   private PreparedStatement   stmtSel;
 
-  private static final String QRY_DEL_Mov =     //
-      "DELETE FROM dbo.movimenti%s"             //
-          + " WHERE 1=1";                       //
+  private static final String QRY_DEL_Mov =   //
+      "DELETE FROM dbo.movimenti%s"           //
+          + " WHERE 1=1";                     //
   private PreparedStatement   stmtDel;
 
   @Getter @Setter
@@ -82,16 +82,16 @@ public class SqlServerGest implements ISQLGest {
   @Override
   public void write(RigaBanca ri) {
     try {
-    if (existMovimento(tableName, ri)) {
-      if ( !overwrite) {
-        s_log.debug("Il movimento esiste! scarto {} ", ri.toString());
-        scarti++;
-        return;
+      if (existMovimento(tableName, ri)) {
+        if ( !overwrite) {
+          s_log.debug("Il movimento esiste! scarto {} ", ri.toString());
+          scarti++;
+          return;
+        }
+        deleted += deleteMovimento(tableName, ri);
       }
-      deleted += deleteMovimento(tableName, ri);
-    }
-    insertMovimento(tableName, ri);
-    added++;
+      insertMovimento(tableName, ri);
+      added++;
     } catch (Exception e) {
       s_log.error("!err scrittura DB, {}", e.getMessage(), e);
     }
@@ -105,9 +105,9 @@ public class SqlServerGest implements ISQLGest {
     DataController cntrl = DataController.getInst();
     try {
       if (null == stmtSel) {
-    StringBuilder qry = new StringBuilder(String.format(QRY_SEL_Mov, p_tab));
-    qry.append(cntrl.getCampiFiltro());
-    Connection conn = dbconn.getConn();
+        StringBuilder qry = new StringBuilder(String.format(QRY_SEL_Mov, p_tab));
+        qry.append(cntrl.getCampiFiltro());
+        Connection conn = dbconn.getConn();
         stmtSel = conn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
@@ -136,9 +136,9 @@ public class SqlServerGest implements ISQLGest {
     DataController cntrl = DataController.getInst();
     try {
       if (null == stmtDel) {
-    StringBuilder qry = new StringBuilder(String.format(QRY_DEL_Mov, p_tab));
-    qry.append(cntrl.getCampiFiltro());
-    Connection conn = dbconn.getConn();
+        StringBuilder qry = new StringBuilder(String.format(QRY_DEL_Mov, p_tab));
+        qry.append(cntrl.getCampiFiltro());
+        Connection conn = dbconn.getConn();
         stmtDel = conn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
@@ -161,8 +161,8 @@ public class SqlServerGest implements ISQLGest {
     // TimerMeter tm = new TimerMeter("Insert");
     try {
       if (null == stmtIns) {
-    String qry = String.format(QRY_INS_Mov, p_tab);
-    Connection conn = dbconn.getConn();
+        String qry = String.format(QRY_INS_Mov, p_tab);
+        Connection conn = dbconn.getConn();
         stmtIns = conn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
@@ -173,7 +173,7 @@ public class SqlServerGest implements ISQLGest {
     try {
       int k = 1;
       String szCaus = p_rig.getCaus();
-      if ( null != szCaus)
+      if (null != szCaus)
         szCaus = szCaus.replace(".0", "");
       dbconn.setStmtDate(stmtIns, k++, p_rig.getDtmov());
       dbconn.setStmtDate(stmtIns, k++, p_rig.getDtval());
@@ -242,7 +242,7 @@ public class SqlServerGest implements ISQLGest {
   @Override
   public Map<String, String> getListDBViews() {
     Connection conn = dbconn.getConn();
-    Map<String,String> liViews = new HashMap<>();
+    Map<String, String> liViews = new HashMap<>();
     // liViews.put((String)null, null);
     try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(QRY_LIST_VIEWS)) {
       while (rs.next()) {

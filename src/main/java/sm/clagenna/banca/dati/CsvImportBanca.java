@@ -25,15 +25,19 @@ import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class CsvImportBanca extends Task<String>  /* implements Thread.UncaughtExceptionHandler */ {
+public class CsvImportBanca
+    extends Task<String> /* implements Thread.UncaughtExceptionHandler */ {
   private static final Logger s_log = LogManager.getLogger(CsvImportBanca.class);
 
-  private Path                      csvFile;
+  private Path    csvFile;
   @Getter @Setter
-  private String                    sqlTableName;
+  private String  sqlTableName;
   @Getter @Setter
-  private String                    cardIdent;
-  private Dataset                   dtsCsv;
+  private String  cardIdent;
+  @Getter @Setter
+  private boolean bancaWise;
+  private Dataset dtsCsv;
+
   private Map<String, List<String>> nomiCols;
   @Getter
   private List<RigaBanca>           righeBanca;
@@ -52,13 +56,13 @@ public class CsvImportBanca extends Task<String>  /* implements Thread.UncaughtE
     // i CSV degli export Welly/BSI sono in Locale.US
     Utils.setLocale(Locale.ITALY);
     nomiCols = new HashMap<>();
-    nomiCols.put("dtmov", Arrays.asList(new String[] { "data", "Data transazione" }));
-    nomiCols.put("dtval", Arrays.asList(new String[] { "valuta", "Data contabile" }));
-    nomiCols.put("dare", Arrays.asList(new String[] { "dare", "importo" }));
-    nomiCols.put("avere", Arrays.asList(new String[] { "avere", "*no*" }));
-    nomiCols.put("descr", Arrays.asList(new String[] { "causale", "descrizione" }));
-    nomiCols.put("caus", Arrays.asList(new String[] { "causale abi", "categoria" }));
-    
+    nomiCols.put("dtmov", Arrays.asList(new String[] { "data", "Data transazione", "Created on" }));
+    nomiCols.put("dtval", Arrays.asList(new String[] { "valuta", "Data contabile", "Finished on" }));
+    nomiCols.put("dare", Arrays.asList(new String[] { "dare", "importo", "Source amount (after fees)" }));
+    nomiCols.put("avere", Arrays.asList(new String[] { "avere", "*no*", "*no*" }));
+    nomiCols.put("descr", Arrays.asList(new String[] { "causale", "descrizione", "Target name" }));
+    nomiCols.put("caus", Arrays.asList(new String[] { "causale abi", "categoria", "ID" }));
+
     // Thread.setDefaultUncaughtExceptionHandler(this);
   }
 
@@ -71,7 +75,7 @@ public class CsvImportBanca extends Task<String>  /* implements Thread.UncaughtE
       analizzaBanca();
       saveSuDB();
     } catch (Exception e) {
-      s_log.error("Errore background Job:{}", e.getMessage(),e);
+      s_log.error("Errore background Job:{}", e.getMessage(), e);
     }
     // System.out.println("RunTask() ... Sleep!");
     // Thread.sleep(500);
@@ -87,6 +91,12 @@ public class CsvImportBanca extends Task<String>  /* implements Thread.UncaughtE
     s_log.debug("Import CSV file {}", getCsvFile().toString());
     try (Dataset dts = new Dataset()) {
       dts.setIntToDouble(true);
+
+      if (sqlTableName.equals("wise")) {
+        dts.setCsvdelim(",");
+        Utils.setLocale(Locale.US);
+        setBancaWise(true);
+      }
       dtsCsv = dts.readcsv(getCsvFile());
       s_log.debug("Readed {} recs from {}", dtsCsv.size(), getCsvFile().toString());
     } catch (Exception e) {
@@ -130,7 +140,7 @@ public class CsvImportBanca extends Task<String>  /* implements Thread.UncaughtE
 
   private void discerniSqlTable(String p_sz) {
     sqlTableName = null;
-    Pattern pat = Pattern.compile(".*conto_([a-z_ ]+)[_ ][0-9]+", Pattern.CASE_INSENSITIVE);
+    Pattern pat = Pattern.compile(".*conto_([a-z_]+)[_\\- ][0-9\\-]+.+", Pattern.CASE_INSENSITIVE);
     Matcher mat = pat.matcher(p_sz);
     if (mat.find()) {
       String sz = mat.group(1).toLowerCase();
@@ -142,6 +152,8 @@ public class CsvImportBanca extends Task<String>  /* implements Thread.UncaughtE
         sqlTableName += "Credit";
       if (sz.contains("tpay"))
         sqlTableName = "carispCredit";
+      if (sz.contains("wise"))
+        sqlTableName = "wise";
     }
   }
 
@@ -164,9 +176,84 @@ public class CsvImportBanca extends Task<String>  /* implements Thread.UncaughtE
       throw new UnsupportedOperationException("CSV dataset not opened !");
     righeBanca = new ArrayList<RigaBanca>();
     for (DtsRow row : dtsCsv.getRighe()) {
-      studiaRiga(row);
+      if (isBancaWise())
+        studiaRigaWise(row);
+      else
+        studiaRiga(row);
     }
     return righeBanca;
+  }
+
+  private void studiaRigaWise(DtsRow row) {
+    LocalDateTime dtmov;
+    LocalDateTime dtval;
+    Double dare = null;
+    Double avere = null;
+    String descr = null;
+    String caus = null;
+    String cardid = null;
+    final String CAUS_POS = "43";
+    final String CAUS_TRANSF = "Z7";
+    final String CAUS_CASH = "18";
+
+    Object val = getRowVal("dtmov", row);
+    if (null == val) {
+      s_log.debug("Scarto riga Wise: {}", row.toString());
+      return;
+    }
+    dtmov = ParseData.parseData(val.toString());
+
+    val = getRowVal("dtval", row);
+    if (null == val) {
+      s_log.debug("Scarto riga Wise: {}", row.toString());
+      return;
+    }
+    dtval = ParseData.parseData(val.toString());
+
+    String source = (String) row.get("Source name");
+    if (null == source)
+      source = "";
+    else
+      source = source.toLowerCase().replace("\"", "");
+
+    val = getRowVal("dare", row);
+    if (null == val || val.toString().length() == 0)
+      dare = 0.;
+    else if (val instanceof Double dbl)
+      dare = dbl;
+    else
+      dare = Utils.parseDouble(val.toString());
+    caus = CAUS_POS;
+    String idTran = (String) row.get("ID");
+    if (null == idTran)
+      idTran = "*";
+    avere = 0.;
+    if (source.toLowerCase().contains("wise") || idTran.toLowerCase().startsWith("transf")) {
+      // Balance cash back or Transfer
+      avere = dare;
+      dare = 0.;
+      caus = CAUS_TRANSF;
+      if (null != idTran && idTran.toLowerCase().contains("cashback")) {
+        caus = CAUS_CASH;
+        if (null == descr || descr.trim().length() == 0)
+          descr = "cash back";
+      }
+    } else
+      cardid = source.substring(0, 3).toLowerCase();
+    if (null == descr) {
+      val = getRowVal("descr", row);
+      if (null == val) {
+        s_log.debug("Scarto riga : {}", row.toString());
+        return;
+      }
+      descr = val.toString().replaceAll("\"", "");
+    }
+
+    RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid);
+    if (null != cardIdent)
+      rigb.setCardid(cardIdent);
+    righeBanca.add(rigb);
+
   }
 
   private void studiaRiga(DtsRow row) {
@@ -272,9 +359,9 @@ public class CsvImportBanca extends Task<String>  /* implements Thread.UncaughtE
     return dtsCsv.toString();
   }
 
-//  @Override
-//  public void uncaughtException(Thread t, Throwable e) {
-//    s_log.error("Exception on thread, {}", e.getMessage(), e);
-//  }
-  
+  //  @Override
+  //  public void uncaughtException(Thread t, Throwable e) {
+  //    s_log.error("Exception on thread, {}", e.getMessage(), e);
+  //  }
+
 }

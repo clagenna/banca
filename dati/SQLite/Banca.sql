@@ -614,6 +614,18 @@ CREATE TABLE IF NOT EXISTS movimentiCarispCredit (
     cardid  NVARCHAR (20)  DEFAULT NULL
 );
 
+
+-- Tabella: movimentiCarispCredit
+CREATE TABLE IF NOT EXISTS movimentiWise (
+    dtmov                  DEFAULT NULL,
+    dtval                  DEFAULT NULL,
+    dare    FLOAT (19, 4)  DEFAULT NULL,
+    avere   FLOAT (19, 4)  DEFAULT NULL,
+    descr   NVARCHAR (512) DEFAULT NULL,
+    abicaus NVARCHAR (20)  DEFAULT NULL,
+    cardid  NVARCHAR (20)  DEFAULT NULL
+);
+
 -- Indice: indxMovCarCred
 CREATE INDEX IF NOT EXISTS indxMovCarCred ON movimentiCarispCredit (
     dtmov,
@@ -697,6 +709,25 @@ CREATE VIEW IF NOT EXISTS listaMovimentiCARISPCredit AS
            causali ca ON mo.abicaus = ca.abicaus;
 
 
+-- Vista: listaMovimentiCARISPCredit
+CREATE VIEW IF NOT EXISTS listaMovimentiWise AS
+    SELECT 'wise' AS tipo,
+           dtmov,
+           dtval,
+           strftime('%Y.%m', mo.dtmov) AS movstr,
+           strftime('%Y.%m', mo.dtval) AS valstr,
+           dare,
+           avere,
+           cardid,
+           descr,
+           mo.abicaus,
+           ca.descrcaus,
+           ca.costo
+      FROM movimentiWise mo
+           LEFT OUTER JOIN
+           causali ca ON mo.abicaus = ca.abicaus;
+
+
 -- Vista: ListaMovimentiUNION
 CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
     SELECT tipo,
@@ -753,7 +784,21 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
            abicaus,
            descrcaus,
            costo
-      FROM listaMovimentiCarispCredit;
+      FROM listaMovimentiCarispCredit
+    UNION
+    SELECT tipo,
+           dtmov,
+           dtval,
+           movstr,
+           valstr,
+           dare,
+           avere,
+           cardid,
+           descr,
+           abicaus,
+           descrcaus,
+           costo
+      FROM listaMovimentiWise;
 
 
 COMMIT TRANSACTION;

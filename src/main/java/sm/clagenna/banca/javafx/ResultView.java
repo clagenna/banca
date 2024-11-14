@@ -3,6 +3,8 @@ package sm.clagenna.banca.javafx;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,6 +27,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableRow;
@@ -36,6 +39,8 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
+import sm.clagenna.stdcla.sql.Dataset;
+import sm.clagenna.stdcla.sys.ex.DatasetException;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 
@@ -66,6 +71,8 @@ public class ResultView implements Initializable, IStartApp {
   private Button            btCerca;
   @FXML
   private Button            btExportCsv;
+  @FXML
+  private CheckBox          ckLanciaExcel;
 
   @FXML
   private TableView<List<Object>> tblview;
@@ -86,10 +93,8 @@ public class ResultView implements Initializable, IStartApp {
   private String  m_qry;
 
   private TableViewFiller m_tbvf;
-
-  private String m_CSVfile;
-
-  private String m_fltrTipoBanca;
+  private Path            m_CSVfile;
+  private String          m_fltrTipoBanca;
 
   public ResultView() {
     //
@@ -391,6 +396,7 @@ public class ResultView implements Initializable, IStartApp {
       public void run() {
         lstage.getScene().setCursor(Cursor.DEFAULT);
         btCerca.setDisable(false);
+        btExportCsv.setDisable(false);
       }
     });
 
@@ -431,31 +437,26 @@ public class ResultView implements Initializable, IStartApp {
     @SuppressWarnings("unused") LoadBancaController cntrl = (LoadBancaController) LoadBancaMainApp.getInst().getController();
     szFilNam.append(".csv");
     // System.out.println("ResultView.btExportCsvClick():" + szFilNam.toString());
-    // TODO Completare la export
-    //    Dataset dts = m_tbvf.getDataset();
+    m_CSVfile = Paths.get(szFilNam.toString());
+    try {
+      Dataset dts = m_tbvf.getDataset();
+      dts.savecsv(m_CSVfile);
+      if (ckLanciaExcel.isSelected())
+        lanciaExcel2();
+    } catch (DatasetException e) {
+      s_log.error("Errore export to CSV, err={}", e.getMessage(), e);
+    }
     //    Dts2Csv csv = new Dts2Csv(dts);
     //    m_CSVfile = szFilNam.toString();
     //    csv.saveFile(m_CSVfile);
-    //    if (cntrl.isLanciaExc())
+    //    if (cnt
+    // rl.isLanciaExc())
     //      lanciaExcel2();
     abilitaBottoni();
   }
 
-  @SuppressWarnings({ "deprecation", "unused" })
-  private void lanciaExcel() {
-    try {
-      File fi = new File(m_CSVfile);
-      String sz = fi.getAbsolutePath();
-      String szCmd = String.format("cmd /c start excel.exe \"%s\"", sz);
-      Runtime.getRuntime().exec(szCmd);
-    } catch (IOException e) {
-      s_log.error("Errore lancio Excel", e);
-      // e.printStackTrace();
-    }
-  }
-
   public void lanciaExcel2() {
-    File fi = new File(m_CSVfile);
+    File fi = m_CSVfile.toFile();
     String sz = fi.getAbsolutePath();
     //    String szCmd = String.format("cmd /c start excel \"%s\"", sz);
     //    szCmd = String.format("\"%s\"", sz);

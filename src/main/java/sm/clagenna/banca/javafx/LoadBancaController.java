@@ -64,13 +64,14 @@ import sm.clagenna.stdcla.utils.Log4jRow;
 import sm.clagenna.stdcla.utils.MioAppender;
 
 public class LoadBancaController implements Initializable, ILog4jReader, IStartApp {
-  private static final Logger s_log         = LogManager.getLogger(LoadBancaController.class);
-  public static final String  CSZ_FXMLNAME  = "BancaJavaFX.fxml";
-  private static final String CSZ_LOG_LEVEL = "logLevel";
-  private static final String CSZ_SPLITPOS  = "splitpos";
-  private static final String CSZ_COL_time  = "log_time";
-  private static final String CSZ_COL_leve  = "log_lev";
-  private static final String CSZ_COL_mesg  = "log_mesg";
+  private static final Logger s_log            = LogManager.getLogger(LoadBancaController.class);
+  public static final String  CSZ_FXMLNAME     = "BancaJavaFX.fxml";
+  private static final String CSZ_LOG_LEVEL    = "logLevel";
+  private static final String CSZ_SPLITPOS     = "splitpos";
+  private static final String CSZ_COL_time     = "log_time";
+  private static final String CSZ_COL_leve     = "log_lev";
+  private static final String CSZ_COL_mesg     = "log_mesg";
+  public static final String CSZ_FILTER_FILES = "filter_files";
 
   private List<Log4jRow> m_liMsgs;
 
@@ -148,7 +149,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   public void initApp(AppProperties props) {
     LoadBancaMainApp main = LoadBancaMainApp.getInst();
     main.setController(this);
-    getStage().setTitle("Caricamento delle fatture AASS su DB");
+    getStage().setTitle("Caricamento degli Export CSV dalle Banche su DB");
     // vedi: https://stackoverflow.com/questions/27160951/javafx-open-another-fxml-in-the-another-window-with-button
     getStage().onCloseRequestProperty().setValue(e -> Platform.exit());
     String szLastDir = props.getLastDir();
@@ -533,8 +534,12 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
 
   private void reloadListFilesCSV() {
     List<Path> result = null;
-    String szGlobMatch = "glob:*:/**/{estrattoconto_}*.csv";
-    szGlobMatch = "glob:*:/**/*.csv";
+    String fltrFiles = props.getProperty(CSZ_FILTER_FILES);
+    if (null == fltrFiles)
+      fltrFiles = "wise,estra";
+
+    String szGlobMatch = creaGlobMatch(fltrFiles);
+    // String szGlobMatch = "glob:*:/**/{estra*,wise*}*.csv";
     PathMatcher matcher = FileSystems.getDefault().getPathMatcher(szGlobMatch);
     try (Stream<Path> walk = Files.walk(pthDirCSV)) {
       result = walk.filter(p -> !Files.isDirectory(p)) //
@@ -562,6 +567,17 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     btConvCSV.setDisable(false);
 
     s_log.debug("Ricaricata lista files dal dir \"{}\"", pthDirCSV.toString());
+  }
+
+  private String creaGlobMatch(String fltr) {
+    String arr[] = fltr.split(",");
+    StringBuilder fils = new StringBuilder();
+    String vir = "";
+    for (String pat : arr) {
+      fils.append(String.format("%s%s*", vir, pat));
+      vir = ",";
+    }
+    return String.format("glob:*:/**/{%s}*.csv", fils.toString());
   }
 
   private void showPdfDoc() {
