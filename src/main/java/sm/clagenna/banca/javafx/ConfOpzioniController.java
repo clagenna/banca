@@ -25,7 +25,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
-import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
@@ -210,7 +210,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     String szMsg = null;
     LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
 
-    DirectoryChooser filChoose = new DirectoryChooser();
+    FileChooser filChoose = new FileChooser();
     // imposto la dir precedente (se c'e')
     AppProperties props = mainApp.getProps();
     String szLastDir = props.getLastDir();
@@ -220,7 +220,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
         filChoose.setInitialDirectory(fi);
     }
 
-    File dirScelto = filChoose.showDialog(lstage);
+    File dirScelto = filChoose.showOpenDialog(lstage);
     if (dirScelto != null) {
       settaFileIn(dirScelto.toPath(), true, false);
     } else {
