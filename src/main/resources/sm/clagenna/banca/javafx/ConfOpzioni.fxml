@@ -14,6 +14,28 @@
    <children>
       <TabPane layoutX="14.0" prefHeight="200.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <tabs>
+            <Tab text="Data Base">
+              <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <Label layoutX="35.0" layoutY="22.0" text="Tipo Server" />
+                        <ComboBox fx:id="cbServerId" layoutX="101.0" layoutY="18.0" prefWidth="150.0" />
+                        <Label layoutX="35.0" layoutY="74.0" text="Nome DB" />
+                        <TextField fx:id="txDBname" layoutX="102.0" layoutY="70.0" prefHeight="25.0" prefWidth="325.0" />
+                        <Button fx:id="btCerca" layoutX="445.0" layoutY="70.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca ..." />
+                        <Label fx:id="lbHost" layoutX="35.0" layoutY="108.0" text="Nome Host" />
+                        <TextField fx:id="txHost" layoutX="102.0" layoutY="104.0" prefHeight="25.0" prefWidth="187.0" />
+                        <Label fx:id="lbService" layoutX="34.0" layoutY="144.0" text="Service" />
+                        <TextField fx:id="txService" layoutX="101.0" layoutY="140.0" prefHeight="25.0" prefWidth="82.0" promptText="Service Port" />
+                        <Label fx:id="lbUser" layoutX="35.0" layoutY="181.0" text="User name" />
+                        <TextField fx:id="txUser" layoutX="102.0" layoutY="177.0" prefHeight="25.0" prefWidth="136.0" promptText="user name" />
+                        <Label fx:id="lbPswd" layoutX="247.0" layoutY="181.0" text="Password" />
+                        <TextField fx:id="txPswd" layoutX="303.0" layoutY="177.0" prefHeight="25.0" prefWidth="126.0" promptText="Password" />
+                        <Button fx:id="btSalva" layoutX="75.0" layoutY="219.0" mnemonicParsing="false" onAction="#btSalvaClick" text="Salva" />
+                     </children>
+                  </AnchorPane>
+              </content>
+            </Tab>
           <Tab text="Opzioni">
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
@@ -44,28 +66,6 @@
                   </AnchorPane>
             </content>
           </Tab>
-            <Tab text="Data Base">
-              <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-                     <children>
-                        <Label layoutX="35.0" layoutY="22.0" text="Tipo Server" />
-                        <ComboBox fx:id="cbServerId" layoutX="101.0" layoutY="18.0" prefWidth="150.0" />
-                        <Label layoutX="35.0" layoutY="74.0" text="Nome DB" />
-                        <TextField fx:id="txDBname" layoutX="102.0" layoutY="70.0" prefHeight="25.0" prefWidth="325.0" />
-                        <Button fx:id="btCerca" layoutX="445.0" layoutY="70.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca ..." />
-                        <Label fx:id="lbHost" layoutX="35.0" layoutY="108.0" text="Nome Host" />
-                        <TextField fx:id="txHost" layoutX="102.0" layoutY="104.0" prefHeight="25.0" prefWidth="187.0" />
-                        <Label fx:id="lbService" layoutX="34.0" layoutY="144.0" text="Service" />
-                        <TextField fx:id="txService" layoutX="101.0" layoutY="140.0" prefHeight="25.0" prefWidth="82.0" promptText="Service Port" />
-                        <Label fx:id="lbUser" layoutX="35.0" layoutY="181.0" text="User name" />
-                        <TextField fx:id="txUser" layoutX="102.0" layoutY="177.0" prefHeight="25.0" prefWidth="136.0" promptText="user name" />
-                        <Label fx:id="lbPswd" layoutX="247.0" layoutY="181.0" text="Password" />
-                        <TextField fx:id="txPswd" layoutX="303.0" layoutY="177.0" prefHeight="25.0" prefWidth="126.0" promptText="Password" />
-                        <Button fx:id="btSalva" layoutX="75.0" layoutY="219.0" mnemonicParsing="false" onAction="#btSalvaClick" text="Save" />
-                     </children>
-                  </AnchorPane>
-              </content>
-            </Tab>
         </tabs>
       </TabPane>
    </children>
