@@ -4,6 +4,7 @@ set LUOGO=%~dp0
 set LAST_DIR=no
 set LUOGO1=%LUOGO%
 if "%LUOGO:~-1%" == "\" set "LUOGO1=%LUOGO:~0,-1%"
+cd /d "%LUOGO%"
 
 for %%f in ("%LUOGO1%") do set "LAST_DIR=%%~nxf"
 echo %LAST_DIR%

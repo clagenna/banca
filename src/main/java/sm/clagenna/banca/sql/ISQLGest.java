@@ -25,9 +25,13 @@ public interface ISQLGest {
 
   List<String> getListTipoCard();
 
+  List<String> getListCardHolder();
+
   List<Integer> getListAnni();
 
   List<String> getListMeseComp();
+  
+  List<String> getListCausABI();
 
   Map<String, String> getListDBViews();
 

@@ -30,6 +30,7 @@
               <items>
                 <MenuItem mnemonicParsing="false" onAction="#mnuConfOpzioniClick" text="Opzioni" />
                   <MenuItem mnemonicParsing="false" onAction="#mnuConfMostraDatiClick" text="Mostra Dati" />
+                  <MenuItem mnemonicParsing="false" onAction="#mnuMostraViewContantiClick" text="Gestione Contanti" />
               </items>
             </Menu>
 	        <Menu mnemonicParsing="false" text="Help">

@@ -46,7 +46,8 @@ public class LoadBancaMainApp extends Application implements IStartApp {
   @Getter @Setter
   private DataController data;
 
-  List<ResultView> m_liResViews;
+  List<ResultView>     m_liResViews;
+  private ViewContanti m_viewContanti;
 
   public LoadBancaMainApp() {
     //
@@ -208,6 +209,16 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     webView.setPrefSize(300, 60);
     alert.getDialogPane().setContent(webView);
     alert.showAndWait();
+  }
+
+  public void addViewContanti(ViewContanti pview) {
+    m_viewContanti = pview;
+  }
+
+  public void removeViewContanti(ViewContanti pview) {
+    if (null == m_viewContanti)
+      s_log.warn("Non ci sono viste sui contanti da rimuovere!");
+    m_viewContanti = null;
   }
 
   public void addResView(ResultView resultView) {

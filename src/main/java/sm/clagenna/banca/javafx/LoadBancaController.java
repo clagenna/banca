@@ -106,6 +106,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private ConfOpzioniController cntrlConfOpz;
   private int                   qtaActiveTasks;
   private ResultView            cntrResultView;
+  private ViewContanti          cntrViewContanti;
 
   public LoadBancaController() {
     //
@@ -414,6 +415,46 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     stageResults.show();
   }
 
+  
+
+  @FXML
+  void mnuMostraViewContantiClick(ActionEvent event) {
+    LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
+    Stage primaryStage = mainApp.getPrimaryStage();
+
+    URL url = getClass().getResource(ViewContanti.CSZ_FXMLNAME);
+    if (url == null)
+      url = getClass().getClassLoader().getResource(ViewContanti.CSZ_FXMLNAME);
+    Parent radice;
+    cntrViewContanti = null;
+    FXMLLoader fxmlLoad = new FXMLLoader(url);
+    try {
+      radice = fxmlLoad.load();
+      cntrViewContanti = fxmlLoad.getController();
+    } catch (IOException e) {
+      s_log.error("Errore caricamento FXML {}", ViewContanti.CSZ_FXMLNAME, e);
+      return;
+    }
+    Stage stageViewCont = new Stage();
+    Scene scene = new Scene(radice, 600, 440);
+    stageViewCont.setScene(scene);
+    stageViewCont.setWidth(800);
+    stageViewCont.setHeight(600);
+    stageViewCont.initOwner(primaryStage);
+    stageViewCont.initModality(Modality.NONE);
+    stageViewCont.setTitle("Gestione dei contanti su DB");
+    // verifica che nel FXML ci sia la dichiarazione:
+    // <userData> <fx:reference source="controller" /> </userData>
+    if (cntrViewContanti != null) {
+      cntrViewContanti.setMyScene(scene);
+      cntrViewContanti.initApp(props);
+    }
+    stageViewCont.show();
+  }
+
+  
+  
+  
   @FXML
   void btConvCSV_Click(ActionEvent event) {
     // System.out.println("LoadBancaController.btConvPDF()");

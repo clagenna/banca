@@ -22,11 +22,13 @@ import sm.clagenna.stdcla.sql.DBConn;
 public class SQLiteGest implements ISQLGest {
   private static final Logger s_log = LogManager.getLogger(SQLiteGest.class);
 
-  private static final String QRY_LIST_CARDS = "SELECT DISTINCT tipo FROM ListaMovimentiUNION";
-  private static final String QRY_LIST_ANNI  = "SELECT DISTINCT strftime('%Y', dtmov) as anno FROM ListaMovimentiUNION";
-  private static final String QRY_LIST_MESI  = "SELECT DISTINCT movstr FROM ListaMovimentiUNION ORDER BY movstr";
-  private static final String QRY_LIST_VIEWS = "SELECT name FROM sqlite_master WHERE type = 'view'";
-  private static final String QRY_VIEW_PATT  = "SELECT * from %s WHERE 1=1 ORDER BY dtMov,dtval;";
+  private static final String QRY_LIST_CARDS   = "SELECT DISTINCT tipo FROM ListaMovimentiUNION";
+  private static final String QRY_LIST_ANNI    = "SELECT DISTINCT strftime('%Y', dtmov) as anno FROM ListaMovimentiUNION";
+  private static final String QRY_LIST_MESI    = "SELECT DISTINCT movstr FROM ListaMovimentiUNION ORDER BY movstr";
+  private static final String QRY_LIST_CAUSABI = "SELECT abicaus, descrcaus || ' (' || abicaus || ')' as descr FROM causali ORDER BY descr";
+  private static final String QRY_LIST_CARDHOLD = "SELECT DISTINCT cardid FROM ListaMovimentiUNION WHERE cardid IS NOT NULL ORDER BY cardid";
+  private static final String QRY_LIST_VIEWS   = "SELECT name FROM sqlite_master WHERE type = 'view'";
+  private static final String QRY_VIEW_PATT    = "SELECT * from %s WHERE 1=1 ORDER BY dtMov,dtval;";
 
   private static final String QRY_INS_Mov =     //
       "INSERT INTO movimenti%s"                 //
@@ -173,7 +175,7 @@ public class SQLiteGest implements ISQLGest {
     try {
       int k = 1;
       String szCaus = p_rig.getCaus();
-      if ( null != szCaus)
+      if (null != szCaus)
         szCaus = szCaus.replace(".0", "");
       dbconn.setStmtDate(stmtIns, k++, p_rig.getDtmov());
       dbconn.setStmtDate(stmtIns, k++, p_rig.getDtval());
@@ -237,6 +239,42 @@ public class SQLiteGest implements ISQLGest {
       s_log.error("Query {}; err={}", QRY_LIST_MESI, e.getMessage(), e);
     }
     return liMesi;
+  }
+
+  @Override
+  public List<String> getListCausABI() {
+    Connection conn = dbconn.getConn();
+    List<String> liCausABI = new ArrayList<>();
+    // liMesi.add((String) null);
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(QRY_LIST_CAUSABI)) {
+      while (rs.next()) {
+        int k = 1;
+        //        String causABI = rs.getString(k++);
+        String descrABI = rs.getString(k++);
+        liCausABI.add(descrABI);
+      }
+    } catch (SQLException e) {
+      s_log.error("Query {}; err={}", QRY_LIST_CAUSABI, e.getMessage(), e);
+    }
+    return liCausABI;
+  }
+  
+  @Override
+  public List<String> getListCardHolder() {
+    Connection conn = dbconn.getConn();
+    List<String> liCardHold = new ArrayList<>();
+    // liMesi.add((String) null);
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(QRY_LIST_CARDHOLD)) {
+      while (rs.next()) {
+        int k = 1;
+        //        String causABI = rs.getString(k++);
+        String descrHold = rs.getString(k++);
+        liCardHold.add(descrHold);
+      }
+    } catch (SQLException e) {
+      s_log.error("Query {}; err={}", QRY_LIST_CARDHOLD, e.getMessage(), e);
+    }
+    return liCardHold;
   }
 
   @Override
