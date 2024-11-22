@@ -30,8 +30,10 @@ public interface ISQLGest {
   List<Integer> getListAnni();
 
   List<String> getListMeseComp();
-  
+
   List<String> getListCausABI();
+
+  String getDescrCausABI(String causABI);
 
   Map<String, String> getListDBViews();
 

@@ -22,13 +22,13 @@ import sm.clagenna.stdcla.sql.DBConn;
 public class SQLiteGest implements ISQLGest {
   private static final Logger s_log = LogManager.getLogger(SQLiteGest.class);
 
-  private static final String QRY_LIST_CARDS   = "SELECT DISTINCT tipo FROM ListaMovimentiUNION";
-  private static final String QRY_LIST_ANNI    = "SELECT DISTINCT strftime('%Y', dtmov) as anno FROM ListaMovimentiUNION";
-  private static final String QRY_LIST_MESI    = "SELECT DISTINCT movstr FROM ListaMovimentiUNION ORDER BY movstr";
-  private static final String QRY_LIST_CAUSABI = "SELECT abicaus, descrcaus || ' (' || abicaus || ')' as descr FROM causali ORDER BY descr";
+  private static final String QRY_LIST_CARDS    = "SELECT DISTINCT tipo FROM ListaMovimentiUNION";
+  private static final String QRY_LIST_ANNI     = "SELECT DISTINCT strftime('%Y', dtmov) as anno FROM ListaMovimentiUNION";
+  private static final String QRY_LIST_MESI     = "SELECT DISTINCT movstr FROM ListaMovimentiUNION ORDER BY movstr";
+  private static final String QRY_LIST_CAUSABI  = "SELECT abicaus, descrcaus || ' (' || abicaus || ')' as descr FROM causali ORDER BY descr";
   private static final String QRY_LIST_CARDHOLD = "SELECT DISTINCT cardid FROM ListaMovimentiUNION WHERE cardid IS NOT NULL ORDER BY cardid";
-  private static final String QRY_LIST_VIEWS   = "SELECT name FROM sqlite_master WHERE type = 'view'";
-  private static final String QRY_VIEW_PATT    = "SELECT * from %s WHERE 1=1 ORDER BY dtMov,dtval;";
+  private static final String QRY_LIST_VIEWS    = "SELECT name FROM sqlite_master WHERE type = 'view'";
+  private static final String QRY_VIEW_PATT     = "SELECT * from %s WHERE 1=1 ORDER BY dtMov,dtval;";
 
   private static final String QRY_INS_Mov =     //
       "INSERT INTO movimenti%s"                 //
@@ -65,6 +65,8 @@ public class SQLiteGest implements ISQLGest {
   private int     scarti;
   @Getter @Setter
   private int     added;
+
+  private HashMap<String, String> m_mapCausABI;
 
   public SQLiteGest() {
     init();
@@ -244,21 +246,32 @@ public class SQLiteGest implements ISQLGest {
   @Override
   public List<String> getListCausABI() {
     Connection conn = dbconn.getConn();
+    m_mapCausABI = new HashMap<String, String>();
     List<String> liCausABI = new ArrayList<>();
     // liMesi.add((String) null);
     try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(QRY_LIST_CAUSABI)) {
       while (rs.next()) {
         int k = 1;
-        //        String causABI = rs.getString(k++);
+        String causABI = rs.getString(k++);
         String descrABI = rs.getString(k++);
         liCausABI.add(descrABI);
+        m_mapCausABI.put(causABI, descrABI);
       }
     } catch (SQLException e) {
       s_log.error("Query {}; err={}", QRY_LIST_CAUSABI, e.getMessage(), e);
     }
     return liCausABI;
   }
-  
+
+  @Override
+  public String getDescrCausABI(String causABI) {
+    String szRet = null;
+    if (null == causABI || null == m_mapCausABI)
+      return szRet;
+    szRet = m_mapCausABI.get(causABI);
+    return szRet;
+  }
+
   @Override
   public List<String> getListCardHolder() {
     Connection conn = dbconn.getConn();
@@ -292,29 +305,5 @@ public class SQLiteGest implements ISQLGest {
     }
     return liViews;
   }
-
-  //
-  //  private PreparedStatement applicaFiltri(PreparedStatement p_stmt, RigaBanca p_rig) throws SQLException {
-  //    int qtFiltri = maxFilter > 0 ? maxFilter : QRY_Filtri.length;
-  //    int k = 1;
-  //    DataController cntr = DataController.getInst();
-  //    int filtriSQL = cntr.getFiltriQuery();
-  //
-  //    if (ESqlFiltri.Dtmov.isSet(filtriSQL))
-  //      dbconn.setStmtDate(p_stmt, k++, p_rig.getDtmov());
-  //    if (ESqlFiltri.Dtval.isSet(filtriSQL))
-  //      dbconn.setStmtDate(p_stmt, k++, p_rig.getDtval());
-  //    if (ESqlFiltri.Dare.isSet(filtriSQL))
-  //      dbconn.setStmtImporto(p_stmt, k++, p_rig.getDare());
-  //    if (ESqlFiltri.Avere.isSet(filtriSQL))
-  //      dbconn.setStmtImporto(p_stmt, k++, p_rig.getAvere());
-  //    if (ESqlFiltri.Descr.isSet(filtriSQL))
-  //      dbconn.setStmtString(p_stmt, k++, p_rig.getDescr());
-  //    if (ESqlFiltri.ABICaus.isSet(filtriSQL))
-  //      dbconn.setStmtString(p_stmt, k++, p_rig.getCaus());
-  //    if (ESqlFiltri.Cardid.isSet(filtriSQL))
-  //      dbconn.setStmtString(p_stmt, k++, p_rig.getCardid());
-  //    return p_stmt;
-  //  }
 
 }

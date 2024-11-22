@@ -66,6 +66,8 @@ public class SqlServerGest implements ISQLGest {
   @Getter @Setter
   private int     added;
 
+  private HashMap<String, String> m_mapCausABI;
+
   public SqlServerGest() {
     init();
   }
@@ -244,20 +246,30 @@ public class SqlServerGest implements ISQLGest {
   @Override
   public List<String> getListCausABI() {
     Connection conn = dbconn.getConn();
+    m_mapCausABI = new HashMap<String, String>();
     List<String> liCausABI = new ArrayList<>();
     // liMesi.add((String) null);
     try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(QRY_LIST_CAUSABI)) {
       while (rs.next()) {
         int k = 1;
-        @SuppressWarnings("unused")
         String causABI = rs.getString(k++);
         String descrABI = rs.getString(k++);
         liCausABI.add(descrABI);
+        m_mapCausABI.put(causABI, descrABI);
       }
     } catch (SQLException e) {
       s_log.error("Query {}; err={}", QRY_LIST_CAUSABI, e.getMessage(), e);
     }
     return liCausABI;
+  }
+
+  @Override
+  public String getDescrCausABI(String causABI) {
+    String szRet = null;
+    if ((null == causABI) || (null == m_mapCausABI))
+      return szRet;
+    szRet = m_mapCausABI.get(causABI);
+    return szRet;
   }
 
   @Override

@@ -71,7 +71,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private static final String CSZ_COL_time     = "log_time";
   private static final String CSZ_COL_leve     = "log_lev";
   private static final String CSZ_COL_mesg     = "log_mesg";
-  public static final String CSZ_FILTER_FILES = "filter_files";
+  public static final String  CSZ_FILTER_FILES = "filter_files";
 
   private List<Log4jRow> m_liMsgs;
 
@@ -415,8 +415,6 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     stageResults.show();
   }
 
-  
-
   @FXML
   void mnuMostraViewContantiClick(ActionEvent event) {
     LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
@@ -452,9 +450,6 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     stageViewCont.show();
   }
 
-  
-  
-  
   @FXML
   void btConvCSV_Click(ActionEvent event) {
     // System.out.println("LoadBancaController.btConvPDF()");
@@ -484,7 +479,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         });
         cvsimp.setOnFailed(ev -> {
           setSemafore(0);
-          s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!", pth.toString());
+          Throwable ex = ev.getSource().getException();
+          s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", pth.toString(), ex.getMessage(), ex);
         });
         DBConn connSQL = LoadBancaMainApp.getInst().getConnSQL();
         cvsimp.setConnSql(connSQL);
@@ -614,11 +610,12 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     String arr[] = fltr.split(",");
     StringBuilder fils = new StringBuilder();
     String vir = "";
+    String prefix = "estratt";
     for (String pat : arr) {
       fils.append(String.format("%s%s*", vir, pat));
       vir = ",";
     }
-    return String.format("glob:*:/**/{%s}*.csv", fils.toString());
+    return String.format("glob:*:/**/{%s}*.{csv,xls,xlsx}", fils.toString());
   }
 
   private void showPdfDoc() {

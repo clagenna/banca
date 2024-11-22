@@ -8,6 +8,8 @@ import lombok.Setter;
 
 public class RigaBanca {
   @Getter @Setter
+  private Integer       id;
+  @Getter @Setter
   private LocalDateTime dtmov;
   @Getter @Setter
   private LocalDateTime dtval;
@@ -23,6 +25,10 @@ public class RigaBanca {
   private String        cardid;
   @Getter
   private String        localCardIdent;
+
+  public RigaBanca() {
+    azzera();
+  }
 
   public RigaBanca(LocalDateTime p_dtmov, LocalDateTime p_dtval, double p_dare, double p_avere, String p_descr, String p_caus,
       String p_cardid) {
@@ -71,5 +77,16 @@ public class RigaBanca {
     else if (descr.matches(".*[0-9]+85928"))
       ret = "eug";
     return ret;
+  }
+
+  public void azzera() {
+    id = null;
+    dtmov = null;
+    dtval = null;
+    dare = 0.;
+    avere = .0;
+    descr = null;
+    caus = null;
+    cardid = null;
   }
 }

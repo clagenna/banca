@@ -1,4 +1,5 @@
-/****** Object:  Table [dbo].[movimentiBSI]    Script Date: 14/11/2024 18:26:24 ******/
+
+/****** Object:  Table [dbo].[movimentiBSI]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -13,7 +14,7 @@ CREATE TABLE [dbo].[movimentiBSI](
 	[cardid] [nvarchar](20) NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[causali]    Script Date: 14/11/2024 18:26:24 ******/
+/****** Object:  Table [dbo].[causali]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -28,7 +29,7 @@ CREATE TABLE [dbo].[causali](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[listaMovimentiBSI]    Script Date: 14/11/2024 18:26:24 ******/
+/****** Object:  View [dbo].[listaMovimentiBSI]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -59,7 +60,7 @@ SELECT dtmov
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
 GO
-/****** Object:  Table [dbo].[movimentiCarisp]    Script Date: 14/11/2024 18:26:24 ******/
+/****** Object:  Table [dbo].[movimentiCarisp]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -74,7 +75,7 @@ CREATE TABLE [dbo].[movimentiCarisp](
 	[cardid] [nvarchar](20) NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[listaMovimentiCarisp]    Script Date: 14/11/2024 18:26:24 ******/
+/****** Object:  View [dbo].[listaMovimentiCarisp]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -105,7 +106,7 @@ SELECT dtmov
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
 GO
-/****** Object:  Table [dbo].[movimentiBSICredit]    Script Date: 14/11/2024 18:26:24 ******/
+/****** Object:  Table [dbo].[movimentiBSICredit]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -120,7 +121,7 @@ CREATE TABLE [dbo].[movimentiBSICredit](
 	[cardid] [nvarchar](20) NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[listaMovimentiBSICredit]    Script Date: 14/11/2024 18:26:24 ******/
+/****** Object:  View [dbo].[listaMovimentiBSICredit]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -152,7 +153,7 @@ SELECT dtmov
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
 GO
-/****** Object:  Table [dbo].[movimentiCarispCredit]    Script Date: 14/11/2024 18:26:24 ******/
+/****** Object:  Table [dbo].[movimentiCarispCredit]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -167,7 +168,7 @@ CREATE TABLE [dbo].[movimentiCarispCredit](
 	[cardid] [nvarchar](20) NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[listaMovimentiCarispCredit]    Script Date: 14/11/2024 18:26:24 ******/
+/****** Object:  View [dbo].[listaMovimentiCarispCredit]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -200,7 +201,104 @@ SELECT dtmov
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
 GO
-/****** Object:  Table [dbo].[movimentiWise]    Script Date: 14/11/2024 18:26:24 ******/
+/****** Object:  Table [dbo].[movimentiContanti]    Script Date: 22/11/2024 18:24:23 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[movimentiContanti](
+	[id] [int] NOT NULL,
+	[dtmov] [date] NULL,
+	[dtval] [date] NULL,
+	[dare] [money] NULL,
+	[avere] [money] NULL,
+	[descr] [nvarchar](512) NULL,
+	[abicaus] [varchar](4) NULL,
+	[cardid] [nvarchar](20) NULL,
+ CONSTRAINT [PK_movimentiContanti] PRIMARY KEY CLUSTERED 
+(
+	[id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  View [dbo].[listaMovimentiContanti]    Script Date: 22/11/2024 18:24:23 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+CREATE view [dbo].[listaMovimentiContanti]
+as 
+SELECT dtmov
+      ,dtval
+	  , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
+	  , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
+      ,dare
+      ,avere
+      ,descr
+	  --,CASE
+	  --   WHEN CHARINDEX('84806', descr) > 0 THEN 'Claudio'
+	  --   WHEN CHARINDEX('85928', descr) > 0 THEN 'Eugenia'
+		 --ELSE null
+	  -- END as chipaga
+	  ,cardid
+      ,mo.abicaus
+	  ,ca.descrcaus
+	  ,ca.costo
+  FROM movimentiContanti mo
+    left outer join causali ca
+	  on mo.abicaus = ca.abicaus
+GO
+/****** Object:  Table [dbo].[movimentiSmac]    Script Date: 22/11/2024 18:24:23 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[movimentiSmac](
+	[dtmov] [date] NULL,
+	[dtval] [date] NULL,
+	[dare] [money] NULL,
+	[avere] [money] NULL,
+	[descr] [nvarchar](512) NULL,
+	[abicaus] [varchar](4) NULL,
+	[cardid] [nvarchar](20) NULL
+) ON [PRIMARY]
+GO
+/****** Object:  View [dbo].[listaMovimentiSmac]    Script Date: 22/11/2024 18:24:23 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+
+
+CREATE view [dbo].[listaMovimentiSmac]
+as 
+SELECT dtmov
+      ,dtval
+	  , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
+	  , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
+      ,dare
+      ,avere
+      ,descr
+	  --,CASE
+	  --   WHEN CHARINDEX('84806', descr) > 0 THEN 'Claudio'
+	  --   WHEN CHARINDEX('85928', descr) > 0 THEN 'Eugenia'
+		 --ELSE null
+	  -- END as chipaga
+	  ,cardid
+      ,mo.abicaus
+	  ,ca.descrcaus
+	  ,ca.costo
+  FROM movimentiSmac mo
+    left outer join causali ca
+	  on mo.abicaus = ca.abicaus
+GO
+/****** Object:  Table [dbo].[movimentiWise]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -211,15 +309,21 @@ CREATE TABLE [dbo].[movimentiWise](
 	[dare] [money] NULL,
 	[avere] [money] NULL,
 	[descr] [nvarchar](512) NULL,
-	[abicaus] [varchar](4) NULL,
+	[abicaus] [nvarchar](512) NULL,
 	[cardid] [nvarchar](20) NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[listaMovimentiWise]    Script Date: 14/11/2024 18:26:24 ******/
+/****** Object:  View [dbo].[listaMovimentiWise]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
+
+
+
+
+
 
 CREATE view [dbo].[listaMovimentiWise]
 as 
@@ -243,7 +347,7 @@ SELECT dtmov
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
 GO
-/****** Object:  View [dbo].[ListaMovimentiUNION]    Script Date: 14/11/2024 18:26:24 ******/
+/****** Object:  View [dbo].[ListaMovimentiUNION]    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -253,7 +357,9 @@ GO
 
 
 
-CREATE   view [dbo].[ListaMovimentiUNION]
+
+
+CREATE     view [dbo].[ListaMovimentiUNION]
 as
 SELECT 'car' as tipo 
       ,dtmov
@@ -311,7 +417,7 @@ SELECT 'carCRD' as tipo
       ,costo
   FROM dbo.listaMovimentiCarispCredit
 UNION 
-SELECT 'wise' as tipo
+SELECT 'Wise' as tipo
       ,dtmov
       ,dtval
       ,movstr
@@ -324,6 +430,34 @@ SELECT 'wise' as tipo
       ,descrcaus
       ,costo
   FROM dbo.listaMovimentiWise
+UNION 
+SELECT 'Smac' as tipo
+      ,dtmov
+      ,dtval
+      ,movstr
+      ,valstr
+      ,dare
+      ,avere
+	  ,cardid
+      ,descr
+      ,abicaus
+      ,descrcaus
+      ,costo
+  FROM dbo.listaMovimentiSmac
+UNION 
+SELECT 'cont' as tipo
+      ,dtmov
+      ,dtval
+      ,movstr
+      ,valstr
+      ,dare
+      ,avere
+	  ,cardid
+      ,descr
+      ,abicaus
+      ,descrcaus
+      ,costo
+  FROM dbo.listaMovimentiContanti
 GO
 INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'0', N'Voci Generali', 0)
 GO
@@ -389,7 +523,7 @@ INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'Z9', N'Insolu
 GO
 INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZA', N'Insoluto MAV', 0)
 GO
-INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZB', N'Incasso certificati conformitaâ€™', 0)
+INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZB', N'Incasso certificati conformita’', 0)
 GO
 INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZC', N'Pagamento per fornitura elettrica', 0)
 GO
@@ -403,13 +537,13 @@ INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZG', N'Accred
 GO
 INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZH', N'Rimborso titoli e/o fondi comuni', 0)
 GO
-INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZI', N'Bonifico dallâ€™estero', 0)
+INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZI', N'Bonifico dall’estero', 0)
 GO
-INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZL', N'Bonifico sullâ€™estero', 0)
+INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZL', N'Bonifico sull’estero', 0)
 GO
-INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZM', N'Sconto effetti sullâ€™estero', 0)
+INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZM', N'Sconto effetti sull’estero', 0)
 GO
-INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZN', N'Negoziazione assegni sullâ€™estero', 0)
+INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZN', N'Negoziazione assegni sull’estero', 0)
 GO
 INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZP', N'Commissioni e spese su fideiussioni (Da utilizzare per operazioni estero e Italia)', 0)
 GO
@@ -425,7 +559,8 @@ INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZU', N'Bonifi
 GO
 INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZX', N'Bonifico oggetto di oneri deducibili o detrazioni di imposta', 0)
 GO
+
 USE [master]
 GO
-ALTER DATABASE [Banca2] SET  READ_WRITE 
+ALTER DATABASE [Banca] SET  READ_WRITE 
 GO

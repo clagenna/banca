@@ -51,18 +51,46 @@ public class TableViewFiller extends Task<String> {
       return ".. nulla da mostrare";
     }
     // creato semaforo altrimenti la "runlater" parte dopo la fillTableView
+    //    final boolean CON_THREAD = false;
+    //    if (CON_THREAD) {
+    //      Semaphore semaf = new Semaphore(0);
+    //      Platform.runLater(new Runnable() {
+    //        @Override
+    //        public void run() {
+    //          tableview.getItems().clear();
+    //          tableview.getColumns().clear();
+    //          creaTableView(m_dts);
+    //          semaf.release();
+    //        }
+    //      });
+    //      semaf.acquire();
+    clearColumsTableView();
+    creaTableView(m_dts);
+    //    } else {
+    //      creaTableView(m_dts);
+    //    }
+    fillTableView();
+    return "..Finito!";
+  }
+
+  private void clearColumsTableView() {
     Semaphore semaf = new Semaphore(0);
     Platform.runLater(new Runnable() {
       @Override
       public void run() {
-        creaTableView(m_dts);
+        tableview.getItems().clear();
+        tableview.getColumns().clear();
         semaf.release();
       }
     });
-    semaf.acquire();
-    fillTableView();
-    return "..Finito!";
+    try {
+      semaf.acquire();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+
   }
+
   //
   //  private TableView<List<Object>> openQuery(String szQryFltr) {
   //    szQry = szQryFltr;
@@ -95,11 +123,7 @@ public class TableViewFiller extends Task<String> {
   }
 
   private void creaTableView(Dataset p_dts) {
-    System.out.println("TableViewFiller.creaTableView()");
     DtsCols cols = p_dts.getColumns();
-    // tableview = new TableView<>();
-    tableview.getItems().clear();
-    tableview.getColumns().clear();
     int k = 0;
     for (DtsCol col : cols.getColumns()) {
       final int j = k++;
@@ -169,15 +193,15 @@ public class TableViewFiller extends Task<String> {
       case "String":
         return p_o;
       case "Integer":
-        if ( ((Integer) p_o) == 0)
+        if ((Integer) p_o == 0)
           return "";
         return p_o;
       case "Float":
-        if ( ((Float) p_o) == 0)
+        if ((Float) p_o == 0)
           return "";
         return p_o;
       case "Double":
-        if ( ((Double) p_o) == 0)
+        if ((Double) p_o == 0)
           return "";
         return p_o;
     }

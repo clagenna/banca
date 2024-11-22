@@ -52,7 +52,6 @@ public class ResultView implements Initializable, IStartApp {
   private static final String CSZ_PROP_POSRESVIEW_Y = "resview.y";
   private static final String CSZ_PROP_DIMRESVIEW_X = "resview.lx";
   private static final String CSZ_PROP_DIMRESVIEW_Y = "resview.ly";
-
   private static final String CSZ_QRY_TRUE = "1=1";
 
   @FXML

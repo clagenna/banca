@@ -1,5 +1,5 @@
 --
--- File generato con SQLiteStudio v3.4.4 su lun nov 11 17:36:19 2024
+-- File generato con SQLiteStudio v3.4.4 su ven nov 22 17:53:21 2024
 --
 -- Codifica del testo utilizzata: System
 --
@@ -613,9 +613,9 @@ CREATE TABLE IF NOT EXISTS movimentiCarispCredit (
     abicaus NVARCHAR (20)  DEFAULT NULL,
     cardid  NVARCHAR (20)  DEFAULT NULL
 );
+								   
 
-
--- Tabella: movimentiCarispCredit
+-- Tabella: movimentiWise
 CREATE TABLE IF NOT EXISTS movimentiWise (
     dtmov                  DEFAULT NULL,
     dtval                  DEFAULT NULL,
@@ -625,6 +625,33 @@ CREATE TABLE IF NOT EXISTS movimentiWise (
     abicaus NVARCHAR (20)  DEFAULT NULL,
     cardid  NVARCHAR (20)  DEFAULT NULL
 );
+
+
+-- Tabella: movimentiContanti
+CREATE TABLE IF NOT EXISTS movimentiContanti (
+    id      INTEGER        UNIQUE ON CONFLICT ROLLBACK,
+    dtmov                  DEFAULT NULL,
+    dtval                  DEFAULT NULL,
+    dare    FLOAT (19, 4)  DEFAULT NULL,
+    avere   FLOAT (19, 4)  DEFAULT NULL,
+    descr   NVARCHAR (512) DEFAULT NULL,
+    abicaus VARCHAR (20)   DEFAULT NULL,
+    cardid  NVARCHAR (20)  DEFAULT NULL
+);
+
+
+-- Tabella: movimentiSmac
+CREATE TABLE IF NOT EXISTS movimentiSmac (
+    id      INTEGER        UNIQUE ON CONFLICT ROLLBACK,
+    dtmov                  DEFAULT NULL,
+    dtval                  DEFAULT NULL,
+    dare    FLOAT (19, 4)  DEFAULT NULL,
+    avere   FLOAT (19, 4)  DEFAULT NULL,
+    descr   NVARCHAR (512) DEFAULT NULL,
+    abicaus VARCHAR (20)   DEFAULT NULL,
+    cardid  NVARCHAR (20)  DEFAULT NULL
+);
+
 
 -- Indice: indxMovCarCred
 CREATE INDEX IF NOT EXISTS indxMovCarCred ON movimentiCarispCredit (
@@ -707,9 +734,8 @@ CREATE VIEW IF NOT EXISTS listaMovimentiCARISPCredit AS
       FROM movimentiCarispCredit mo
            LEFT OUTER JOIN
            causali ca ON mo.abicaus = ca.abicaus;
-
-
--- Vista: listaMovimentiCARISPCredit
+												
+-- Vista: listaMovimentiWise
 CREATE VIEW IF NOT EXISTS listaMovimentiWise AS
     SELECT 'wise' AS tipo,
            dtmov,
@@ -724,6 +750,44 @@ CREATE VIEW IF NOT EXISTS listaMovimentiWise AS
            ca.descrcaus,
            ca.costo
       FROM movimentiWise mo
+           LEFT OUTER JOIN
+           causali ca ON mo.abicaus = ca.abicaus;
+
+
+-- Vista: ListaMovimentiContanti
+CREATE VIEW IF NOT EXISTS ListaMovimentiContanti AS
+    SELECT 'Cont' AS tipo,
+           dtmov,
+           dtval,
+           strftime('%Y.%m', mo.dtmov) AS movstr,
+           strftime('%Y.%m', mo.dtval) AS valstr,
+           dare,
+           avere,
+           cardid,
+           descr,
+           mo.abicaus,
+           ca.descrcaus,
+           ca.costo
+      FROM movimentiContanti mo
+           LEFT OUTER JOIN
+           causali ca ON mo.abicaus = ca.abicaus;
+
+
+-- Vista: ListaMovimentiSmac
+CREATE VIEW IF NOT EXISTS ListaMovimentiSmac AS
+    SELECT 'SMAC' AS tipo,
+           dtmov,
+           dtval,
+           strftime('%Y.%m', mo.dtmov) AS movstr,
+           strftime('%Y.%m', mo.dtval) AS valstr,
+           dare,
+           avere,
+           cardid,
+           descr,
+           mo.abicaus,
+           ca.descrcaus,
+           ca.costo
+      FROM movimentiSmac mo
            LEFT OUTER JOIN
            causali ca ON mo.abicaus = ca.abicaus;
 
@@ -798,7 +862,36 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
            abicaus,
            descrcaus,
            costo
-      FROM listaMovimentiWise;
+      FROM listaMovimentiWise
+    UNION
+    SELECT tipo,
+           dtmov,
+           dtval,
+           movstr,
+           valstr,
+           dare,
+           avere,
+           cardid,
+           descr,
+           abicaus,
+           descrcaus,
+           costo
+      FROM listaMovimentiContanti
+    UNION
+    SELECT tipo,
+           dtmov,
+           dtval,
+           movstr,
+           valstr,
+           dare,
+           avere,
+           cardid,
+           descr,
+           abicaus,
+           descrcaus,
+           costo
+      FROM listaMovimentiSmac;
+
 
 
 COMMIT TRANSACTION;
