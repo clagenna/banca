@@ -25,6 +25,8 @@ import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
+
+// FIXME Verificare quando nella SMAC c'e' "null-null'
 public class CsvImportBanca
     extends Task<String> /* implements Thread.UncaughtExceptionHandler */ {
   private static final Logger s_log = LogManager.getLogger(CsvImportBanca.class);
@@ -281,15 +283,12 @@ public class CsvImportBanca
     String descr = null;
     String caus = null;
     String cardid = null;
-    final String CAUS_INTERESSI = "18"; // interessi 
-    final String CAUS_RITENUTA = "19"; // fiscale
-    final String CAUS_STIPEND = "27"; // accredito
-    final String CAUS_PAGAMENTO = "43"; // accredito
-    final String OPER_Borsellino = "borsellino";
-    final String OPER_Fiscale = "fiscale";
-    final String OPER_Ricarica = "ricarica";
-    final String OPER_Spesa = "spesa";
-    final String OPER_Spesa_fiscale = "spesa fiscale";
+    
+    final String OPER_Borsellino = "borsellino"; // S5
+    final String OPER_Fiscale = "fiscale"; // S3
+    final String OPER_Ricarica = "ricarica"; // S4
+    final String OPER_Spesa = "spesa"; // s2
+    final String OPER_Spesa_fiscale = "spesa fiscale"; // S1
 
     Object val = getRowVal("dtmov", row);
     if (null == val) {
@@ -318,23 +317,23 @@ public class CsvImportBanca
       op = val.toString();
     switch (op.toLowerCase()) {
       case OPER_Borsellino:
-        caus = CAUS_STIPEND;
+        caus = "S5";  // !
         dare = 0.;
         break;
       case OPER_Fiscale:
-        caus = CAUS_RITENUTA;
+        caus = "S3";
         break;
       case OPER_Ricarica:
-        caus = CAUS_INTERESSI;
+        caus = "S4";
         break;
       case OPER_Spesa:
-        caus = CAUS_PAGAMENTO;
+        caus = "S2";
         break;
       case OPER_Spesa_fiscale:
-        caus = CAUS_RITENUTA;
+        caus = "S1";
         break;
       default:
-        caus = CAUS_PAGAMENTO;
+        caus = "S6";
         break;
     }
     cardid = this.cardIdent;

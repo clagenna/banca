@@ -74,6 +74,12 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   public static final String  CSZ_FILTER_FILES = "filter_files";
 
   private List<Log4jRow> m_liMsgs;
+  
+  @FXML
+  private MenuItem                     mnuGEstDati;
+  @FXML
+  private MenuItem                     mnuGEstOpzioni;
+  
 
   @FXML
   private TextField                     txDirExports;
@@ -169,7 +175,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         }
       }
     });
-
+    
     // -------- combo level -------
     if (props != null) {
       String sz = props.getProperty(CSZ_LOG_LEVEL);

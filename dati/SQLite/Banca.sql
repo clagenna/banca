@@ -16,555 +16,62 @@ CREATE TABLE IF NOT EXISTS causali (
                              DEFAULT NULL
 );
 
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '0',
-                        'Voci Generali',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '05',
-                        'Prelev. Bancomat',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '13',
-                        'Assegno',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '14',
-                        'Acquisto Titoli BSI',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '16',
-                        'Comissioni su pagamenti',
-                        1
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '17',
-                        'Assicurazione Bancaria',
-                        1
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '18',
-                        'Interessi Bancari',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '19',
-                        'Ritenute',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '22',
-                        'Diritti custodia Titoli',
-                        1
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '26',
-                        'Bonifico',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '27',
-                        'Stipendio/pensione',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '34',
-                        'Estinzioni conto previd.',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '43',
-                        'Pagamento POS',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '45',
-                        'Pagamento Carta Credito',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '48',
-                        'Versamento con Bonifico',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '5',
-                        'Prelev. Bancomat',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '50',
-                        'RID Rapporto Interbancario Diretto',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '66',
-                        'Canoni vari',
-                        1
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '68',
-                        'Storni vari',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '83',
-                        'Iscriz. Fondi',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        '84',
-                        'Rimborso Titoli',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'Y1',
-                        'Anticipazioni su fatture Italia',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'Z1',
-                        'Disposizioni di giro di cash pooling',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'Z2',
-                        'Versamento di assegni bancari, assegni di conto corrente postale',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'Z3',
-                        'Versamento di assegni circolari emessi da altre banche',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'Z4',
-                        'Versamento di assegni postali non standardizzati',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'Z5',
-                        'Versamento indiretto. Versamento di contante e/o assegni eseguito da soggetto diverso dal titolare del conto',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'Z6',
-                        'Prelevamento eseguito da soggetto diverso dal titolare del conto',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'Z7',
-                        'Accredito RID',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'Z8',
-                        'Accredito MAV',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'Z9',
-                        'Insoluto/storno RID',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZA',
-                        'Insoluto MAV',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZB',
-                        'Incasso certificati conformita’',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZC',
-                        'Pagamento per fornitura elettrica',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZD',
-                        'Pagamento per servizio telefonico',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZE',
-                        'Pagamento per servizi acqua/gas',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZF',
-                        'Pagamento per operazioni su prodotti derivati',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZG',
-                        'Accredito per operazioni su prodotti derivati',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZH',
-                        'Rimborso titoli e/o fondi comuni',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZI',
-                        'Bonifico dall’estero',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZL',
-                        'Bonifico sull’estero',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZM',
-                        'Sconto effetti sull’estero',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZN',
-                        'Negoziazione assegni sull’estero',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZP',
-                        'Commissioni e spese su fideiussioni (Da utilizzare per operazioni estero e Italia)',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZQ',
-                        'Commissioni e spese su crediti documentari',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZR',
-                        'Penali',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZS',
-                        'Erogazione prestiti personali e finanziamenti diversi',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZT',
-                        'Pagamento/incasso bollettino bancario',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZU',
-                        'Bonifico per previdenza complementare',
-                        0
-                    );
-
-INSERT INTO causali (
-                        abicaus,
-                        descrcaus,
-                        costo
-                    )
-                    VALUES (
-                        'ZX',
-                        'Bonifico oggetto di oneri deducibili o detrazioni di imposta',
-                        0
-                    );
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'0', N'Voci Generali', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'05', N'Prelev. Bancomat', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'13', N'Assegno', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'14', N'Acquisto Titoli BSI', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'16', N'Comissioni su pagamenti', 1);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'17', N'Assicurazione Bancaria', 1);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'18', N'Interessi Bancari', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'19', N'Ritenute', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'22', N'Diritti custodia Titoli', 1);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'26', N'Bonifico', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'27', N'Stipendio/pensione', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'34', N'Estinzioni conto previd.', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'43', N'Pagamento POS', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'45', N'Pagamento Carta Credito', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'48', N'Versamento con Bonifico', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'5', N'Prelev. Bancomat', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'50', N'RID Rapporto Interbancario Diretto', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'66', N'Canoni vari', 1);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'68', N'Storni vari', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'83', N'Iscriz. Fondi', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'84', N'Rimborso Titoli', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'S1', N'SMAC - Pagamento con SMAC', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'S2', N'SMAC - Pagamento con SMAC con Ricarica', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'S3', N'SMAC - SMAC Fiscale', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'S4', N'SMAC - Ricarica su SMAC', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'S5', N'SMAC - Accredito su SMAC', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'S6', N'SMAC - Manca la decodificata ', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'Y1', N'Anticipazioni su fatture Italia', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'Z1', N'Disposizioni di giro di cash pooling', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'Z2', N'Versamento di assegni bancari, assegni di conto corrente postale', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'Z3', N'Versamento di assegni circolari emessi da altre banche', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'Z4', N'Versamento di assegni postali non standardizzati', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'Z5', N'Versamento indiretto. Versamento di contante e/o assegni eseguito da soggetto diverso dal titolare del conto', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'Z6', N'Prelevamento eseguito da soggetto diverso dal titolare del conto', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'Z7', N'Accredito RID', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'Z8', N'Accredito MAV', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'Z9', N'Insoluto/storno RID', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZA', N'Insoluto MAV', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZB', N'Incasso certificati conformita’', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZC', N'Pagamento per fornitura elettrica', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZD', N'Pagamento per servizio telefonico', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZE', N'Pagamento per servizi acqua/gas', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZF', N'Pagamento per operazioni su prodotti derivati', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZG', N'Accredito per operazioni su prodotti derivati', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZH', N'Rimborso titoli e/o fondi comuni', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZI', N'Bonifico dall’estero', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZL', N'Bonifico sull’estero', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZM', N'Sconto effetti sull’estero', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZN', N'Negoziazione assegni sull’estero', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZP', N'Commissioni e spese su fideiussioni (Da utilizzare per operazioni estero e Italia)', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZQ', N'Commissioni e spese su crediti documentari', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZR', N'Penali', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZS', N'Erogazione prestiti personali e finanziamenti diversi', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZT', N'Pagamento/incasso bollettino bancario', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZU', N'Bonifico per previdenza complementare', 0);
+INSERT causali (abicaus, descrcaus, costo) VALUES (N'ZX', N'Bonifico oggetto di oneri deducibili o detrazioni di imposta', 0);
 
 
 -- Tabella: movimentiBSI

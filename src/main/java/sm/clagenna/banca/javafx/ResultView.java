@@ -34,6 +34,8 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,6 +46,7 @@ import sm.clagenna.stdcla.sys.ex.DatasetException;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 
+// FIXME Emettere un errore su clausola WHERE sbagliata
 public class ResultView implements Initializable, IStartApp {
   private static final Logger s_log = LogManager.getLogger(ResultView.class);
 
@@ -52,7 +55,7 @@ public class ResultView implements Initializable, IStartApp {
   private static final String CSZ_PROP_POSRESVIEW_Y = "resview.y";
   private static final String CSZ_PROP_DIMRESVIEW_X = "resview.lx";
   private static final String CSZ_PROP_DIMRESVIEW_Y = "resview.ly";
-  private static final String CSZ_QRY_TRUE = "1=1";
+  private static final String CSZ_QRY_TRUE          = "1=1";
 
   @FXML
   private ComboBox<String>  cbTipoBanca;
@@ -200,6 +203,36 @@ public class ResultView implements Initializable, IStartApp {
     }
     //    double spltPos = Double.valueOf(p_props.getProperty(CSZ_PROP_SPLITPOS));
     //    spltPane.setDividerPositions(spltPos);
+    // vedi : https://stackoverflow.com/questions/25397742/javafx-keyboard-event-shortcut-key
+    //    myScene.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+    //      public void handle(KeyEvent ke) {
+    //        if (ke.getCode() == KeyCode.ESCAPE) {
+    //          System.out.println("Key Pressed: " + ke.getCode());
+    //          // ke.consume();
+    //        }
+    //      }
+    //    });
+    myScene.addEventFilter(KeyEvent.KEY_PRESSED, ev -> gestKey(ev));
+    //    myScene.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+    //      final KeyCombination keyComb = new KeyCodeCombination(KeyCode.ESCAPE, KeyCombination.CONTROL_DOWN);
+    //
+    //      public void handle(KeyEvent ke) {
+    //        if (keyComb.match(ke)) {
+    //          System.out.println("Key Pressed: " + keyComb);
+    //          ke.consume(); // <-- stops passing the event to next node
+    //        }
+    //      }
+    //    });
+
+  }
+
+  private Object gestKey(KeyEvent ev) {
+    // System.out.printf("ResultView.gestKey(%s)\n", ev.toString());
+    if (/* ev.isControlDown() && */ ev.getCode() == KeyCode.ENTER) {
+      ev.consume();
+      btCercaClick(null);
+    }
+    return null;
   }
 
   @Override

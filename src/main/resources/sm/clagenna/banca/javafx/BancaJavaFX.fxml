@@ -12,6 +12,7 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -21,21 +22,33 @@
 	      <menus>
 	        <Menu mnemonicParsing="false" text="File">
 	          <items>
-	            <MenuItem mnemonicParsing="false" onAction="#mnuRescanDirs" text="Rescan Dir" />
+	            <MenuItem mnemonicParsing="false" onAction="#mnuRescanDirs" text="Rescan Dir">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
 	                  <SeparatorMenuItem mnemonicParsing="false" />
 	            <MenuItem mnemonicParsing="false" onAction="#mnuExitClick" text="Quit" />
 	          </items>
 	        </Menu>
             <Menu mnemonicParsing="false" text="Gestione">
               <items>
-                <MenuItem mnemonicParsing="false" onAction="#mnuConfOpzioniClick" text="Opzioni" />
-                  <MenuItem mnemonicParsing="false" onAction="#mnuConfMostraDatiClick" text="Mostra Dati" />
-                  <MenuItem mnemonicParsing="false" onAction="#mnuMostraViewContantiClick" text="Gestione Contanti" />
+                <MenuItem fx:id="mnuGEstOpzioni" mnemonicParsing="false" onAction="#mnuConfOpzioniClick" text="Opzioni">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <MenuItem fx:id="mnuGEstDati" mnemonicParsing="false" onAction="#mnuConfMostraDatiClick" text="Mostra Dati">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="D" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#mnuMostraViewContantiClick" text="Gestione Contanti">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+                     </accelerator></MenuItem>
               </items>
             </Menu>
 	        <Menu mnemonicParsing="false" text="Help">
 	          <items>
-	            <MenuItem mnemonicParsing="false" text="Circa LoadAASS" />
+	            <MenuItem mnemonicParsing="false" text="Circa Gest. Banche" />
 	          </items>
 	        </Menu>
 	      </menus>

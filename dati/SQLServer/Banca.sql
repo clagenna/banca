@@ -501,6 +501,18 @@ INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'83', N'Iscriz
 GO
 INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'84', N'Rimborso Titoli', 0)
 GO
+INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'S1', N'SMAC - Pagamento con SMAC', 0)
+GO
+INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'S2', N'SMAC - Pagamento con SMAC con Ricarica', 0)
+GO
+INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'S3', N'SMAC - SMAC Fiscale', 0)
+GO
+INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'S4', N'SMAC - Ricarica su SMAC', 0)
+GO
+INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'S5', N'SMAC - Accredito su SMAC', 0)
+GO
+INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'S6', N'SMAC - Manca la decodificata ', 0)
+GO
 INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'Y1', N'Anticipazioni su fatture Italia', 0)
 GO
 INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'Z1', N'Disposizioni di giro di cash pooling', 0)
@@ -559,6 +571,7 @@ INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZU', N'Bonifi
 GO
 INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZX', N'Bonifico oggetto di oneri deducibili o detrazioni di imposta', 0)
 GO
+
 
 USE [master]
 GO
