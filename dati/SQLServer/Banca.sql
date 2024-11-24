@@ -5,8 +5,8 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[movimentiBSI](
-	[dtmov] [date] NULL,
-	[dtval] [date] NULL,
+	[dtmov] [datetime] NULL,
+	[dtval] [datetime] NULL,
 	[dare] [money] NULL,
 	[avere] [money] NULL,
 	[descr] [nvarchar](512) NULL,
@@ -66,8 +66,8 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[movimentiCarisp](
-	[dtmov] [date] NULL,
-	[dtval] [date] NULL,
+	[dtmov] [datetime] NULL,
+	[dtval] [datetime] NULL,
 	[dare] [money] NULL,
 	[avere] [money] NULL,
 	[descr] [nvarchar](512) NULL,
@@ -112,8 +112,8 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[movimentiBSICredit](
-	[dtmov] [date] NULL,
-	[dtval] [date] NULL,
+	[dtmov] [datetime] NULL,
+	[dtval] [datetime] NULL,
 	[dare] [money] NULL,
 	[avere] [money] NULL,
 	[descr] [nvarchar](512) NULL,
@@ -159,8 +159,8 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[movimentiCarispCredit](
-	[dtmov] [date] NULL,
-	[dtval] [date] NULL,
+	[dtmov] [datetime] NULL,
+	[dtval] [datetime] NULL,
 	[dare] [money] NULL,
 	[avere] [money] NULL,
 	[descr] [nvarchar](512) NULL,
@@ -208,8 +208,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[movimentiContanti](
 	[id] [int] NOT NULL,
-	[dtmov] [date] NULL,
-	[dtval] [date] NULL,
+	[dtmov] [datetime] NULL,
+	[dtval] [datetime] NULL,
 	[dare] [money] NULL,
 	[avere] [money] NULL,
 	[descr] [nvarchar](512) NULL,
@@ -257,8 +257,8 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[movimentiSmac](
-	[dtmov] [date] NULL,
-	[dtval] [date] NULL,
+	[dtmov] [datetime] NULL,
+	[dtval] [datetime] NULL,
 	[dare] [money] NULL,
 	[avere] [money] NULL,
 	[descr] [nvarchar](512) NULL,
@@ -304,8 +304,8 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[movimentiWise](
-	[dtmov] [date] NULL,
-	[dtval] [date] NULL,
+	[dtmov] [datetime] NULL,
+	[dtval] [datetime] NULL,
 	[dare] [money] NULL,
 	[avere] [money] NULL,
 	[descr] [nvarchar](512) NULL,
@@ -571,6 +571,87 @@ INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZU', N'Bonifi
 GO
 INSERT [dbo].[causali] ([abicaus], [descrcaus], [costo]) VALUES (N'ZX', N'Bonifico oggetto di oneri deducibili o detrazioni di imposta', 0)
 GO
+
+CREATE  INDEX IX_MovBSI_dtMov ON dbo.movimentiBSI ( dtmov ASC )
+    WITH (PAD_INDEX = OFF
+        , STATISTICS_NORECOMPUTE = OFF
+        , SORT_IN_TEMPDB = OFF
+        , DROP_EXISTING = OFF
+        , ONLINE = OFF
+        , ALLOW_ROW_LOCKS = ON
+        , ALLOW_PAGE_LOCKS = ON
+        , OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
+GO
+
+CREATE  INDEX IX_MovBSICredit_dtMov ON dbo.movimentiBSICredit ( dtmov ASC )
+    WITH (PAD_INDEX = OFF
+        , STATISTICS_NORECOMPUTE = OFF
+        , SORT_IN_TEMPDB = OFF
+        , DROP_EXISTING = OFF
+        , ONLINE = OFF
+        , ALLOW_ROW_LOCKS = ON
+        , ALLOW_PAGE_LOCKS = ON
+        , OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
+GO
+
+CREATE  INDEX IX_MovCarisp_dtMov ON dbo.movimentiCarisp ( dtmov ASC )
+    WITH (PAD_INDEX = OFF
+        , STATISTICS_NORECOMPUTE = OFF
+        , SORT_IN_TEMPDB = OFF
+        , DROP_EXISTING = OFF
+        , ONLINE = OFF
+        , ALLOW_ROW_LOCKS = ON
+        , ALLOW_PAGE_LOCKS = ON
+        , OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
+GO
+
+CREATE  INDEX IX_MovCarispCredit_dtMov ON dbo.movimentiCarispCredit ( dtmov ASC )
+    WITH (PAD_INDEX = OFF
+        , STATISTICS_NORECOMPUTE = OFF
+        , SORT_IN_TEMPDB = OFF
+        , DROP_EXISTING = OFF
+        , ONLINE = OFF
+        , ALLOW_ROW_LOCKS = ON
+        , ALLOW_PAGE_LOCKS = ON
+        , OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
+GO
+
+CREATE  INDEX IX_MovContanti_dtMov ON dbo.movimentiContanti ( dtmov ASC )
+    WITH (PAD_INDEX = OFF
+        , STATISTICS_NORECOMPUTE = OFF
+        , SORT_IN_TEMPDB = OFF
+        , DROP_EXISTING = OFF
+        , ONLINE = OFF
+        , ALLOW_ROW_LOCKS = ON
+        , ALLOW_PAGE_LOCKS = ON
+        , OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
+GO
+
+CREATE  INDEX IX_MovSmac_dtMov ON dbo.movimentiSmac ( dtmov ASC )
+    WITH (PAD_INDEX = OFF
+        , STATISTICS_NORECOMPUTE = OFF
+        , SORT_IN_TEMPDB = OFF
+        , DROP_EXISTING = OFF
+        , ONLINE = OFF
+        , ALLOW_ROW_LOCKS = ON
+        , ALLOW_PAGE_LOCKS = ON
+        , OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
+GO
+        
+CREATE  INDEX IX_MovWise_dtMov ON dbo.movimentiWise ( dtmov ASC )
+    WITH (PAD_INDEX = OFF
+        , STATISTICS_NORECOMPUTE = OFF
+        , SORT_IN_TEMPDB = OFF
+        , DROP_EXISTING = OFF
+        , ONLINE = OFF
+        , ALLOW_ROW_LOCKS = ON
+        , ALLOW_PAGE_LOCKS = ON
+        , OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
+GO
+
+
+
+
 
 
 USE [master]

@@ -179,8 +179,8 @@ public class SqlServerGest implements ISQLGest {
       String szCaus = p_rig.getCaus();
       if (null != szCaus)
         szCaus = szCaus.replace(".0", "");
-      dbconn.setStmtDate(stmtIns, k++, p_rig.getDtmov());
-      dbconn.setStmtDate(stmtIns, k++, p_rig.getDtval());
+      dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtmov());
+      dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtval());
       dbconn.setStmtImporto(stmtIns, k++, p_rig.getDare());
       dbconn.setStmtImporto(stmtIns, k++, p_rig.getAvere());
       dbconn.setStmtString(stmtIns, k++, p_rig.getDescr());
