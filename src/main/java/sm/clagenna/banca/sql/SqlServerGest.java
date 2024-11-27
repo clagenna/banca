@@ -29,6 +29,7 @@ public class SqlServerGest implements ISQLGest {
   private static final String QRY_LIST_CARDHOLD = "SELECT DISTINCT cardid FROM ListaMovimentiUNION WHERE cardid IS NOT NULL AND LEN(RTRIM(cardid)) > 0  ORDER BY cardid";
   private static final String QRY_LIST_VIEWS    = "SELECT name FROM sys.views ORDER BY name";
   private static final String QRY_VIEW_PATT     = "SELECT * from %s WHERE 1=1 ORDER BY dtMov,dtval";
+  private static final String QRY_IDMAX_CONT    = "SELECT MAX(id) FROM movimentiContanti";
 
   private static final String QRY_INS_Mov =     //
       "INSERT INTO dbo.movimenti%s"             //
@@ -52,6 +53,7 @@ public class SqlServerGest implements ISQLGest {
       "DELETE FROM dbo.movimenti%s"           //
           + " WHERE 1=1";                     //
   private PreparedStatement   stmtDel;
+  private PreparedStatement   stmtMaxId;
 
   @Getter @Setter
   private String  tableName;
@@ -162,10 +164,17 @@ public class SqlServerGest implements ISQLGest {
   @Override
   public boolean insertMovimento(String p_tab, RigaBanca p_rig) {
     boolean bRet = false;
+    boolean bIsConID = p_tab.equals("contanti");
+    int idNew = -1;
     // TimerMeter tm = new TimerMeter("Insert");
     try {
       if (null == stmtIns) {
         String qry = String.format(QRY_INS_Mov, p_tab);
+        if (bIsConID) {
+          // aggiungo colonna "id"
+          qry = qry.replace("(dtmov", "(id,dtmov");
+          qry = qry.replace("(?", "(?,?");
+        }
         Connection conn = dbconn.getConn();
         stmtIns = conn.prepareStatement(qry.toString());
       }
@@ -175,10 +184,14 @@ public class SqlServerGest implements ISQLGest {
     }
 
     try {
-      int k = 1;
       String szCaus = p_rig.getCaus();
       if (null != szCaus)
         szCaus = szCaus.replace(".0", "");
+      int k = 1;
+      if (bIsConID) {
+        idNew = trovaMaxIdContanti();
+        stmtIns.setInt(idNew, k++);
+      }
       dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtmov());
       dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtval());
       dbconn.setStmtImporto(stmtIns, k++, p_rig.getDare());
@@ -193,6 +206,29 @@ public class SqlServerGest implements ISQLGest {
     }
     // System.out.println(tm.stop());
     return bRet;
+  }
+
+  @Override
+  public int trovaMaxIdContanti() {
+    if (null == stmtMaxId) {
+      try {
+        Connection conn = dbconn.getConn();
+        stmtMaxId = conn.prepareStatement(QRY_IDMAX_CONT);
+      } catch (SQLException e) {
+        s_log.error("Errore prep statement IDMAX on contanti with err={}", e.getMessage());
+        return -1;
+      }
+    }
+    int retV = -1;
+    try {
+      ResultSet res = stmtMaxId.executeQuery();
+      while (res.next()) {
+        retV = res.getInt(1) + 1;
+      }
+    } catch (SQLException e) {
+      s_log.error("Errore IDMAX on contanti with err={}", e.getMessage());
+    }
+    return retV;
   }
 
   @Override

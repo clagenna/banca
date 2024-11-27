@@ -34,6 +34,8 @@ public interface ISQLGest {
   List<String> getListCausABI();
 
   String getDescrCausABI(String causABI);
+  
+  int trovaMaxIdContanti();
 
   Map<String, String> getListDBViews();
 

@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.stdcla.utils.Utils;
 
 public class RigaBanca {
   @Getter @Setter
@@ -14,9 +15,9 @@ public class RigaBanca {
   @Getter @Setter
   private LocalDateTime dtval;
   @Getter @Setter
-  private double        dare;
+  private Double        dare;
   @Getter
-  private double        avere;
+  private Double        avere;
   @Getter
   private String        descr;
   @Getter @Setter
@@ -88,5 +89,23 @@ public class RigaBanca {
     descr = null;
     caus = null;
     cardid = null;
+  }
+
+  public boolean isValido() {
+    if ( !Utils.isValue(id))
+      return false;
+    if ( !Utils.isValue(dtmov))
+      return false;
+    if ( !Utils.isValue(dtval))
+      return false;
+    if (null == dare || null == avere)
+      return false;
+    if (dare == 0 && avere == 0)
+      return false;
+    if ( !Utils.isValue(descr))
+      return false;
+    if ( !Utils.isValue(caus))
+      return false;
+    return true;
   }
 }

@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -25,7 +26,6 @@ import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-
 // FIXME Verificare quando nella SMAC c'e' "null-null'
 public class CsvImportBanca
     extends Task<String> /* implements Thread.UncaughtExceptionHandler */ {
@@ -44,6 +44,8 @@ public class CsvImportBanca
   @Getter
   private List<RigaBanca>           righeBanca;
   private DBConn                    dbconn;
+  @Getter
+  private DataController            cntrl;
 
   public CsvImportBanca() {
     init();
@@ -58,13 +60,14 @@ public class CsvImportBanca
     // i CSV degli export Welly/BSI sono in Locale.US
     Utils.setLocale(Locale.ITALY);
     nomiCols = new HashMap<>();
-    nomiCols.put("dtmov", Arrays.asList(new String[] { "data", "Data transazione", "Created on", "" }));
-    nomiCols.put("dtval", Arrays.asList(new String[] { "valuta", "Data contabile", "Finished on" }));
+    nomiCols.put("dtmov", Arrays.asList(new String[] { "dtmov", "data", "Data transazione", "Created on", "" }));
+    nomiCols.put("dtval", Arrays.asList(new String[] { "dtval", "valuta", "Data contabile", "Finished on" }));
     nomiCols.put("dare", Arrays.asList(new String[] { "dare", "importo", "Source amount (after fees)" }));
     nomiCols.put("avere", Arrays.asList(new String[] { "avere", "*no*", "*no*" }));
-    nomiCols.put("descr", Arrays.asList(new String[] { "causale", "descrizione", "Target name", "Esercente" }));
-    nomiCols.put("caus", Arrays.asList(new String[] { "causale abi", "categoria", "ID" }));
+    nomiCols.put("descr", Arrays.asList(new String[] { "descr", "causale", "descrizione", "Target name", "Esercente" }));
+    nomiCols.put("caus", Arrays.asList(new String[] { "causabi", "causale abi", "categoria", "ID" }));
 
+    cntrl = DataController.getInst();
     // Thread.setDefaultUncaughtExceptionHandler(this);
   }
 
@@ -106,7 +109,7 @@ public class CsvImportBanca
           break;
         case ".xls":
         case ".xlsx":
-          setTipoFile("smac");
+          setTipoFile(szExt.toLowerCase().replace(".", ""));
           dtsCsv = dts.readexcel(csvFile);
       }
       s_log.debug("Readed {} recs from {}", dtsCsv.size(), getCsvFile().toString());
@@ -119,7 +122,8 @@ public class CsvImportBanca
     DataController dtc = DataController.getInst();
     String szDbType = dtc.getDBType();
     ISQLGest sqlg = SqlGestFactory.get(szDbType);
-    s_log.debug("Save CSV file {} su DB({}) over={}", getCsvFile().toString(), szDbType, dtc.isOverwrite());
+    s_log.info("Scrivo file {} di {} recs su DB({}) over={}", getCsvFile().toString(), getRigheBanca().size(), szDbType,
+        dtc.isOverwrite());
     sqlg.setDbconn(dbconn);
     sqlg.setTableName(getSqlTableName());
     sqlg.setDbconn(dbconn);
@@ -159,6 +163,8 @@ public class CsvImportBanca
         sqlTableName = "bsi";
       if (sz.contains("cari"))
         sqlTableName = "carisp";
+      if (sz.contains("contant"))
+        sqlTableName = "contanti";
       if (sz.contains("cred"))
         sqlTableName += "Credit";
       if (sz.contains("tpay"))
@@ -189,12 +195,15 @@ public class CsvImportBanca
       throw new UnsupportedOperationException("CSV dataset not opened !");
     righeBanca = new ArrayList<RigaBanca>();
     for (DtsRow row : dtsCsv.getRighe()) {
-      switch (tipoFile) {
+      switch (sqlTableName) {
         case "wise":
           studiaRigaWise(row);
           break;
         case "smac":
           studiaRigaSmac(row);
+          break;
+        case "contanti":
+          studiaRigaContanti(row);
           break;
         default:
           studiaRiga(row);
@@ -283,7 +292,7 @@ public class CsvImportBanca
     String descr = null;
     String caus = null;
     String cardid = null;
-    
+
     final String OPER_Borsellino = "borsellino"; // S5
     final String OPER_Fiscale = "fiscale"; // S3
     final String OPER_Ricarica = "ricarica"; // S4
@@ -317,7 +326,8 @@ public class CsvImportBanca
       op = val.toString();
     switch (op.toLowerCase()) {
       case OPER_Borsellino:
-        caus = "S5";  // !
+        descr = "Ricarica";
+        caus = "S5"; // !
         dare = 0.;
         break;
       case OPER_Fiscale:
@@ -338,16 +348,65 @@ public class CsvImportBanca
     }
     cardid = this.cardIdent;
     val = row.get("Esercente");
-    if (null == val) {
+    if (null != val)
+      descr = val.toString().replace("\"", "");
+    if (null == descr) {
       s_log.debug("Scarto riga SMAC: {}", row.toString());
       return;
     }
-    descr = val.toString().replace("\"", "");
 
     RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid);
     if (null != cardIdent)
       rigb.setCardid(cardIdent);
     righeBanca.add(rigb);
+  }
+
+  private void studiaRigaContanti(DtsRow row) {
+    RigaBanca rb = new RigaBanca();
+    Object val = getRowVal("dtmov", row);
+    if (null == val) {
+      s_log.warn("Scarto riga contante: {}", row.toString());
+      return;
+    }
+    if (val instanceof Double dbl) {
+      Date dt = new Date();
+      dt.setTime(dbl.longValue());
+      System.out.println("CsvImportBanca.studiaRigaContanti():" + dt.toString());
+    }
+    rb.setDtmov(ParseData.parseData(val.toString()));
+    rb.setDtval(rb.getDtmov());
+
+    val = getRowVal("dare", row);
+    double dbl = 0.;
+    if (null == val || val.toString().length() == 0)
+      dbl = 0.;
+    else if (val instanceof Double dou)
+      dbl = dou;
+    else
+      dbl = Utils.parseDouble(val.toString());
+    rb.setDare(dbl);
+
+    dbl = 0.;
+    val = getRowVal("avere", row);
+    if (null == val || val.toString().length() == 0) {
+      dbl = 0.;
+    } else if (val instanceof Double dou)
+      dbl = dou;
+    else
+      dbl = Utils.parseDouble(val.toString());
+    rb.setAvere(dbl);
+
+    val = getRowVal("descr", row);
+    if (null == val) {
+      s_log.warn("Scarto riga contante: {}", row.toString());
+      return;
+    }
+    rb.setDescr(val.toString());
+    rb.setCaus("CO");
+
+    if (null != cardIdent)
+      rb.setCardid(cardIdent);
+    righeBanca.add(rb);
   }
 
   private void studiaRiga(DtsRow row) {
@@ -398,6 +457,10 @@ public class CsvImportBanca
       return;
     }
     descr = val.toString();
+    if (cntrl.scartaVoce(descr)) {
+      s_log.debug("Scarto voce riga : {}", row.toString());
+      return;
+    }
 
     val = getRowVal("caus", row);
     if (null != val)

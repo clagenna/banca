@@ -5,14 +5,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -43,17 +48,39 @@ public class ViewContanti implements Initializable, IStartApp {
   private static final String CSZ_PROP_SPLITPOS      = "ViewCont.spltpos";
   private static final String CSZ_AND                = " and ";
   private static final String CSZ_QRY_TRUE           = "1=1";
-  private static final String CSZ_QRY_MOVIMALL       = "SELECT * FROM dbo.MovimentiContanti WHERE 1=1 ORDER BY dtmov";
-  private static final String CSZ_QRY_INS            =                                                                //
-      "UPDATE movimentiContanti"                                                                                      //
-          + "  SET dtmov=?"                                                                                           //
-          + "     ,dtval=?"                                                                                           //
-          + "     ,dare=?"                                                                                            //
-          + "     ,avere=?"                                                                                           //
-          + "     ,descr=?"                                                                                           //
-          + "     ,abicaus=?"                                                                                         //
-          + "     ,cardid=?"                                                                                         //
+  private static final String CSZ_QRY_MOVIMALL       = "SELECT "                                //
+      + "id,"                                                                                   //
+      + "dtmov,"                                                                                //
+      + "dtval,"                                                                                //
+      + "dare,"                                                                                 //
+      + "avere,"                                                                                //
+      + "descr,"                                                                                //
+      + "abicaus,"                                                                              //
+      + "cardid"                                                                                //
+      + " FROM MovimentiContanti WHERE 1=1 ORDER BY dtmov";
+  private static final String CSZ_QRY_INS            =                                          //
+      "INSERT INTO movimentiContanti"                                                           //
+          + "           (id"                                                                    //
+          + "           ,dtmov"                                                                 //
+          + "           ,dtval"                                                                 //
+          + "           ,dare"                                                                  //
+          + "           ,avere"                                                                 //
+          + "           ,descr"                                                                 //
+          + "           ,abicaus"                                                               //
+          + "           ,cardid)"                                                               //
+          + "     VALUES (?,?,?,?,?,?,?,?)";
+  private static final String CSZ_QRY_MOD            =                                          //
+      "UPDATE movimentiContanti"                                                                //
+          + "  SET dtmov=?"                                                                     //
+          + "     ,dtval=?"                                                                     //
+          + "     ,dare=?"                                                                      //
+          + "     ,avere=?"                                                                     //
+          + "     ,descr=?"                                                                     //
+          + "     ,abicaus=?"                                                                   //
+          + "     ,cardid=?"                                                                    //
           + "  WHERE id=?";
+  private static final String CSZ_QRY_DEL            =                                          //
+      "DELETE FROM movimentiContanti WHERE id=?";
 
   @FXML
   private SplitPane               spltPane;
@@ -77,10 +104,12 @@ public class ViewContanti implements Initializable, IStartApp {
   private TextField               txDescr;
   @FXML
   private Button                  btCerca;
-  @FXML
-  private Button                  btModifica;
-  @FXML
-  private Button                  btElimina;
+  //  @FXML
+  //  private Button                  btInsert;
+  //  @FXML
+  //  private Button                  btModifica;
+  //  @FXML
+  //  private Button                  btElimina;
 
   @FXML
   private TableView<List<Object>> tblview;
@@ -88,24 +117,18 @@ public class ViewContanti implements Initializable, IStartApp {
   private Label                   lblMesg;
 
   @Getter @Setter
-  private Scene            myScene;
-  private Stage            lstage;
-  private LoadBancaMainApp m_appmain;
-  private AppProperties    m_mainProps;
-  private ISQLGest         m_db;
-  private EModalitaView    modalita;
-  private TableViewFiller  m_tbvf;
-  //
-  //  private Integer           id;
-  //  private LocalDateTime     dtmov;
-  //  private LocalDateTime     dtval;
-  //  private Double            dare;
-  //  private Double            avere;
-  //  private String            descr;
-  //  private String            caus;
-  //  private String            cardid;
+  private Scene             myScene;
+  private Stage             lstage;
+  private LoadBancaMainApp  m_appmain;
+  private AppProperties     m_mainProps;
+  private ISQLGest          m_db;
+  private EModalitaView     modalita;
+  private TableViewFiller   m_tbvf;
   private RigaBanca         contante;
   private PreparedStatement stmtIns;
+  private PreparedStatement stmtMod;
+  private PreparedStatement stmtDel;
+  private String            szQryWhere;
 
   public ViewContanti() {
     //
@@ -153,13 +176,18 @@ public class ViewContanti implements Initializable, IStartApp {
     double spltPos = p_props.getDoubleProperty(CSZ_PROP_SPLITPOS, -1.);
     if (spltPos > 0.)
       spltPane.setDividerPositions(spltPos);
+    modalita = EModalitaView.Ricerca;
+    btCerca.setText("Cerca");
+    URL url = m_appmain.getUrlCSS();
+    if (null != url)
+      myScene.getStylesheets().add(url.toExternalForm());
   }
 
   private void caricaComboModalita() {
     cbModalita.getItems().clear();
     cbModalita.getItems().add((EModalitaView) null);
     cbModalita.getItems().addAll(EModalitaView.values());
-    modalita = null;
+    cbModalita.getSelectionModel().select(modalita);
   }
 
   private void caricaComboCausABI() {
@@ -183,6 +211,10 @@ public class ViewContanti implements Initializable, IStartApp {
     });
     txDtmov.textProperty().addListener((ob, old, nv) -> {
       contante.setDtmov(ParseData.guessData(nv));
+      if (null == contante.getDtval()) {
+        if (null != nv && nv.length() >= 10)
+          txDtval.setText(nv);
+      }
     });
     txDtval.textProperty().addListener((ob, old, nv) -> {
       contante.setDtval(ParseData.guessData(nv));
@@ -198,47 +230,94 @@ public class ViewContanti implements Initializable, IStartApp {
     });
     cbProprietario.getSelectionModel().selectedItemProperty().addListener((opt, old, nv) -> {
       contante.setCardid(nv);
-    }); 
+    });
     cbCausABI.getSelectionModel().selectedItemProperty().addListener((opt, old, nv) -> {
       contante.setCaus(estraiCausABI(nv));
-    }); 
+    });
   }
 
   private void updateRowList() {
     List<Object> row = tblview.getSelectionModel().getSelectedItem();
-    
+
   }
 
   private void abilitaBottoni() {
     if (null == modalita) {
       btCerca.setDisable(true);
-      btModifica.setDisable(true);
-      btElimina.setDisable(true);
       abilitaCampi(true);
       return;
     }
     switch (modalita) {
       case Eliminazione:
-        btCerca.setDisable(true);
-        btModifica.setDisable(true);
-        btElimina.setDisable(false);
         abilitaCampi(true);
         break;
       case Modifica:
-        btCerca.setDisable(true);
-        btModifica.setDisable(false);
-        btElimina.setDisable(true);
         abilitaCampi(false);
         break;
+      case Inserimento:
+        abilitaCampi(false);
+        trovaMaxId();
+        break;
       case Ricerca:
-        btCerca.setDisable(false);
-        btModifica.setDisable(true);
-        btElimina.setDisable(true);
+        azzeraCampi();
         abilitaCampi(false);
         break;
       default:
+        abilitaCampi(true);
         break;
     }
+  }
+
+  //  private void trovaMaxId() {
+  //    if (null == stmtMaxId) {
+  //      try {
+  //        Connection conn = m_db.getDbconn().getConn();
+  //        stmtMaxId = conn.prepareStatement(CSZ_QRY_IDMAX);
+  //      } catch (SQLException e) {
+  //        s_log.error("Errore prep statement IDMAX on contanti with err={}", e.getMessage());
+  //        return;
+  //      }
+  //    }
+  //    try {
+  //      ResultSet res = stmtMaxId.executeQuery();
+  //      while (res.next()) {
+  //        contante.setId(res.getInt(1) + 1);
+  //        Platform.runLater(new Runnable() {
+  //          @Override
+  //          public void run() {
+  //            txId.setText(String.valueOf(contante.getId()));
+  //          }
+  //        });
+  //
+  //      }
+  //    } catch (SQLException e) {
+  //      s_log.error("Errore IDMAX on contanti with err={}", e.getMessage());
+  //      return;
+  //    }
+  //
+  //  }
+
+  private void trovaMaxId() {
+    int nextId = m_db.trovaMaxIdContanti();
+    contante.setId(nextId);
+    Platform.runLater(new Runnable() {
+      @Override
+      public void run() {
+        txId.setText(String.valueOf(contante.getId()));
+      }
+    });
+
+  }
+
+  private void azzeraCampi() {
+    txId.setText("");
+    txDtmov.setText("");
+    txDtval.setText("");
+    cbCausABI.getSelectionModel().select(0);
+    txDare.setText("");
+    txAvere.setText("");
+    cbProprietario.getSelectionModel().select(0);
+    txDescr.setText("");
   }
 
   private void abilitaCampi(boolean bv) {
@@ -254,30 +333,58 @@ public class ViewContanti implements Initializable, IStartApp {
 
   @FXML
   void cbModalitaSel(ActionEvent event) {
-    modalita = cbModalita.getSelectionModel().getSelectedItem();
+    EModalitaView lmod = cbModalita.getSelectionModel().getSelectedItem();
+    if (null == lmod || modalita == lmod)
+      return;
+    modalita = lmod;
+    switch (modalita) {
+      case Eliminazione:
+        btCerca.setText("Elimina");
+        break;
+      case Inserimento:
+        btCerca.setText("Insert");
+        break;
+      case Modifica:
+        btCerca.setText("Modifica");
+        break;
+      case Ricerca:
+        btCerca.setText("Cerca");
+        break;
+      default:
+        break;
+    }
     s_log.debug("ViewContanti.cbModalita({}):", modalita.toString());
-    contante.azzera();
     abilitaBottoni();
   }
 
   @FXML
   void btCercaClick(ActionEvent event) {
-    caricaListView();
-  }
-
-  @FXML
-  void btModificaClick(ActionEvent event) {
-    updateRecord();
-  }
-
-  @FXML
-  void btEliminaClick(ActionEvent event) {
-    deleteRecord();
+    switch (modalita) {
+      case Eliminazione:
+        deleteRecord();
+        caricaListView();
+        break;
+      case Inserimento:
+        insertRecord();
+        caricaListView();
+        break;
+      case Modifica:
+        updateRecord();
+        caricaListView();
+        break;
+      case Ricerca:
+        szQryWhere = creaWhere();
+        caricaListView();
+        break;
+      default:
+        break;
+    }
   }
 
   private void caricaListView() {
-    String szQryWhere = creaWhere();
-    creaTableResult(szQryWhere);
+    if (null == szQryWhere)
+      szQryWhere = creaWhere();
+    creaTableResultThread(szQryWhere);
     abilitaBottoni();
   }
 
@@ -287,12 +394,6 @@ public class ViewContanti implements Initializable, IStartApp {
     String sz = txDtmov.getText().trim();
     if (null != sz && sz.length() > 1) {
       szWhere = String.format("%sdtmov='%s'", szAnd, sz);
-      szAnd = CSZ_AND;
-    }
-
-    sz = txDtval.getText().trim();
-    if (null != sz && sz.length() > 1) {
-      szWhere += String.format("%sdtmov='%s'", szAnd, sz);
       szAnd = CSZ_AND;
     }
 
@@ -333,6 +434,7 @@ public class ViewContanti implements Initializable, IStartApp {
     return szQryFltr;
   }
 
+  @SuppressWarnings("unused")
   private void creaTableResult(String szQryFltr) {
     m_tbvf = new TableViewFiller(tblview);
     m_tbvf.setSzQry(szQryFltr);
@@ -356,8 +458,74 @@ public class ViewContanti implements Initializable, IStartApp {
     tblview.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
   }
 
+  private void creaTableResultThread(String szQryFltr) {
+    TableViewFiller.setNullRetValue("");
+    m_tbvf = new TableViewFiller(tblview);
+    m_tbvf.setSzQry(szQryFltr);
+
+    ExecutorService backGrService = Executors.newFixedThreadPool(1);
+    Platform.runLater(new Runnable() {
+      @Override
+      public void run() {
+        lstage.getScene().setCursor(Cursor.WAIT);
+        btCerca.setDisable(true);
+      }
+    });
+
+    try {
+      m_tbvf.setOnRunning(ev -> {
+        s_log.debug("TableViewFiller task running...");
+      });
+      m_tbvf.setOnSucceeded(ev -> {
+        s_log.debug("TableViewFiller task Finished!");
+        endTask();
+      });
+      m_tbvf.setOnFailed(ev -> {
+        s_log.debug("TableViewFiller task failure");
+        endTask();
+      });
+      backGrService.execute(m_tbvf);
+    } catch (Exception e) {
+      s_log.error("Errore task TableViewFiller");
+    }
+    backGrService.shutdown();
+    tblview.setRowFactory(tbl -> new TableRow<List<Object>>() {
+      {
+        setOnMouseClicked(ev -> {
+          if (isEmpty())
+            return;
+          if (ev.getClickCount() == 2) {
+            tableRow_dblclick(this);
+          }
+        });
+      }
+    });
+    tblview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+  }
+
+  private void endTask() {
+    Platform.runLater(new Runnable() {
+      @Override
+      public void run() {
+        lstage.getScene().setCursor(Cursor.DEFAULT);
+        btCerca.setDisable(false);
+      }
+    });
+  }
+
   protected void tableRow_dblclick(TableRow<List<Object>> row) {
-    vaiInModalitaModifica();
+    switch (modalita) {
+      case Eliminazione:
+        break;
+      case Inserimento:
+        vaiInModalitaModifica();
+        break;
+      case Modifica:
+        break;
+      case Ricerca:
+        vaiInModalitaModifica();
+        break;
+    }
     List<Object> currRow = tblview.getSelectionModel().getSelectedItem();
     if (null == currRow) {
       s_log.warn("Null su doppio click di riga ?!");
@@ -371,6 +539,8 @@ public class ViewContanti implements Initializable, IStartApp {
     // descr{VARCHAR}=%-16s   col=col:descr(5)[NVARCHAR]
     //abicaus{VARCHAR}=%-16s  col=col:abicaus(6)[VARCHAR]
     //cardid{VARCHAR}=%-16s   col=col:cardid(7)[NVARCHAR]
+    Locale locale = Utils.getLocale();
+    Utils.setLocale(Locale.US);
     int k = 0;
     for (Object e : currRow) {
       switch (k++) {
@@ -421,6 +591,7 @@ public class ViewContanti implements Initializable, IStartApp {
           break;
       }
     }
+    Utils.setLocale(locale);
   }
 
   private void vaiInModalitaModifica() {
@@ -442,10 +613,10 @@ public class ViewContanti implements Initializable, IStartApp {
   }
 
   private void updateRecord() {
-    if (null == stmtIns) {
+    if (null == stmtMod) {
       try {
         Connection conn = m_db.getDbconn().getConn();
-        stmtIns = conn.prepareStatement(CSZ_QRY_INS);
+        stmtMod = conn.prepareStatement(CSZ_QRY_MOD);
       } catch (SQLException e) {
         s_log.error("Errore prep statement INSERT on contanti with err={}", e.getMessage());
         return;
@@ -458,6 +629,43 @@ public class ViewContanti implements Initializable, IStartApp {
       if (null != szCaus)
         szCaus = szCaus.replace(".0", "");
       DBConn dbconn = m_db.getDbconn();
+      dbconn.setStmtDate(stmtMod, k++, contante.getDtmov());
+      dbconn.setStmtDate(stmtMod, k++, contante.getDtval());
+      dbconn.setStmtImporto(stmtMod, k++, contante.getDare());
+      dbconn.setStmtImporto(stmtMod, k++, contante.getAvere());
+      dbconn.setStmtString(stmtMod, k++, contante.getDescr());
+      dbconn.setStmtString(stmtMod, k++, szCaus);
+      dbconn.setStmtString(stmtMod, k++, contante.getCardid());
+      stmtMod.setInt(k++, contante.getId());
+
+      stmtMod.executeUpdate();
+    } catch (SQLException e) {
+      s_log.error("Errore DELETE on CONTANTI with err={}", e.getMessage());
+    }
+
+  }
+
+  private void insertRecord() {
+    if (null == stmtIns) {
+      try {
+        Connection conn = m_db.getDbconn().getConn();
+        stmtIns = conn.prepareStatement(CSZ_QRY_INS);
+      } catch (SQLException e) {
+        s_log.error("Errore prep statement INSERT on contanti with err={}", e.getMessage());
+        return;
+      }
+    }
+    if ( !contante.isValido()) {
+      s_log.warn("Record contante incompleto: {}", contante.toString());
+      return;
+    }
+    try {
+      int k = 1;
+      String szCaus = contante.getCaus();
+      if (null != szCaus)
+        szCaus = szCaus.replace(".0", "");
+      DBConn dbconn = m_db.getDbconn();
+      stmtIns.setInt(k++, contante.getId());
       dbconn.setStmtDate(stmtIns, k++, contante.getDtmov());
       dbconn.setStmtDate(stmtIns, k++, contante.getDtval());
       dbconn.setStmtImporto(stmtIns, k++, contante.getDare());
@@ -465,18 +673,44 @@ public class ViewContanti implements Initializable, IStartApp {
       dbconn.setStmtString(stmtIns, k++, contante.getDescr());
       dbconn.setStmtString(stmtIns, k++, szCaus);
       dbconn.setStmtString(stmtIns, k++, contante.getCardid());
-      stmtIns.setInt(k++, contante.getId());
-      
+
       stmtIns.executeUpdate();
     } catch (SQLException e) {
-      s_log.error("Errore DELETE on CONTANTI with err={}", e.getMessage());
+      s_log.error("Errore INSERT on CONTANTI with err={}", e.getMessage());
     }
-
   }
 
   private void deleteRecord() {
-    // TODO delete del recor con ID
+    if (null == stmtDel) {
+      try {
+        Connection conn = m_db.getDbconn().getConn();
+        stmtDel = conn.prepareStatement(CSZ_QRY_DEL);
+      } catch (SQLException e) {
+        s_log.error("Errore prep statement DELETE on contanti with err={}", e.getMessage());
+        return;
+      }
+    }
+    if ( !contante.isValido()) {
+      s_log.warn("Record contante incompleto: {}", contante.toString());
+      return;
+    }
+    try {
+      int k = 1;
+      stmtDel.setInt(k++, contante.getId());
+      stmtDel.executeUpdate();
+      s_log.info("Cancellato record: {}", contante.toString().replace("\t", ";"));
+    } catch (SQLException e) {
+      s_log.error("Errore DELETE on CONTANTI with err={}", e.getMessage());
+    }
+  }
 
+  @Override
+  public void changeSkin() {
+    URL url = m_appmain.getUrlCSS();
+    if (null == url || null == myScene)
+      return;
+    myScene.getStylesheets().clear();
+    myScene.getStylesheets().add(url.toExternalForm());
   }
 
   @Override

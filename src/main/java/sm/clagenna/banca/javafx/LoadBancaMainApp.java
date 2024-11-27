@@ -25,6 +25,7 @@ import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.DBConnFactory;
 import sm.clagenna.stdcla.utils.AppProperties;
+import sm.clagenna.stdcla.utils.Utils;
 
 public class LoadBancaMainApp extends Application implements IStartApp {
   private static final Logger s_log            = LogManager.getLogger(LoadBancaMainApp.class);
@@ -35,6 +36,8 @@ public class LoadBancaMainApp extends Application implements IStartApp {
   @Getter
   private static LoadBancaMainApp inst;
 
+  private String         skin;
+  private URL            mainCSS;
   @Getter @Setter
   private AppProperties  props;
   @Getter @Setter
@@ -45,6 +48,7 @@ public class LoadBancaMainApp extends Application implements IStartApp {
   private DBConn         connSQL;
   @Getter @Setter
   private DataController data;
+
 
   List<ResultView>     m_liResViews;
   private ViewContanti m_viewContanti;
@@ -73,13 +77,38 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     // <a target="_blank" href="https://icons8.com/icon/Qd0k8d5D0tSe/invoice">Invoice</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
     primaryStage.getIcons().add(new Image(CSZ_MAIN_ICON));
 
-    url = getClass().getResource(LoadBancaMainApp.CSZ_MAIN_APP_CSS);
-    if (url == null)
-      url = getClass().getClassLoader().getResource(LoadBancaMainApp.CSZ_MAIN_APP_CSS);
+    url = getUrlCSS();
     scene.getStylesheets().add(url.toExternalForm());
 
     primaryStage.setScene(scene);
     primaryStage.show();
+  }
+
+  public URL getUrlCSS() {
+    if (null != mainCSS)
+      return mainCSS;
+    if (null == skin)
+      skin = LoadBancaMainApp.CSZ_MAIN_APP_CSS;
+    String skinCss = String.format("%s.css", skin);
+    mainCSS = getClass().getResource(skinCss);
+    if (null == mainCSS)
+      mainCSS = getClass().getClassLoader().getResource(skinCss);
+    return mainCSS;
+  }
+
+  public void setSkin(String skinName) {
+    if ( !Utils.isChanged(skin, skinName))
+      return;
+    skin = skinName;
+    props.setProperty(skinName, 0);
+    mainCSS = null;
+    props.setProperty(AppProperties.CSZ_PROP_SKIN, skin);
+    /* URL url = */ getUrlCSS();
+    controller.changeSkin();
+  }
+
+  public String getSkin() {
+    return skin;
   }
 
   @Override
@@ -96,6 +125,9 @@ public class LoadBancaMainApp extends Application implements IStartApp {
       }
       data.initApp(props);
       szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
+      skin = props.getProperty(AppProperties.CSZ_PROP_SKIN);
+      if (null == skin)
+        skin = "LoadBancaFX";
 
       int px = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_X);
       int py = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_Y);
@@ -121,6 +153,11 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     } catch (Exception e) {
       s_log.error("Errore apertura DB, error={}", e.getMessage(), e);
     }
+  }
+
+  @Override
+  public void changeSkin() {
+    // nothing to do
   }
 
   @Override
@@ -150,6 +187,7 @@ public class LoadBancaMainApp extends Application implements IStartApp {
       data.closeApp(prop);
 
     prop.salvaSuProperties();
+
   }
 
   public void messageDialog(AlertType typ, String p_msg) {

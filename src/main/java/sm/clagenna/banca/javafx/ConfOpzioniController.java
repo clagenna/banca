@@ -7,6 +7,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import org.apache.logging.log4j.LogManager;
@@ -49,6 +50,8 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   private Spinner<Integer> spinQtaThread;
   @FXML
   private TextField        txFilesFiltro;
+  @FXML
+  private ComboBox<String> cbSkins;
 
   @FXML
   private Button   btTutti;
@@ -278,6 +281,20 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     System.out.println("ConfOpzioniController.initialize()");
     //
   }
+  
+  @FXML
+  public void cbSkinsSel(String newV) {
+    m_appmain.setSkin(newV);
+  }
+
+  @Override
+  public void changeSkin() {
+    URL url = m_appmain.getUrlCSS();
+    if ((null == url) || (null == myScene))
+      return;
+    myScene.getStylesheets().clear();
+    myScene.getStylesheets().add(url.toExternalForm());
+  }
 
   @Override
   public void closeApp(AppProperties p_props) {
@@ -311,6 +328,10 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     int qtaTh = dataCntr.getQtaThreads();
     spinQtaThread.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, qtaTh, 1));
     spinQtaThread.valueProperty().addListener((obj, ov, nv) -> changeQtaThreads(nv));
+    caricaCbSkins();
+    cbSkins.valueProperty().addListener((obj, ov, nv) -> cbSkinsSel(nv));
+    if ( null != m_appmain.getSkin())
+      cbSkins.getSelectionModel().select(m_appmain.getSkin());
     txFilesFiltro.setText(p_props.getProperty(LoadBancaController.CSZ_FILTER_FILES));
     txFilesFiltro.textProperty().addListener((obj, ov, nv) -> changedFiltroFiles(nv));
 
@@ -356,6 +377,23 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     lstage.setOnHiding(ev -> {
       closeApp(m_mainProps);
     });
+    URL url = m_appmain.getUrlCSS();
+    if (null != url)
+      myScene.getStylesheets().add(url.toExternalForm());
+
+  }
+
+  private void caricaCbSkins() {
+    String li[] = {  "LoadBancaFX", //
+        "cupertino-dark", //
+        "cupertino-light", //
+        "dracula", //
+        "nord-dark", //
+        "nord-light", //
+        "primer-dark", //
+        "primer-light"};
+    List<String> lis = Arrays.asList(li);
+    cbSkins.getItems().addAll(lis);
   }
 
   private Object changeQtaThreads(Integer nv) {

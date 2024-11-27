@@ -201,29 +201,10 @@ public class ResultView implements Initializable, IStartApp {
       lstage.setWidth(dx);
       lstage.setHeight(dy);
     }
-    //    double spltPos = Double.valueOf(p_props.getProperty(CSZ_PROP_SPLITPOS));
-    //    spltPane.setDividerPositions(spltPos);
-    // vedi : https://stackoverflow.com/questions/25397742/javafx-keyboard-event-shortcut-key
-    //    myScene.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
-    //      public void handle(KeyEvent ke) {
-    //        if (ke.getCode() == KeyCode.ESCAPE) {
-    //          System.out.println("Key Pressed: " + ke.getCode());
-    //          // ke.consume();
-    //        }
-    //      }
-    //    });
     myScene.addEventFilter(KeyEvent.KEY_PRESSED, ev -> gestKey(ev));
-    //    myScene.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
-    //      final KeyCombination keyComb = new KeyCodeCombination(KeyCode.ESCAPE, KeyCombination.CONTROL_DOWN);
-    //
-    //      public void handle(KeyEvent ke) {
-    //        if (keyComb.match(ke)) {
-    //          System.out.println("Key Pressed: " + keyComb);
-    //          ke.consume(); // <-- stops passing the event to next node
-    //        }
-    //      }
-    //    });
-
+    URL url = m_appmain.getUrlCSS();
+    if (null != url)
+      myScene.getStylesheets().add(url.toExternalForm());
   }
 
   private Object gestKey(KeyEvent ev) {
@@ -233,6 +214,15 @@ public class ResultView implements Initializable, IStartApp {
       btCercaClick(null);
     }
     return null;
+  }
+
+  @Override
+  public void changeSkin() {
+    URL url = m_appmain.getUrlCSS();
+    if (null == url || null == myScene)
+      return;
+    myScene.getStylesheets().clear();
+    myScene.getStylesheets().add(url.toExternalForm());
   }
 
   @Override
@@ -431,7 +421,6 @@ public class ResultView implements Initializable, IStartApp {
         btExportCsv.setDisable(false);
       }
     });
-
   }
 
   protected void tableRow_dblclick(TableRow<List<Object>> row) {

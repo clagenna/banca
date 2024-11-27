@@ -3,6 +3,9 @@ package sm.clagenna.banca.dati;
 import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,6 +21,7 @@ import sm.clagenna.stdcla.utils.AppProperties;
 
 public class DataController implements IStartApp {
   private static final Logger   s_log           = LogManager.getLogger(DataController.class);
+  private static final String   CSZ_PROP_SCARTA = "voci.scarta";
   private static final String   CSZ_FLAG_FILTRI = "FLAG_FILTRI";
   private static final String   CSZ_QTA_THREADS = "QTA_THREADS";
   private static DataController s_inst;
@@ -31,6 +35,7 @@ public class DataController implements IStartApp {
   @Getter
   private boolean              overwrite;
   private AppProperties        props;
+  private List<String>         scartaVoci;
 
   public DataController() {
     if (null != s_inst) {
@@ -100,6 +105,19 @@ public class DataController implements IStartApp {
     AppProperties prop = LoadBancaMainApp.getInst().getProps();
     filtriQuery = prop.getIntProperty(CSZ_FLAG_FILTRI, ESqlFiltri.AllSets.getFlag());
     qtaThreads = prop.getIntProperty(CSZ_QTA_THREADS, 1);
+    scartaVoci = new ArrayList<String>();
+    String sz = prop.getProperty(CSZ_PROP_SCARTA);
+    if (null != sz && sz.length() > 0) {
+      String sep = ";";
+      if ( !sz.contains(sep))
+        sep = ",";
+      scartaVoci.addAll(Arrays.asList(sz.toLowerCase().split(sep)));
+    }
+  }
+
+  @Override
+  public void changeSkin() {
+    // nothing to do
   }
 
   @Override
@@ -121,6 +139,13 @@ public class DataController implements IStartApp {
   public void setOverwrite(boolean bv) {
     overwrite = bv;
     System.out.printf("DataController.setOverwrite(%s)\n", Boolean.valueOf(bv).toString());
+  }
+
+  public boolean scartaVoce(String descr) {
+    if (descr == null)
+      return true;
+    String sz = descr.trim().toLowerCase();
+    return scartaVoci.contains(sz);
   }
 
 }

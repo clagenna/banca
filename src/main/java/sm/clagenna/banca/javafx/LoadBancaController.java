@@ -74,12 +74,11 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   public static final String  CSZ_FILTER_FILES = "filter_files";
 
   private List<Log4jRow> m_liMsgs;
-  
+
   @FXML
-  private MenuItem                     mnuGEstDati;
+  private MenuItem mnuGEstDati;
   @FXML
-  private MenuItem                     mnuGEstOpzioni;
-  
+  private MenuItem mnuGEstOpzioni;
 
   @FXML
   private TextField                     txDirExports;
@@ -175,7 +174,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         }
       }
     });
-    
+
     // -------- combo level -------
     if (props != null) {
       String sz = props.getProperty(CSZ_LOG_LEVEL);
@@ -616,7 +615,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     String arr[] = fltr.split(",");
     StringBuilder fils = new StringBuilder();
     String vir = "";
-    String prefix = "estratt";
+    // String prefix = "estratt";
     for (String pat : arr) {
       fils.append(String.format("%s%s*", vir, pat));
       vir = ",";
@@ -663,6 +662,23 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     // List<Log4jRow> li = m_liMsgs.stream().filter(s -> s.getLevel().isInRange(Level.FATAL, levelMin )).toList(); // !s.getLevel().isLessSpecificThan(levelMin)).toList();
     List<Log4jRow> li = m_liMsgs.stream().filter(s -> s.getLevel().intLevel() <= levelMin.intLevel()).toList();
     tblLogs.getItems().addAll(li);
+  }
+
+  @Override
+  public void changeSkin() {
+    LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
+    URL url = mainApp.getUrlCSS();
+    Scene myScene = getStage().getScene();
+    if (null == url || null == myScene)
+      return;
+    myScene.getStylesheets().clear();
+    myScene.getStylesheets().add(url.toExternalForm());
+    if (null != cntrResultView)
+      cntrResultView.changeSkin();
+    if (null != cntrViewContanti)
+      cntrViewContanti.changeSkin();
+    if (null != cntrlConfOpz)
+      cntrlConfOpz.changeSkin();
   }
 
   @Override
