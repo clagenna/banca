@@ -157,23 +157,31 @@ public class CsvImportBanca
     sqlTableName = null;
     Pattern pat = Pattern.compile(".*conto_([a-z_]+)[_\\- ][0-9\\-]+.+", Pattern.CASE_INSENSITIVE);
     Matcher mat = pat.matcher(p_sz);
-    if (mat.find()) {
-      String sz = mat.group(1).toLowerCase();
-      if (sz.contains("bsi"))
-        sqlTableName = "bsi";
-      if (sz.contains("cari"))
-        sqlTableName = "carisp";
-      if (sz.contains("contant"))
-        sqlTableName = "contanti";
-      if (sz.contains("cred"))
-        sqlTableName += "Credit";
-      if (sz.contains("tpay"))
-        sqlTableName = "carispCredit";
-      if (sz.contains("wise"))
-        sqlTableName = "wise";
-      if (sz.contains("smac"))
-        sqlTableName = "smac";
+    if ( !mat.find()) {
+      pat = Pattern.compile(".*conto_([a-z_]+).+", Pattern.CASE_INSENSITIVE);
+      mat = pat.matcher(p_sz);
+      if ( !mat.find())
+        throw new UnsupportedOperationException("Non trovo il nome Tabella; Il nome file mal formato?");
     }
+
+    String sz = mat.group(1).toLowerCase();
+    if (sz.contains("bsi"))
+      sqlTableName = "bsi";
+    if (sz.contains("cari"))
+      sqlTableName = "carisp";
+    if (sz.contains("contant"))
+      sqlTableName = "contanti";
+    if (sz.contains("cred"))
+      sqlTableName += "Credit";
+    if (sz.contains("tpay"))
+      sqlTableName = "carispCredit";
+    if (sz.contains("wise"))
+      sqlTableName = "wise";
+    if (sz.contains("smac"))
+      sqlTableName = "smac";
+
+    if (null == sqlTableName)
+      throw new UnsupportedOperationException("Non trovo il nome Tabella; Il nome file mal formato?");
   }
 
   public Path getCsvFile() {

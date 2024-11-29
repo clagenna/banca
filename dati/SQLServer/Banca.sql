@@ -280,20 +280,20 @@ CREATE view dbo.listaMovimentiSmac
 as 
 SELECT dtmov
       ,dtval
-	  , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
-	  , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
-      ,dare
+      , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
+      , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
+      -- ,dare
+      ,CASE mo.abicaus
+          WHEN 'S3'  THEN 0
+          WHEN 'S4'  THEN 0
+          ELSE mo.dare
+       END dare
       ,avere
       ,descr
-	  --,CASE
-	  --   WHEN CHARINDEX('84806', descr) > 0 THEN 'Claudio'
-	  --   WHEN CHARINDEX('85928', descr) > 0 THEN 'Eugenia'
-		 --ELSE null
-	  -- END as chipaga
-	  ,cardid
+      ,cardid
       ,mo.abicaus
-	  ,ca.descrcaus
-	  ,ca.costo
+      ,ca.descrcaus
+      ,ca.costo
   FROM movimentiSmac mo
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus

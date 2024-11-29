@@ -19,6 +19,8 @@ public interface ISQLGest {
 
   boolean existMovimento(String p_tab, RigaBanca rig);
 
+  boolean updateMovimento(String p_tab, RigaBanca rig);
+
   int deleteMovimento(String p_tab, RigaBanca rig);
 
   boolean insertMovimento(String p_tab, RigaBanca p_rig);
@@ -34,8 +36,8 @@ public interface ISQLGest {
   List<String> getListCausABI();
 
   String getDescrCausABI(String causABI);
-  
-  int trovaMaxIdContanti();
+
+  int getLastRowid();
 
   Map<String, String> getListDBViews();
 

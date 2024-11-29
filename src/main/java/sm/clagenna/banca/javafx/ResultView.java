@@ -75,6 +75,8 @@ public class ResultView implements Initializable, IStartApp {
   private Button            btExportCsv;
   @FXML
   private CheckBox          ckLanciaExcel;
+  @FXML
+  private CheckBox          ckCvsBlankOnZero;
 
   @FXML
   private TableView<List<Object>> tblview;
@@ -97,6 +99,8 @@ public class ResultView implements Initializable, IStartApp {
   private TableViewFiller m_tbvf;
   private Path            m_CSVfile;
   private String          m_fltrTipoBanca;
+  @Getter @Setter
+  private boolean         csvBlankOnZero;
 
   public ResultView() {
     //
@@ -461,6 +465,7 @@ public class ResultView implements Initializable, IStartApp {
     m_CSVfile = Paths.get(szFilNam.toString());
     try {
       Dataset dts = m_tbvf.getDataset();
+      dts.setCsvBlankOnZero(ckCvsBlankOnZero.isSelected());
       dts.savecsv(m_CSVfile);
       if (ckLanciaExcel.isSelected())
         lanciaExcel2();

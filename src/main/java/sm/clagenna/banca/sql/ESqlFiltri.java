@@ -3,13 +3,14 @@ package sm.clagenna.banca.sql;
 import java.sql.Types;
 
 public enum ESqlFiltri {
-  Dtmov(1, Types.DATE), //
-  Dtval(2, Types.DATE), //
-  Dare(4, Types.DECIMAL), //
-  Avere(8, Types.DECIMAL), //
-  Descr(16, Types.VARCHAR), //
-  ABICaus(32, Types.VARCHAR), //
-  Cardid(64, Types.VARCHAR), //
+  Id(1, Types.DATE), //
+  Dtmov(2, Types.DATE), //
+  Dtval(4, Types.DATE), //
+  Dare(8, Types.DECIMAL), //
+  Avere(16, Types.DECIMAL), //
+  Descr(32, Types.VARCHAR), //
+  ABICaus(64, Types.VARCHAR), //
+  Cardid(128, Types.VARCHAR), //
   AllSets(255, Types.NULL);
 
   private int flag;

@@ -1,9 +1,6 @@
 package sm.clagenna.banca.javafx;
 
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -30,10 +27,11 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.RigaBanca;
+import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
-import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
@@ -47,6 +45,7 @@ public class ViewContanti implements Initializable, IStartApp {
   private static final String CSZ_PROP_DIMVIEWCONT_Y = "ViewCont.ly";
   private static final String CSZ_PROP_SPLITPOS      = "ViewCont.spltpos";
   private static final String CSZ_AND                = " and ";
+  private static final String CSZ_TABLE_NAME         = "contanti";
   private static final String CSZ_QRY_TRUE           = "1=1";
   private static final String CSZ_QRY_MOVIMALL       = "SELECT "                                //
       + "id,"                                                                                   //
@@ -58,29 +57,29 @@ public class ViewContanti implements Initializable, IStartApp {
       + "abicaus,"                                                                              //
       + "cardid"                                                                                //
       + " FROM MovimentiContanti WHERE 1=1 ORDER BY dtmov";
-  private static final String CSZ_QRY_INS            =                                          //
-      "INSERT INTO movimentiContanti"                                                           //
-          + "           (id"                                                                    //
-          + "           ,dtmov"                                                                 //
-          + "           ,dtval"                                                                 //
-          + "           ,dare"                                                                  //
-          + "           ,avere"                                                                 //
-          + "           ,descr"                                                                 //
-          + "           ,abicaus"                                                               //
-          + "           ,cardid)"                                                               //
-          + "     VALUES (?,?,?,?,?,?,?,?)";
-  private static final String CSZ_QRY_MOD            =                                          //
-      "UPDATE movimentiContanti"                                                                //
-          + "  SET dtmov=?"                                                                     //
-          + "     ,dtval=?"                                                                     //
-          + "     ,dare=?"                                                                      //
-          + "     ,avere=?"                                                                     //
-          + "     ,descr=?"                                                                     //
-          + "     ,abicaus=?"                                                                   //
-          + "     ,cardid=?"                                                                    //
-          + "  WHERE id=?";
-  private static final String CSZ_QRY_DEL            =                                          //
-      "DELETE FROM movimentiContanti WHERE id=?";
+  //  private static final String CSZ_QRY_INS            =                                          //
+  //      "INSERT INTO movimentiContanti"                                                           //
+  //          + "           (id"                                                                    //
+  //          + "           ,dtmov"                                                                 //
+  //          + "           ,dtval"                                                                 //
+  //          + "           ,dare"                                                                  //
+  //          + "           ,avere"                                                                 //
+  //          + "           ,descr"                                                                 //
+  //          + "           ,abicaus"                                                               //
+  //          + "           ,cardid)"                                                               //
+  //          + "     VALUES (?,?,?,?,?,?,?,?)";
+  //  private static final String CSZ_QRY_MOD = //
+  //      "UPDATE movimentiContanti" //
+  //          + "  SET dtmov=?" //
+  //          + "     ,dtval=?" //
+  //          + "     ,dare=?" //
+  //          + "     ,avere=?" //
+  //          + "     ,descr=?" //
+  //          + "     ,abicaus=?" //
+  //          + "     ,cardid=?" //
+  //          + "  WHERE id=?";
+  //  private static final String CSZ_QRY_DEL =      //
+  //      "DELETE FROM movimentiContanti WHERE id=?";
 
   @FXML
   private SplitPane               spltPane;
@@ -117,18 +116,18 @@ public class ViewContanti implements Initializable, IStartApp {
   private Label                   lblMesg;
 
   @Getter @Setter
-  private Scene             myScene;
-  private Stage             lstage;
-  private LoadBancaMainApp  m_appmain;
-  private AppProperties     m_mainProps;
-  private ISQLGest          m_db;
-  private EModalitaView     modalita;
-  private TableViewFiller   m_tbvf;
-  private RigaBanca         contante;
-  private PreparedStatement stmtIns;
-  private PreparedStatement stmtMod;
-  private PreparedStatement stmtDel;
-  private String            szQryWhere;
+  private Scene            myScene;
+  private Stage            lstage;
+  private LoadBancaMainApp m_appmain;
+  // private AppProperties     m_mainProps;
+  private ISQLGest        m_db;
+  private EModalitaView   modalita;
+  private TableViewFiller m_tbvf;
+  private RigaBanca       contante;
+  //  private PreparedStatement stmtIns;
+  // private PreparedStatement stmtMod;
+  //  private PreparedStatement stmtDel;
+  private String szQryWhere;
 
   public ViewContanti() {
     //
@@ -136,7 +135,7 @@ public class ViewContanti implements Initializable, IStartApp {
 
   @Override
   public void initApp(AppProperties p_props) {
-    m_mainProps = p_props;
+    // m_mainProps = p_props;
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addViewContanti(this);
     contante = new RigaBanca();
@@ -206,8 +205,8 @@ public class ViewContanti implements Initializable, IStartApp {
 
   private void addChangeListeners() {
     txId.textProperty().addListener((ob, old, nv) -> {
-      contante.setId(Integer.parseInt(nv));
-      updateRowList();
+      contante.setRigaid(Integer.parseInt(nv));
+      // updateRowList();
     });
     txDtmov.textProperty().addListener((ob, old, nv) -> {
       contante.setDtmov(ParseData.guessData(nv));
@@ -235,11 +234,11 @@ public class ViewContanti implements Initializable, IStartApp {
       contante.setCaus(estraiCausABI(nv));
     });
   }
-
-  private void updateRowList() {
-    List<Object> row = tblview.getSelectionModel().getSelectedItem();
-
-  }
+  //
+  //  private void updateRowList() {
+  //    List<Object> row = tblview.getSelectionModel().getSelectedItem();
+  //    System.out.println("ViewContanti.updateRowList() ---  DA COMPLETARE");
+  //  }
 
   private void abilitaBottoni() {
     if (null == modalita) {
@@ -256,7 +255,7 @@ public class ViewContanti implements Initializable, IStartApp {
         break;
       case Inserimento:
         abilitaCampi(false);
-        trovaMaxId();
+        // trovaMaxId();
         break;
       case Ricerca:
         azzeraCampi();
@@ -297,17 +296,16 @@ public class ViewContanti implements Initializable, IStartApp {
   //
   //  }
 
-  private void trovaMaxId() {
-    int nextId = m_db.trovaMaxIdContanti();
-    contante.setId(nextId);
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        txId.setText(String.valueOf(contante.getId()));
-      }
-    });
-
-  }
+  //  private void trovaMaxId() {
+  //    int nextId = m_db.getLastRowid();
+  //    contante.setRigaid(nextId);
+  //    Platform.runLater(new Runnable() {
+  //      @Override
+  //      public void run() {
+  //        txId.setText(String.valueOf(contante.getRigaid()));
+  //      }
+  //    });
+  //  }
 
   private void azzeraCampi() {
     txId.setText("");
@@ -545,8 +543,8 @@ public class ViewContanti implements Initializable, IStartApp {
     for (Object e : currRow) {
       switch (k++) {
         case 0: // id
-          contante.setId(Integer.parseInt(e.toString()));
-          txId.setText(String.format("%d", contante.getId()));
+          contante.setRigaid(Integer.parseInt(e.toString()));
+          txId.setText(String.format("%d", contante.getRigaid()));
           break;
         case 1: // dtmov
           contante.setDtmov(ParseData.parseData(e.toString()));
@@ -613,95 +611,35 @@ public class ViewContanti implements Initializable, IStartApp {
   }
 
   private void updateRecord() {
-    if (null == stmtMod) {
-      try {
-        Connection conn = m_db.getDbconn().getConn();
-        stmtMod = conn.prepareStatement(CSZ_QRY_MOD);
-      } catch (SQLException e) {
-        s_log.error("Errore prep statement INSERT on contanti with err={}", e.getMessage());
-        return;
-      }
-    }
-
-    try {
-      int k = 1;
-      String szCaus = contante.getCaus();
-      if (null != szCaus)
-        szCaus = szCaus.replace(".0", "");
-      DBConn dbconn = m_db.getDbconn();
-      dbconn.setStmtDate(stmtMod, k++, contante.getDtmov());
-      dbconn.setStmtDate(stmtMod, k++, contante.getDtval());
-      dbconn.setStmtImporto(stmtMod, k++, contante.getDare());
-      dbconn.setStmtImporto(stmtMod, k++, contante.getAvere());
-      dbconn.setStmtString(stmtMod, k++, contante.getDescr());
-      dbconn.setStmtString(stmtMod, k++, szCaus);
-      dbconn.setStmtString(stmtMod, k++, contante.getCardid());
-      stmtMod.setInt(k++, contante.getId());
-
-      stmtMod.executeUpdate();
-    } catch (SQLException e) {
-      s_log.error("Errore DELETE on CONTANTI with err={}", e.getMessage());
-    }
-
+    DataController cntr = DataController.getInst();
+    cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
+    m_db.updateMovimento(CSZ_TABLE_NAME, contante);
+    s_log.info("Modificato records  {}", contante.toString().replace("\t", ";"));
   }
 
   private void insertRecord() {
-    if (null == stmtIns) {
-      try {
-        Connection conn = m_db.getDbconn().getConn();
-        stmtIns = conn.prepareStatement(CSZ_QRY_INS);
-      } catch (SQLException e) {
-        s_log.error("Errore prep statement INSERT on contanti with err={}", e.getMessage());
-        return;
-      }
-    }
-    if ( !contante.isValido()) {
-      s_log.warn("Record contante incompleto: {}", contante.toString());
-      return;
-    }
-    try {
-      int k = 1;
-      String szCaus = contante.getCaus();
-      if (null != szCaus)
-        szCaus = szCaus.replace(".0", "");
-      DBConn dbconn = m_db.getDbconn();
-      stmtIns.setInt(k++, contante.getId());
-      dbconn.setStmtDate(stmtIns, k++, contante.getDtmov());
-      dbconn.setStmtDate(stmtIns, k++, contante.getDtval());
-      dbconn.setStmtImporto(stmtIns, k++, contante.getDare());
-      dbconn.setStmtImporto(stmtIns, k++, contante.getAvere());
-      dbconn.setStmtString(stmtIns, k++, contante.getDescr());
-      dbconn.setStmtString(stmtIns, k++, szCaus);
-      dbconn.setStmtString(stmtIns, k++, contante.getCardid());
-
-      stmtIns.executeUpdate();
-    } catch (SQLException e) {
-      s_log.error("Errore INSERT on CONTANTI with err={}", e.getMessage());
-    }
+    DataController cntr = DataController.getInst();
+    cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
+    m_db.insertMovimento(CSZ_TABLE_NAME, contante);
+    contante.setRigaid(m_db.getLastRowid());
+    cambiaTxId();
   }
 
   private void deleteRecord() {
-    if (null == stmtDel) {
-      try {
-        Connection conn = m_db.getDbconn().getConn();
-        stmtDel = conn.prepareStatement(CSZ_QRY_DEL);
-      } catch (SQLException e) {
-        s_log.error("Errore prep statement DELETE on contanti with err={}", e.getMessage());
-        return;
+    DataController cntr = DataController.getInst();
+    cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
+    int qtaDel = m_db.deleteMovimento(CSZ_TABLE_NAME, contante);
+    s_log.info("Cancellato {} records con {}", qtaDel, contante.toString().replace("\t", ";"));
+  }
+
+  private void cambiaTxId() {
+    Platform.runLater(new Runnable() {
+      @Override
+      public void run() {
+        txId.setText(String.valueOf(contante.getRigaid()));
       }
-    }
-    if ( !contante.isValido()) {
-      s_log.warn("Record contante incompleto: {}", contante.toString());
-      return;
-    }
-    try {
-      int k = 1;
-      stmtDel.setInt(k++, contante.getId());
-      stmtDel.executeUpdate();
-      s_log.info("Cancellato record: {}", contante.toString().replace("\t", ";"));
-    } catch (SQLException e) {
-      s_log.error("Errore DELETE on CONTANTI with err={}", e.getMessage());
-    }
+    });
+
   }
 
   @Override

@@ -9,7 +9,7 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class RigaBanca {
   @Getter @Setter
-  private Integer       id;
+  private Integer       rigaid;
   @Getter @Setter
   private LocalDateTime dtmov;
   @Getter @Setter
@@ -81,7 +81,7 @@ public class RigaBanca {
   }
 
   public void azzera() {
-    id = null;
+    rigaid = null;
     dtmov = null;
     dtval = null;
     dare = 0.;
@@ -92,7 +92,7 @@ public class RigaBanca {
   }
 
   public boolean isValido() {
-    if ( !Utils.isValue(id))
+    if ( !Utils.isValue(rigaid))
       return false;
     if ( !Utils.isValue(dtmov))
       return false;

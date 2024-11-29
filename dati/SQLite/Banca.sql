@@ -9,7 +9,7 @@ BEGIN TRANSACTION;
 -- Tabella: causali
 CREATE TABLE IF NOT EXISTS causali (
     abicaus   VARCHAR (4)    PRIMARY KEY  NOT NULL,
-    descrcaus NVARCHAR (256) DEFAULT NULL,
+    descrcaus VARCHAR (256)  DEFAULT NULL,
     costo     INT            DEFAULT NULL
 );
 
@@ -285,7 +285,12 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiSmac AS
            dtval,
            strftime('%Y.%m', mo.dtmov) AS movstr,
            strftime('%Y.%m', mo.dtval) AS valstr,
-           dare,
+           -- dare,
+           CASE mo.abicaus
+		WHEN 'S3'  THEN 0
+		WHEN 'S4'  THEN 0
+		ELSE mo.dare
+	   END dare,
            avere,
            cardid,
            descr,

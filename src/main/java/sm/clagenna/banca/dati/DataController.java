@@ -72,6 +72,9 @@ public class DataController implements IStartApp {
       if ( !fl.isSet(filtriQuery))
         continue;
       switch (fl) {
+        case Id:
+          dbconn.setStmtInt(p_stmt, k++, p_rig.getRigaid());
+          break;
         case Dtmov:
           dbconn.setStmtDate(p_stmt, k++, p_rig.getDtmov());
           break;

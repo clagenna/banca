@@ -29,31 +29,43 @@ public class SQLiteGest implements ISQLGest {
   private static final String QRY_LIST_CARDHOLD = "SELECT DISTINCT cardid FROM ListaMovimentiUNION WHERE cardid IS NOT NULL ORDER BY cardid";
   private static final String QRY_LIST_VIEWS    = "SELECT name FROM sqlite_master WHERE type = 'view'";
   private static final String QRY_VIEW_PATT     = "SELECT * from %s WHERE 1=1 ORDER BY dtMov,dtval;";
-  private static final String QRY_IDMAX_CONT    = "SELECT MAX(id) FROM movimentiContanti";
+  private static final String QRY_LAST_ROWID    = "SELECT last_insert_rowid()";
 
-  private static final String QRY_INS_Mov =     //
-      "INSERT INTO movimenti%s"                 //
-          + "                 (dtmov"           //
-          + "                 ,dtval"           //
-          + "                 ,dare"            //
-          + "                 ,avere"           //
-          + "                 ,descr"           //
-          + "                 ,abicaus"         //
-          + "                 ,cardid)"         //
+  private static final String QRY_INS_Mov = //
+      "INSERT INTO movimenti%s" //
+          + "                 (dtmov" //
+          + "                 ,dtval" //
+          + "                 ,dare" //
+          + "                 ,avere" //
+          + "                 ,descr" //
+          + "                 ,abicaus" //
+          + "                 ,cardid)" //
           + "           VALUES (?,?,?,?,?,?,?)";
-  private PreparedStatement   stmtIns;
 
-  private static final String QRY_SEL_Mov =   //
-      "SELECT COUNT(*)"                       //
-          + "  FROM movimenti%s"              //
-          + " WHERE 1=1";                     //
-  private PreparedStatement   stmtSel;
+  private static final String QRY_SEL_Mov = //
+      "SELECT COUNT(*)" //
+          + "  FROM movimenti%s" //
+          + " WHERE 1=1"; //
 
   private static final String QRY_DEL_Mov =   //
       "DELETE FROM movimenti%s"               //
           + " WHERE 1=1";                     //
-  private PreparedStatement   stmtDel;
-  private PreparedStatement   stmtMaxId;
+  private static final String QRY_MOD_Mov =   //
+      "UPDATE movimenti%s"                    //
+          + "  SET dtmov=?"                   //
+          + "     ,dtval=?"                   //
+          + "     ,dare=?"                    //
+          + "     ,avere=?"                   //
+          + "     ,descr=?"                   //
+          + "     ,abicaus=?"                 //
+          + "     ,cardid=?"                  //
+          + "  WHERE 1=1";
+
+  private PreparedStatement stmtSel;
+  private PreparedStatement stmtIns;
+  private PreparedStatement stmtDel;
+  private PreparedStatement stmtMod;
+  private PreparedStatement stmtLastRowId;
 
   @Getter @Setter
   private String  tableName;
@@ -67,6 +79,8 @@ public class SQLiteGest implements ISQLGest {
   private int     scarti;
   @Getter @Setter
   private int     added;
+  @Getter @Setter
+  private int     lastRowid;
 
   private HashMap<String, String> m_mapCausABI;
 
@@ -162,21 +176,57 @@ public class SQLiteGest implements ISQLGest {
   }
 
   @Override
+  public boolean updateMovimento(String p_tab, RigaBanca p_rig) {
+    boolean bRet = false;
+    // TimerMeter tm = new TimerMeter("Insert");
+    DataController cntrl = DataController.getInst();
+    try {
+      if (null == stmtMod) {
+        StringBuilder qry = new StringBuilder(String.format(QRY_MOD_Mov, p_tab));
+        qry.append(cntrl.getCampiFiltro());
+        Connection conn = dbconn.getConn();
+        stmtMod = conn.prepareStatement(qry.toString());
+      }
+    } catch (SQLException e) {
+      s_log.error("Errore prep statement UPDATE on {} with err={}", p_tab, e.getMessage());
+      return false;
+    }
+
+    try {
+      String szCaus = p_rig.getCaus();
+      if (null != szCaus)
+        szCaus = szCaus.replace(".0", "");
+      int k = 1;
+      dbconn.setStmtDatetime(stmtMod, k++, p_rig.getDtmov());
+      dbconn.setStmtDatetime(stmtMod, k++, p_rig.getDtval());
+      dbconn.setStmtImporto(stmtMod, k++, p_rig.getDare());
+      dbconn.setStmtImporto(stmtMod, k++, p_rig.getAvere());
+      dbconn.setStmtString(stmtMod, k++, p_rig.getDescr());
+      dbconn.setStmtString(stmtMod, k++, szCaus);
+      dbconn.setStmtString(stmtMod, k++, p_rig.getCardid());
+      
+      dbconn.setStmtInt(stmtMod, k++, p_rig.getRigaid());
+
+      stmtMod.executeUpdate();
+
+    } catch (SQLException e) {
+      s_log.error("Errore INSERT on {} with err={}", p_tab, e.getMessage());
+    }
+    // System.out.println(tm.stop());
+    return bRet;
+  }
+
+  @Override
   public boolean insertMovimento(String p_tab, RigaBanca p_rig) {
     boolean bRet = false;
-    boolean bIsConID = p_tab.equals("contanti");
-    int idNew = -1;
+    lastRowid = -1;
     // TimerMeter tm = new TimerMeter("Insert");
     try {
       if (null == stmtIns) {
         String qry = String.format(QRY_INS_Mov, p_tab);
-        if (bIsConID) {
-          // aggiungo colonna "id"
-          qry = qry.replace("(dtmov", "(id,dtmov");
-          qry = qry.replace("(?", "(?,?");
-        }
         Connection conn = dbconn.getConn();
         stmtIns = conn.prepareStatement(qry.toString());
+        stmtLastRowId = conn.prepareStatement(QRY_LAST_ROWID);
       }
     } catch (SQLException e) {
       s_log.error("Errore prep statement INSERT on {} with err={}", p_tab, e.getMessage());
@@ -188,10 +238,6 @@ public class SQLiteGest implements ISQLGest {
       if (null != szCaus)
         szCaus = szCaus.replace(".0", "");
       int k = 1;
-      if (bIsConID) {
-        idNew = trovaMaxIdContanti();
-        stmtIns.setInt(k++, idNew);
-      }
       dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtmov());
       dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtval());
       dbconn.setStmtImporto(stmtIns, k++, p_rig.getDare());
@@ -201,34 +247,34 @@ public class SQLiteGest implements ISQLGest {
       dbconn.setStmtString(stmtIns, k++, p_rig.getCardid());
 
       stmtIns.executeUpdate();
+      lastRowid = trovaLastRowid();
     } catch (SQLException e) {
-      s_log.error("Errore DELETE on {} with err={}", p_tab, e.getMessage());
+      s_log.error("Errore INSERT on {} with err={}", p_tab, e.getMessage());
     }
     // System.out.println(tm.stop());
     return bRet;
   }
 
-  @Override
-  public int trovaMaxIdContanti() {
-    if (null == stmtMaxId) {
+  private int trovaLastRowid() {
+    if (null == stmtLastRowId) {
       try {
         Connection conn = dbconn.getConn();
-        stmtMaxId = conn.prepareStatement(QRY_IDMAX_CONT);
+        stmtLastRowId = conn.prepareStatement(QRY_LAST_ROWID);
       } catch (SQLException e) {
-        s_log.error("Errore prep statement IDMAX on contanti with err={}", e.getMessage());
+        s_log.error("Errore prep statement Last RowID with err={}", e.getMessage());
         return -1;
       }
     }
-    int retV = -1;
+    lastRowid = 0;
     try {
-      ResultSet res = stmtMaxId.executeQuery();
+      ResultSet res = stmtLastRowId.executeQuery();
       while (res.next()) {
-        retV = res.getInt(1) + 1;
+        lastRowid = res.getInt(1);
       }
     } catch (SQLException e) {
-      s_log.error("Errore IDMAX on contanti with err={}", e.getMessage());
+      s_log.error("Errore Last Row ID with err={}", e.getMessage());
     }
-    return retV;
+    return lastRowid;
   }
 
   @Override
@@ -302,7 +348,7 @@ public class SQLiteGest implements ISQLGest {
   @Override
   public String getDescrCausABI(String causABI) {
     String szRet = null;
-    if ((null == causABI) || (null == m_mapCausABI))
+    if (null == causABI || null == m_mapCausABI)
       return szRet;
     szRet = m_mapCausABI.get(causABI);
     return szRet;
