@@ -281,7 +281,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     System.out.println("ConfOpzioniController.initialize()");
     //
   }
-  
+
   @FXML
   public void cbSkinsSel(String newV) {
     m_appmain.setSkin(newV);
@@ -290,7 +290,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   @Override
   public void changeSkin() {
     URL url = m_appmain.getUrlCSS();
-    if ((null == url) || (null == myScene))
+    if (null == url || null == myScene)
       return;
     myScene.getStylesheets().clear();
     myScene.getStylesheets().add(url.toExternalForm());
@@ -330,9 +330,9 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     spinQtaThread.valueProperty().addListener((obj, ov, nv) -> changeQtaThreads(nv));
     caricaCbSkins();
     cbSkins.valueProperty().addListener((obj, ov, nv) -> cbSkinsSel(nv));
-    if ( null != m_appmain.getSkin())
+    if (null != m_appmain.getSkin())
       cbSkins.getSelectionModel().select(m_appmain.getSkin());
-    txFilesFiltro.setText(p_props.getProperty(LoadBancaController.CSZ_FILTER_FILES));
+    txFilesFiltro.setText(p_props.getProperty(DataController.CSZ_FILTER_FILES));
     txFilesFiltro.textProperty().addListener((obj, ov, nv) -> changedFiltroFiles(nv));
 
     ckDtmov.selectedProperty().addListener((obs, o, n) -> {
@@ -384,14 +384,14 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   }
 
   private void caricaCbSkins() {
-    String li[] = {  "LoadBancaFX", //
+    String li[] = { "LoadBancaFX", //
         "cupertino-dark", //
         "cupertino-light", //
         "dracula", //
         "nord-dark", //
         "nord-light", //
         "primer-dark", //
-        "primer-light"};
+        "primer-light" };
     List<String> lis = Arrays.asList(li);
     cbSkins.getItems().addAll(lis);
   }
@@ -403,7 +403,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   }
 
   private Object changedFiltroFiles(String nv) {
-    m_mainProps.setProperty(LoadBancaController.CSZ_FILTER_FILES, nv);
+    m_mainProps.setProperty(DataController.CSZ_FILTER_FILES, nv);
     return null;
   }
 

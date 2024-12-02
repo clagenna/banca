@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sys.ex.DatasetException;
 import sm.clagenna.stdcla.utils.AppProperties;
+import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 // FIXME Emettere un errore su clausola WHERE sbagliata
@@ -460,6 +462,7 @@ public class ResultView implements Initializable, IStartApp {
       szFilNam.append("_").append(m_fltrAnnoComp);
     }
     @SuppressWarnings("unused") LoadBancaController cntrl = (LoadBancaController) LoadBancaMainApp.getInst().getController();
+    szFilNam.append("_").append(ParseData.s_fmtDtDate.format(new Date()).replaceAll(" ", "_").replaceAll(":", "-"));
     szFilNam.append(".csv");
     // System.out.println("ResultView.btExportCsvClick():" + szFilNam.toString());
     m_CSVfile = Paths.get(szFilNam.toString());

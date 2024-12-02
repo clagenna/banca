@@ -100,7 +100,7 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     if ( !Utils.isChanged(skin, skinName))
       return;
     skin = skinName;
-    props.setProperty(skinName, 0);
+    // props.setProperty(skinName, 0);
     mainCSS = null;
     props.setProperty(AppProperties.CSZ_PROP_SKIN, skin);
     /* URL url = */ getUrlCSS();

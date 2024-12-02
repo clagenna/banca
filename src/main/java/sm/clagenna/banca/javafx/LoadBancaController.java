@@ -4,19 +4,15 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -26,7 +22,6 @@ import org.apache.logging.log4j.spi.StandardLevel;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -41,39 +36,39 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import sm.clagenna.banca.dati.CsvImportBanca;
 import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ILog4jReader;
 import sm.clagenna.stdcla.utils.Log4jRow;
 import sm.clagenna.stdcla.utils.MioAppender;
+import sm.clagenna.stdcla.utils.Utils;
 
 public class LoadBancaController implements Initializable, ILog4jReader, IStartApp {
-  private static final Logger s_log            = LogManager.getLogger(LoadBancaController.class);
-  public static final String  CSZ_FXMLNAME     = "BancaJavaFX.fxml";
-  private static final String CSZ_LOG_LEVEL    = "logLevel";
-  private static final String CSZ_SPLITPOS     = "splitpos";
-  private static final String CSZ_COL_time     = "log_time";
-  private static final String CSZ_COL_leve     = "log_lev";
-  private static final String CSZ_COL_mesg     = "log_mesg";
-  public static final String  CSZ_FILTER_FILES = "filter_files";
-
-  private List<Log4jRow> m_liMsgs;
+  private static final Logger s_log         = LogManager.getLogger(LoadBancaController.class);
+  public static final String  CSZ_FXMLNAME  = "BancaJavaFX.fxml";
+  private static final String CSZ_LOG_LEVEL = "logLevel";
+  private static final String CSZ_SPLITPOS  = "splitpos";
+  private static final String CSZ_COL_time  = "log_time";
+  private static final String CSZ_COL_leve  = "log_lev";
+  private static final String CSZ_COL_mesg  = "log_mesg";
 
   @FXML
   private MenuItem mnuGEstDati;
@@ -81,13 +76,23 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private MenuItem mnuGEstOpzioni;
 
   @FXML
-  private TextField                     txDirExports;
+  private TextField txDirExports;
   @FXML
-  private Button                        btCercaDir;
+  private Button    btCercaDir;
   @FXML
-  private SplitPane                     spltPane;
+  private SplitPane spltPane;
+
   @FXML
-  private ListView<Path>                liBanca;
+  private TableView<ImpFile>           tblvFiles;
+  private TableColumn<ImpFile, String> colId;
+  private TableColumn<ImpFile, String> colName;
+  private TableColumn<ImpFile, String> colRelDir;
+  private TableColumn<ImpFile, Number> colSize;
+  private TableColumn<ImpFile, Number> colQtaRecs;
+  private TableColumn<ImpFile, String> colDtmin;
+  private TableColumn<ImpFile, String> colDtmax;
+  private TableColumn<ImpFile, String> colUltagg;
+
   @FXML
   private TableView<Log4jRow>           tblLogs;
   @FXML
@@ -106,12 +111,15 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @FXML
   private Label                         lbProgressione;
 
-  private Path                  pthDirCSV;
+  private DataController cntrlr;
+  //  private Path                    pthDirCSV;
   private AppProperties         props;
   private ConfOpzioniController cntrlConfOpz;
   private int                   qtaActiveTasks;
   private ResultView            cntrResultView;
   private ViewContanti          cntrViewContanti;
+  // private ObservableList<FileCSV> liFilesCSV;
+  private List<Log4jRow> m_liMsgs;
 
   public LoadBancaController() {
     //
@@ -120,6 +128,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     MioAppender.setLogReader(this);
+    cntrlr = DataController.getInst();
     props = LoadBancaMainApp.getInst().getProps();
     levelMin = Level.INFO;
     initApp(props);
@@ -158,6 +167,24 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     getStage().setTitle("Caricamento degli Export CSV dalle Banche su DB");
     // vedi: https://stackoverflow.com/questions/27160951/javafx-open-another-fxml-in-the-another-window-with-button
     getStage().onCloseRequestProperty().setValue(e -> Platform.exit());
+
+    // -------- combo level -------
+    if (props != null) {
+      String sz = props.getProperty(CSZ_LOG_LEVEL);
+      if (sz != null)
+        levelMin = Level.toLevel(sz);
+    }
+    String szPos = props.getProperty(CSZ_SPLITPOS);
+    if (szPos != null) {
+      double dbl = Double.valueOf(szPos);
+      spltPane.setDividerPositions(dbl);
+    }
+    initTblFilesCSV();
+    initTblLogs();
+    initTxLastDir(props);
+  }
+
+  private void initTxLastDir(AppProperties props) {
     String szLastDir = props.getLastDir();
     if (szLastDir != null) {
       txDirExports.setText(szLastDir);
@@ -174,19 +201,36 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         }
       }
     });
+  }
 
-    // -------- combo level -------
-    if (props != null) {
-      String sz = props.getProperty(CSZ_LOG_LEVEL);
-      if (sz != null)
-        levelMin = Level.toLevel(sz);
-    }
-    String szPos = props.getProperty(CSZ_SPLITPOS);
-    if (szPos != null) {
-      double dbl = Double.valueOf(szPos);
-      spltPane.setDividerPositions(dbl);
-    }
-    initTblLogs();
+  @SuppressWarnings("unchecked")
+  private void initTblFilesCSV() {
+    System.out.println("LoadBancaController.initTblFilesCSV()");
+    colId = new TableColumn<>("Id");
+    colId.setCellValueFactory(cell -> cell.getValue().getOid());
+
+    colName = new TableColumn<>("Nome");
+    colName.setCellValueFactory(cell -> cell.getValue().getOFileName());
+
+    colRelDir = new TableColumn<>("Path Rel.");
+    colRelDir.setCellValueFactory(cell -> cell.getValue().getORelDir());
+
+    colSize = new TableColumn<>("Dimensione");
+    colSize.setCellValueFactory(cell -> cell.getValue().getOSize());
+
+    colQtaRecs = new TableColumn<>("Qta .rows");
+    colQtaRecs.setCellValueFactory(cell -> cell.getValue().getOQtarecs());
+
+    colDtmin = new TableColumn<>("Data min.");
+    colDtmin.setCellValueFactory(cell -> cell.getValue().getODtmin());
+
+    colDtmax = new TableColumn<>("Data Reg.");
+    colDtmax.setCellValueFactory(cell -> cell.getValue().getODtmax());
+
+    colUltagg = new TableColumn<>("Data Reg.");
+    colUltagg.setCellValueFactory(cell -> cell.getValue().getOUltagg());
+
+    tblvFiles.getColumns().addAll(colId, colName, colRelDir, colSize, colQtaRecs, colDtmin, colDtmax, colUltagg);
   }
 
   private void initTblLogs() {
@@ -463,15 +507,14 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
 
   private void eseguiConversioneRunTask() {
     qtaActiveTasks = 0;
-    ObservableList<Path> sels = liBanca.getSelectionModel().getSelectedItems();
-    DataController data = DataController.getInst();
-    s_log.debug("conversione di {} CSV in background con {} threads", sels.size(), data.getQtaThreads());
-    ExecutorService backGrService = Executors.newFixedThreadPool(data.getQtaThreads());
+    ObservableList<ImpFile> sels = tblvFiles.getSelectionModel().getSelectedItems();
+    s_log.debug("conversione di {} CSV in background con {} threads", sels.size(), cntrlr.getQtaThreads());
+    ExecutorService backGrService = Executors.newFixedThreadPool(cntrlr.getQtaThreads());
     btConvCSV.setDisable(true);
-    for (Path pth : sels) {
+    for (ImpFile impf : sels) {
       try {
         CsvImportBanca cvsimp = new CsvImportBanca();
-        cvsimp.setCsvFile(pth);
+        cvsimp.setCsvFile(impf.fullPath(cntrlr.getLastDir()));
         lbProgressione.textProperty().bind(cvsimp.messageProperty());
         cvsimp.setOnRunning(ev -> {
           // System.out.println("LoadBancaController.eseguiConversioneRunTask() RUNNING");
@@ -480,22 +523,23 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         cvsimp.setOnSucceeded(ev -> {
           // System.out.println("LoadBancaController.eseguiConversioneRunTask() SUCCEDED");
           setSemafore(0);
-          s_log.info("Fine del Task Background per {}", pth.toString());
+          s_log.info("Fine del Task Background per {}", impf.toString());
         });
         cvsimp.setOnFailed(ev -> {
           setSemafore(0);
           Throwable ex = ev.getSource().getException();
-          s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", pth.toString(), ex.getMessage(), ex);
+          s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
         });
         DBConn connSQL = LoadBancaMainApp.getInst().getConnSQL();
         cvsimp.setConnSql(connSQL);
         backGrService.execute(cvsimp);
       } catch (Exception e) {
         lbProgressione.textProperty().unbind();
-        s_log.error("Errore conversione PDF {}", pth.toString(), e);
+        s_log.error("Errore conversione PDF {}", impf.toString(), e);
       }
     }
     backGrService.shutdown();
+    reloadListFilesCSV();
     // btConvCSV.setDisable(false);
     // s_log.debug("Fine conversione in background");
   }
@@ -556,48 +600,27 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
    * @return
    */
   private Path settaFileIn(Path p_fi, boolean p_setTx, boolean bForce) {
-    if (p_fi == null)
-      return p_fi;
-    if ( !bForce)
-      if (pthDirCSV != null && pthDirCSV.compareTo(p_fi) == 0)
-        return pthDirCSV;
-    String szFiin = p_fi.toString();
-    props.setLastDir(szFiin);
+    //    if (p_fi == null)
+    //      return p_fi;
+    //    if ( !bForce)
+    //      if (pthDirCSV != null && pthDirCSV.compareTo(p_fi) == 0)
+    //        return pthDirCSV;
+    //    String szFiin = p_fi.toString();
+    //    props.setLastDir(szFiin);
+    p_fi = cntrlr.assegnaLastDir(p_fi, bForce);
     if (p_setTx)
-      txDirExports.setText(szFiin);
-    pthDirCSV = p_fi;
-    if ( !Files.exists(pthDirCSV, LinkOption.NOFOLLOW_LINKS)) {
-      s_log.error("Il path \"{}\" non esiste !", pthDirCSV.toString());
-      return p_fi;
-    }
+      txDirExports.setText(p_fi.toString());
+    // pthDirCSV = p_fi;
     reloadListFilesCSV();
     return p_fi;
   }
 
   private void reloadListFilesCSV() {
-    List<Path> result = null;
-    String fltrFiles = props.getProperty(CSZ_FILTER_FILES);
-    if (null == fltrFiles)
-      fltrFiles = "wise,estra";
-
-    String szGlobMatch = creaGlobMatch(fltrFiles);
-    // String szGlobMatch = "glob:*:/**/{estra*,wise*}*.csv";
-    PathMatcher matcher = FileSystems.getDefault().getPathMatcher(szGlobMatch);
-    try (Stream<Path> walk = Files.walk(pthDirCSV)) {
-      result = walk.filter(p -> !Files.isDirectory(p)) //
-          // not a directory
-          // .map(p -> p.toString().toLowerCase()) // convert path to string
-          .filter(f -> matcher.matches(f)) // check end with
-          .collect(Collectors.toList()); // collect all matched to a List
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-    // DefaultListModel<Path> l1 = new DefaultListModel<>();
-    ObservableList<Path> li = FXCollections.observableArrayList(result);
-    liBanca.setItems(li);
-    liBanca.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-    // listViewColorize();
+    s_log.debug("Ricarico la lista files CSV da: {}", cntrlr.getLastDir());
+    ObservableList<ImpFile> liFilesCSV = cntrlr.getContCsv().loadListFiles();
+    tblvFiles.getItems().clear();
+    tblvFiles.getItems().addAll(liFilesCSV);
+    colorizeTblView();
 
     MenuItem mi1 = new MenuItem("Vedi Fattura");
     mi1.setOnAction((ActionEvent ev) -> {
@@ -605,26 +628,53 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     });
     ContextMenu menu = new ContextMenu();
     menu.getItems().add(mi1);
-    liBanca.setContextMenu(menu);
+    // liBanca.setContextMenu(menu);
+    tblvFiles.setContextMenu(menu);
     btConvCSV.setDisable(false);
 
-    s_log.debug("Ricaricata lista files dal dir \"{}\"", pthDirCSV.toString());
+    s_log.debug("Ricaricata lista files dal dir \"{}\"", cntrlr.getLastDir().toString());
   }
 
-  private String creaGlobMatch(String fltr) {
-    String arr[] = fltr.split(",");
-    StringBuilder fils = new StringBuilder();
-    String vir = "";
-    // String prefix = "estratt";
-    for (String pat : arr) {
-      fils.append(String.format("%s%s*", vir, pat));
-      vir = ",";
-    }
-    return String.format("glob:*:/**/{%s}*.{csv,xls,xlsx}", fils.toString());
+  private void colorizeTblView() {
+    // Default cell factory provides text field for editing and converts text in text field to int.
+    Callback<TableColumn<ImpFile, String>, TableCell<ImpFile, String>> defaultCellFactory = TextFieldTableCell.forTableColumn();
+    // Cell factory implementation that uses default cell factory above, and augments the implementation
+    Callback<TableColumn<ImpFile, String>, TableCell<ImpFile, String>> cellFactory = col -> {
+      TableCell<ImpFile, String> cell = defaultCellFactory.call(col);
+      cell.itemProperty().addListener((obs, oldValue, newValue) -> {
+        String szNa = obs.getClass().getSimpleName();
+        String ov = "ov=*null*";
+        String nv = "nv=*null*";
+        if (null != oldValue)
+          ov = "ov=" + oldValue;
+        if (null != newValue)
+          nv = "nv=" + newValue;
+        String stcl = cell.getStyle();
+        System.out.printf("LoadBancaController.colorizeTblView(%s:%s:%s) style=%s\n", szNa, ov, nv,stcl);
+        if ( ! Utils.isValue(newValue))
+          cell.setStyle("-fx-background-color: tomato;");
+        else
+          cell.setStyle("");
+
+        //        if (newValue == null) {
+        //          cell.setStyle("cell-selection-color: -fx-selection-bar ;");
+        //        } else {
+        //          System.out.println("LoadBancaController.colorizeTblView()");
+        //          String formattedColor = formatColor(color);
+        //          cell.setStyle("cell-selection-color: " + formattedColor + " ;");
+        //        }
+      });
+      return cell;
+    };
+    // colName.setCellFactory(cellFactory);
+    // colRelDir.setCellFactory(cellFactory);
+    colId.setCellFactory(cellFactory);
   }
 
   private void showPdfDoc() {
-    Path it = liBanca.getSelectionModel().getSelectedItem();
+    // Path it = liBanca.getSelectionModel().getSelectedItem();
+    ImpFile imf = tblvFiles.getSelectionModel().getSelectedItem();
+    Path it = imf.fullPath(cntrlr.getLastDir());
     // System.out.println("Ctx menu: path="+it);
     try {
       if (Desktop.isDesktopSupported()) {

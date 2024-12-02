@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import javafx.concurrent.Task;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.sql.DBConn;
@@ -26,10 +27,16 @@ import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-// FIXME Verificare quando nella SMAC c'e' "null-null'
 public class CsvImportBanca
     extends Task<String> /* implements Thread.UncaughtExceptionHandler */ {
-  private static final Logger s_log = LogManager.getLogger(CsvImportBanca.class);
+  private static final Logger s_log          = LogManager.getLogger(CsvImportBanca.class);
+  public static final String  BANCA_BKN301   = "carispcredit";
+  public static final String  BANCA_BSI      = "bsi";
+  public static final String  BANCA_CARISP   = "carisp";
+  public static final String  BANCA_CONTANTI = "contanti";
+  public static final String  BANCA_PAYPAL   = "paypal";
+  public static final String  BANCA_SMAC     = "smac";
+  public static final String  BANCA_WISE     = "wise";
 
   private Path    csvFile;
   @Getter @Setter
@@ -60,11 +67,12 @@ public class CsvImportBanca
     // i CSV degli export Welly/BSI sono in Locale.US
     Utils.setLocale(Locale.ITALY);
     nomiCols = new HashMap<>();
-    nomiCols.put("dtmov", Arrays.asList(new String[] { "dtmov", "data", "Data transazione", "Created on", "" }));
+    nomiCols.put("dtmov", Arrays.asList(new String[] { "dtmov", "data", "Date", "Data transazione", "Created on", "" }));
     nomiCols.put("dtval", Arrays.asList(new String[] { "dtval", "valuta", "Data contabile", "Finished on" }));
-    nomiCols.put("dare", Arrays.asList(new String[] { "dare", "importo", "Source amount (after fees)" }));
+    nomiCols.put("dare", Arrays.asList(new String[] { "dare", "importo", "Amount", "Source amount (after fees)" }));
     nomiCols.put("avere", Arrays.asList(new String[] { "avere", "*no*", "*no*" }));
-    nomiCols.put("descr", Arrays.asList(new String[] { "descr", "causale", "descrizione", "Target name", "Esercente" }));
+    nomiCols.put("descr",
+        Arrays.asList(new String[] { "descr", "causale", "descrizione", "Target name", "Esercente", "Merchant" }));
     nomiCols.put("caus", Arrays.asList(new String[] { "causabi", "causale abi", "categoria", "ID" }));
 
     cntrl = DataController.getInst();
@@ -98,10 +106,9 @@ public class CsvImportBanca
     try (Dataset dts = new Dataset()) {
       dts.setIntToDouble(true);
       String szExt = Utils.getFileExtention(csvFile);
-      if (sqlTableName.equals("wise")) {
+      if (sqlTableName.equals(BANCA_WISE) || sqlTableName.equals(BANCA_PAYPAL)) {
         dts.setCsvdelim(",");
         Utils.setLocale(Locale.US);
-        setTipoFile("wise");
       }
       switch (szExt) {
         case ".csv":
@@ -122,14 +129,37 @@ public class CsvImportBanca
     DataController dtc = DataController.getInst();
     String szDbType = dtc.getDBType();
     ISQLGest sqlg = SqlGestFactory.get(szDbType);
+    CsvFileContainer contcsv = cntrl.getContCsv();
+    ImpFile impf = contcsv.getFromPath(csvFile);
+    if (null == impf)
+      impf = contcsv.addFile(csvFile);
+    impf.completaInfo(getRigheBanca());
+    contcsv.saveDb(impf);
+
     s_log.info("Scrivo file {} di {} recs su DB({}) over={}", getCsvFile().toString(), getRigheBanca().size(), szDbType,
         dtc.isOverwrite());
-    sqlg.setDbconn(dbconn);
-    sqlg.setTableName(getSqlTableName());
-    sqlg.setDbconn(dbconn);
-    sqlg.setOverwrite(dtc.isOverwrite());
-    for (RigaBanca ri : getRigheBanca())
-      sqlg.write(ri);
+    int qryFiltrBefore = dtc.getFiltriQuery();
+    int qryFiltrNow = qryFiltrBefore;
+    try {
+      sqlg.setDbconn(dbconn);
+      sqlg.setTableName(getSqlTableName());
+      sqlg.setOverwrite(dtc.isOverwrite());
+      switch (getSqlTableName()) {
+        case "wise":
+          // per WISE limito il filtro di exist su soli questi campi
+          qryFiltrNow = ESqlFiltri.Dtmov.getFlag() //
+              | ESqlFiltri.Dare.getFlag() //
+              | ESqlFiltri.Avere.getFlag();
+          break;
+      }
+      dtc.setFiltriQuery(qryFiltrNow);
+      for (RigaBanca ri : getRigheBanca()) {
+        ri.setIdfile(impf.getId());
+        sqlg.write(ri);
+      }
+    } finally {
+      dtc.setFiltriQuery(qryFiltrBefore);
+    }
   }
 
   /**
@@ -165,20 +195,22 @@ public class CsvImportBanca
     }
 
     String sz = mat.group(1).toLowerCase();
-    if (sz.contains("bsi"))
-      sqlTableName = "bsi";
+    if (sz.contains(BANCA_BSI))
+      sqlTableName = BANCA_BSI;
     if (sz.contains("cari"))
-      sqlTableName = "carisp";
+      sqlTableName = BANCA_CARISP;
     if (sz.contains("contant"))
-      sqlTableName = "contanti";
-    if (sz.contains("cred"))
-      sqlTableName += "Credit";
-    if (sz.contains("tpay"))
-      sqlTableName = "carispCredit";
-    if (sz.contains("wise"))
-      sqlTableName = "wise";
-    if (sz.contains("smac"))
-      sqlTableName = "smac";
+      sqlTableName = BANCA_CONTANTI;
+    //    if (sz.contains("cred"))
+    //      sqlTableName += "Credit";
+    if (sz.contains("tpay") || sz.contains("bkn3"))
+      sqlTableName = BANCA_BKN301;
+    if (sz.contains(BANCA_PAYPAL))
+      sqlTableName = BANCA_PAYPAL;
+    if (sz.contains(BANCA_WISE))
+      sqlTableName = BANCA_WISE;
+    if (sz.contains(BANCA_SMAC))
+      sqlTableName = BANCA_SMAC;
 
     if (null == sqlTableName)
       throw new UnsupportedOperationException("Non trovo il nome Tabella; Il nome file mal formato?");
@@ -202,21 +234,33 @@ public class CsvImportBanca
     if (null == dtsCsv || dtsCsv.getQtaCols() == 0)
       throw new UnsupportedOperationException("CSV dataset not opened !");
     righeBanca = new ArrayList<RigaBanca>();
-    for (DtsRow row : dtsCsv.getRighe()) {
-      switch (sqlTableName) {
-        case "wise":
-          studiaRigaWise(row);
-          break;
-        case "smac":
-          studiaRigaSmac(row);
-          break;
-        case "contanti":
-          studiaRigaContanti(row);
-          break;
-        default:
-          studiaRiga(row);
-          break;
+    Locale prevloc = Utils.getLocale();
+    try {
+      for (DtsRow row : dtsCsv.getRighe()) {
+        switch (sqlTableName) {
+          case BANCA_WISE:
+            studiaRigaWise(row);
+            break;
+          case BANCA_SMAC:
+            studiaRigaSmac(row);
+            break;
+          case BANCA_CONTANTI:
+            studiaRigaContanti(row);
+            break;
+          case BANCA_PAYPAL:
+            // i decimali da PayPall hanno le 'virgole'?!?
+            Utils.setLocale(Locale.ITALY);
+            studiaRigaPayPal(row);
+            break;
+          default:
+            studiaRiga(row);
+            break;
+        }
       }
+    } catch (Exception e) {
+      s_log.error("Errore studia riga, err={}", e.getMessage(), e);
+    } finally {
+      Utils.setLocale(prevloc);
     }
     return righeBanca;
   }
@@ -242,11 +286,10 @@ public class CsvImportBanca
 
     val = getRowVal("dtval", row);
     if (null == val) {
-      s_log.debug("Scarto riga Wise: {}", row.toString());
-      return;
-    }
-    dtval = ParseData.parseData(val.toString());
-
+      dtval = dtmov;
+    } else
+      dtval = ParseData.parseData(val.toString());
+    /* source = Claudio Gennari/ TransferWise / "" */
     String source = (String) row.get("Source name");
     if (null == source)
       source = "";
@@ -276,7 +319,15 @@ public class CsvImportBanca
           descr = "cash back";
       }
     } else
-      cardid = source.substring(0, 3).toLowerCase();
+      cardid = source.length() > 3 ? source.substring(0, 3).toLowerCase() : null;
+    if (dare < 0) {
+      dare = -dare;
+    } else if (source.length() == 0) {
+      // solo se source è valorizzato posso invertire
+      avere = dare;
+      dare = 0.;
+    }
+
     if (null == descr) {
       val = getRowVal("descr", row);
       if (null == val) {
@@ -411,6 +462,54 @@ public class CsvImportBanca
     }
     rb.setDescr(val.toString());
     rb.setCaus("CO");
+
+    if (null != cardIdent)
+      rb.setCardid(cardIdent);
+    righeBanca.add(rb);
+  }
+
+  private void studiaRigaPayPal(DtsRow row) {
+    RigaBanca rb = new RigaBanca();
+    String sz = null;
+    Object dt = row.get("Date");
+    Object val = row.get("Time");
+    if (null == dt || null == val) {
+      s_log.warn("Scarto riga contante: {}", row.toString());
+      return;
+    }
+    LocalDateTime locd = null;
+    if (dt instanceof LocalDateTime ldt) {
+      sz = String.format("%s %s", ParseData.s_fmtY4MD.format(ldt), val.toString());
+      locd = ParseData.guessData(sz);
+    } else if (dt instanceof String lsz) {
+      sz = String.format("%s %s", lsz.substring(0, 10), val.toString());
+      locd = ParseData.parseData(sz);
+    }
+    rb.setDtmov(locd);
+    rb.setDtval(locd);
+
+    val = row.get("name");
+    if (null == val || val.toString().trim().length() < 2) {
+      s_log.debug("Scarto riga PayPal: {}", row.toString());
+      return;
+    }
+    rb.setDescr(val.toString().trim());
+
+    val = row.get("Amount");
+    rb.setAvere(0.);
+    rb.setDare(0.);
+    double dbl = 0.;
+    if (null == val || val.toString().length() == 0)
+      dbl = 0.;
+    else if (val instanceof Double dou)
+      dbl = dou;
+    else
+      dbl = Utils.parseDouble(val.toString());
+    if (dbl > 0)
+      rb.setAvere(dbl);
+    else
+      rb.setDare( -dbl);
+    rb.setCaus("PP");
 
     if (null != cardIdent)
       rb.setCardid(cardIdent);

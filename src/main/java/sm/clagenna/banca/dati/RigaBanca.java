@@ -11,6 +11,8 @@ public class RigaBanca {
   @Getter @Setter
   private Integer       rigaid;
   @Getter @Setter
+  private Integer       idfile;
+  @Getter @Setter
   private LocalDateTime dtmov;
   @Getter @Setter
   private LocalDateTime dtval;
@@ -39,7 +41,8 @@ public class RigaBanca {
     setAvere(p_avere);
     setDescr(p_descr);
     caus = p_caus;
-    cardid = p_cardid;
+    if (Utils.isValue(p_cardid))
+      setCardid(p_cardid);
   }
 
   @Override
@@ -58,26 +61,13 @@ public class RigaBanca {
 
   public void setDescr(String p_des) {
     descr = p_des;
-    localCardIdent = discerniCardId(p_des);
+    localCardIdent = DataController.getInst().getAssocid().findAssoc(descr);
+    if (null == cardid && localCardIdent != null)
+      setCardid(localCardIdent);
   }
 
   public void setCardid(String p_sz) {
     cardid = p_sz;
-    if (null == p_sz && localCardIdent != null)
-      cardid = localCardIdent;
-  }
-
-  public String discerniCardId(String descr) {
-    String ret = null;
-    if (null == descr)
-      return ret;
-    if (descr.matches(".*[0-9]+84806"))
-      ret = "cla";
-    else if (descr.matches(".*[0-9]+66542"))
-      ret = "eug";
-    else if (descr.matches(".*[0-9]+85928"))
-      ret = "eug";
-    return ret;
   }
 
   public void azzera() {
@@ -92,15 +82,9 @@ public class RigaBanca {
   }
 
   public boolean isValido() {
-    if ( !Utils.isValue(rigaid))
+    if ( !Utils.isValue(rigaid) || !Utils.isValue(dtmov) || !Utils.isValue(dtval))
       return false;
-    if ( !Utils.isValue(dtmov))
-      return false;
-    if ( !Utils.isValue(dtval))
-      return false;
-    if (null == dare || null == avere)
-      return false;
-    if (dare == 0 && avere == 0)
+    if (null == dare || null == avere || (dare == 0 && avere == 0))
       return false;
     if ( !Utils.isValue(descr))
       return false;

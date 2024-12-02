@@ -1,6 +1,9 @@
 package sm.clagenna.banca.dati;
 
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,20 +23,28 @@ import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class DataController implements IStartApp {
-  private static final Logger   s_log           = LogManager.getLogger(DataController.class);
-  private static final String   CSZ_PROP_SCARTA = "voci.scarta";
-  private static final String   CSZ_FLAG_FILTRI = "FLAG_FILTRI";
-  private static final String   CSZ_QTA_THREADS = "QTA_THREADS";
+  private static final Logger s_log            = LogManager.getLogger(DataController.class);
+  private static final String CSZ_PROP_SCARTA  = "voci.scarta";
+  private static final String CSZ_FLAG_FILTRI  = "FLAG_FILTRI";
+  private static final String CSZ_QTA_THREADS  = "QTA_THREADS";
+  public static final String  CSZ_FILTER_FILES = "filter_files";
+
   private static DataController s_inst;
 
+  @Getter
+  private Path                 lastDir;
   @Getter @Setter
   private ObservableList<Path> selPaths;
   @Getter @Setter
   private int                  filtriQuery;
   @Getter @Setter
   private int                  qtaThreads;
+  @Getter @Setter
+  private CardidAssoc          associd;
   @Getter
   private boolean              overwrite;
+  @Getter
+  private CsvFileContainer     contCsv;
   private AppProperties        props;
   private List<String>         scartaVoci;
 
@@ -44,6 +55,22 @@ public class DataController implements IStartApp {
     }
     s_inst = this;
     filtriQuery = ESqlFiltri.AllSets.getFlag();
+  }
+
+  public Path assegnaLastDir(Path p_ld, boolean bForce) {
+    if (p_ld == null)
+      return p_ld;
+    if ( !bForce)
+      if (lastDir != null && lastDir.compareTo(p_ld) == 0)
+        return lastDir;
+    if ( !Files.exists(p_ld, LinkOption.NOFOLLOW_LINKS)) {
+      s_log.error("Il path \"{}\" non esiste !", lastDir.toString());
+      return p_ld;
+    }
+    lastDir = p_ld;
+    String szFiin = lastDir.toString();
+    props.setLastDir(szFiin);
+    return lastDir;
   }
 
   public static DataController getInst() {
@@ -105,17 +132,21 @@ public class DataController implements IStartApp {
 
   @Override
   public void initApp(AppProperties p_props) {
-    AppProperties prop = LoadBancaMainApp.getInst().getProps();
-    filtriQuery = prop.getIntProperty(CSZ_FLAG_FILTRI, ESqlFiltri.AllSets.getFlag());
-    qtaThreads = prop.getIntProperty(CSZ_QTA_THREADS, 1);
+    props = p_props;
+    contCsv = new CsvFileContainer();
+    filtriQuery = props.getIntProperty(CSZ_FLAG_FILTRI, ESqlFiltri.AllSets.getFlag());
+    qtaThreads = props.getIntProperty(CSZ_QTA_THREADS, 1);
     scartaVoci = new ArrayList<String>();
-    String sz = prop.getProperty(CSZ_PROP_SCARTA);
+    lastDir = Paths.get(props.getLastDir());
+    String sz = props.getProperty(CSZ_PROP_SCARTA);
     if (null != sz && sz.length() > 0) {
       String sep = ";";
       if ( !sz.contains(sep))
         sep = ",";
       scartaVoci.addAll(Arrays.asList(sz.toLowerCase().split(sep)));
     }
+    associd = new CardidAssoc();
+    associd.load(p_props);
   }
 
   @Override
