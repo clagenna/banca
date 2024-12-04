@@ -4,7 +4,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE dbo.causali(
-	abicaus varchar(4) NOT NULL,
+	abicaus varchar(32) NOT NULL,
 	descrcaus nvarchar(256) NULL,
 	costo int NULL,
  CONSTRAINT PK_causali PRIMARY KEY CLUSTERED ( 	abicaus ASC )
@@ -172,7 +172,7 @@ CREATE TABLE dbo.movimentiBSI(
 	dare money NULL,
 	avere money NULL,
 	descr nvarchar(512) NULL,
-	abicaus varchar(4) NULL,
+	abicaus nvarchar(32) NULL,
 	cardid nvarchar(20) NULL
 ) 
 GO
@@ -191,7 +191,7 @@ CREATE TABLE dbo.movimentiBSICredit(
 	dare money NULL,
 	avere money NULL,
 	descr nvarchar(512) NULL,
-	abicaus varchar(4) NULL,
+	abicaus nvarchar(32) NULL,
 	cardid nvarchar(20) NULL
 )
 GO
@@ -211,7 +211,7 @@ CREATE TABLE dbo.movimentiCarisp(
 	dare money NULL,
 	avere money NULL,
 	descr nvarchar(512) NULL,
-	abicaus varchar(4) NULL,
+	abicaus nvarchar(32) NULL,
 	cardid nvarchar(20) NULL
 )
 GO
@@ -230,7 +230,7 @@ CREATE TABLE dbo.movimentiCarispCredit(
 	dare money NULL,
 	avere money NULL,
 	descr nvarchar(512) NULL,
-	abicaus varchar(4) NULL,
+	abicaus nvarchar(32) NULL,
 	cardid nvarchar(20) NULL
 )
 GO
@@ -249,7 +249,7 @@ CREATE TABLE dbo.movimentiPaypal(
 	dare money NULL,
 	avere money NULL,
 	descr nvarchar(512) NULL,
-	abicaus nvarchar(512) NULL,
+	abicaus nvarchar(32) NULL,
 	cardid nvarchar(20) NULL
 )
 GO
@@ -268,7 +268,7 @@ CREATE TABLE dbo.movimentiWise(
 	dare money NULL,
 	avere money NULL,
 	descr nvarchar(512) NULL,
-	abicaus nvarchar(512) NULL,
+	abicaus nvarchar(32) NULL,
 	cardid nvarchar(20) NULL
 )
 GO
@@ -287,7 +287,7 @@ CREATE TABLE dbo.movimentiContanti(
 	dare money NULL,
 	avere money NULL,
 	descr nvarchar(512) NULL,
-	abicaus varchar(4) NULL,
+	abicaus nvarchar(32) NULL,
 	cardid nvarchar(20) NULL
 )
 GO
@@ -306,7 +306,7 @@ CREATE TABLE dbo.movimentiSmac(
 	dare money NULL,
 	avere money NULL,
 	descr nvarchar(512) NULL,
-	abicaus nvarchar(512) NULL,
+	abicaus nvarchar(32) NULL,
 	cardid nvarchar(20) NULL
 )
 GO

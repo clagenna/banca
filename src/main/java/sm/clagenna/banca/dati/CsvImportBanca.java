@@ -1,5 +1,9 @@
 package sm.clagenna.banca.dati;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.Closeable;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,16 +31,26 @@ import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class CsvImportBanca
-    extends Task<String> /* implements Thread.UncaughtExceptionHandler */ {
-  private static final Logger s_log          = LogManager.getLogger(CsvImportBanca.class);
-  public static final String  BANCA_BKN301   = "carispcredit";
-  public static final String  BANCA_BSI      = "bsi";
-  public static final String  BANCA_CARISP   = "carisp";
-  public static final String  BANCA_CONTANTI = "contanti";
-  public static final String  BANCA_PAYPAL   = "paypal";
-  public static final String  BANCA_SMAC     = "smac";
-  public static final String  BANCA_WISE     = "wise";
+public class CsvImportBanca extends Task<String> implements Closeable {
+
+  private static final Logger s_log = LogManager.getLogger(CsvImportBanca.class);
+
+  public static final String EVT_PARSECSV  = "parsecsv";
+  public static final String EVT_SIZEDTS   = "sizedts";
+  public static final String EVT_FUNCTYPE  = "functype";
+  public static final String EVT_DTSROW    = "dtsrow";
+  public static final String EVT_ENDDTSROW = "Endrow";
+  public static final String EVT_SAVEDB    = "savedb";
+  public static final String EVT_SAVEDBROW = "savedbrow";
+  public static final String EVT_ENDSAVEDB = "endsavedb";
+
+  public static final String BANCA_BKN301   = "carispcredit";
+  public static final String BANCA_BSI      = "bsi";
+  public static final String BANCA_CARISP   = "carisp";
+  public static final String BANCA_CONTANTI = "contanti";
+  public static final String BANCA_PAYPAL   = "paypal";
+  public static final String BANCA_SMAC     = "smac";
+  public static final String BANCA_WISE     = "wise";
 
   private Path    csvFile;
   @Getter @Setter
@@ -45,14 +59,18 @@ public class CsvImportBanca
   private String  cardIdent;
   @Getter @Setter
   private String  tipoFile;
+  @Getter @Setter
+  private boolean skipSaveDB;
   private Dataset dtsCsv;
 
+  private PropertyChangeSupport     prchsupp;
   private Map<String, List<String>> nomiCols;
   @Getter
   private List<RigaBanca>           righeBanca;
   private DBConn                    dbconn;
   @Getter
   private DataController            cntrl;
+  private double                    dblQtaRows;
 
   public CsvImportBanca() {
     init();
@@ -65,6 +83,8 @@ public class CsvImportBanca
 
   private void init() {
     // i CSV degli export Welly/BSI sono in Locale.US
+    skipSaveDB = false;
+    prchsupp = new PropertyChangeSupport(this);
     Utils.setLocale(Locale.ITALY);
     nomiCols = new HashMap<>();
     nomiCols.put("dtmov", Arrays.asList(new String[] { "dtmov", "data", "Date", "Data transazione", "Created on", "" }));
@@ -103,6 +123,7 @@ public class CsvImportBanca
   public void importCSV() {
     s_log.debug("Import CSV file {}", getCsvFile().toString());
     setTipoFile("csv");
+    firePropertyChange(EVT_PARSECSV, 0.);
     try (Dataset dts = new Dataset()) {
       dts.setIntToDouble(true);
       String szExt = Utils.getFileExtention(csvFile);
@@ -119,18 +140,65 @@ public class CsvImportBanca
           setTipoFile(szExt.toLowerCase().replace(".", ""));
           dtsCsv = dts.readexcel(csvFile);
       }
+      dblQtaRows = dts.size();
+      firePropertyChange(EVT_SIZEDTS, dblQtaRows);
       s_log.debug("Readed {} recs from {}", dtsCsv.size(), getCsvFile().toString());
     } catch (Exception e) {
       s_log.error("Errore read csv, err={}", e.getMessage(), e);
     }
   }
 
+  public List<RigaBanca> analizzaBanca() {
+    if (null == dtsCsv || dtsCsv.getQtaCols() == 0)
+      throw new UnsupportedOperationException("CSV dataset not opened !");
+    righeBanca = new ArrayList<RigaBanca>();
+    Locale prevloc = Utils.getLocale();
+    firePropertyChange(EVT_FUNCTYPE, 0.);
+    int nRow = 0;
+    try {
+      for (DtsRow row : dtsCsv.getRighe()) {
+        firePropertyChange(EVT_DTSROW, (double) nRow++);
+        switch (sqlTableName) {
+          case BANCA_WISE:
+            studiaRigaWise(row);
+            break;
+          case BANCA_SMAC:
+            studiaRigaSmac(row);
+            break;
+          case BANCA_CONTANTI:
+            studiaRigaContanti(row);
+            break;
+          case BANCA_PAYPAL:
+            // i decimali da PayPall hanno le 'virgole'?!?
+            Utils.setLocale(Locale.ITALY);
+            studiaRigaPayPal(row);
+            break;
+          default:
+            studiaRiga(row);
+            break;
+        }
+      }
+    } catch (Exception e) {
+      s_log.error("Errore studia riga, err={}", e.getMessage(), e);
+    } finally {
+      Utils.setLocale(prevloc);
+      firePropertyChange(EVT_ENDDTSROW, (double) dtsCsv.size());
+      updateProgress(nRow, nRow);
+      System.out.println("CsvImportBanca.analizzaBanca - " + EVT_ENDDTSROW);
+    }
+    return righeBanca;
+  }
+
   private void saveSuDB() {
+    if (skipSaveDB)
+      return;
+
     DataController dtc = DataController.getInst();
     String szDbType = dtc.getDBType();
     ISQLGest sqlg = SqlGestFactory.get(szDbType);
     CsvFileContainer contcsv = cntrl.getContCsv();
     ImpFile impf = contcsv.getFromPath(csvFile);
+    firePropertyChange(EVT_SAVEDB, dblQtaRows);
     if (null == impf)
       impf = contcsv.addFile(csvFile);
     impf.completaInfo(getRigheBanca());
@@ -140,6 +208,7 @@ public class CsvImportBanca
         dtc.isOverwrite());
     int qryFiltrBefore = dtc.getFiltriQuery();
     int qryFiltrNow = qryFiltrBefore;
+    int nRow = 0;
     try {
       sqlg.setDbconn(dbconn);
       sqlg.setTableName(getSqlTableName());
@@ -156,9 +225,12 @@ public class CsvImportBanca
       for (RigaBanca ri : getRigheBanca()) {
         ri.setIdfile(impf.getId());
         sqlg.write(ri);
+        firePropertyChange(EVT_SAVEDBROW, (double)(nRow++));
       }
     } finally {
       dtc.setFiltriQuery(qryFiltrBefore);
+      firePropertyChange(EVT_ENDSAVEDB, dblQtaRows * 2.);
+      System.out.println("CsvImportBanca.saveSuDB() - " + EVT_ENDSAVEDB);
     }
   }
 
@@ -228,41 +300,6 @@ public class CsvImportBanca
 
   public void setConnSql(DBConn p_conn) {
     dbconn = p_conn;
-  }
-
-  public List<RigaBanca> analizzaBanca() {
-    if (null == dtsCsv || dtsCsv.getQtaCols() == 0)
-      throw new UnsupportedOperationException("CSV dataset not opened !");
-    righeBanca = new ArrayList<RigaBanca>();
-    Locale prevloc = Utils.getLocale();
-    try {
-      for (DtsRow row : dtsCsv.getRighe()) {
-        switch (sqlTableName) {
-          case BANCA_WISE:
-            studiaRigaWise(row);
-            break;
-          case BANCA_SMAC:
-            studiaRigaSmac(row);
-            break;
-          case BANCA_CONTANTI:
-            studiaRigaContanti(row);
-            break;
-          case BANCA_PAYPAL:
-            // i decimali da PayPall hanno le 'virgole'?!?
-            Utils.setLocale(Locale.ITALY);
-            studiaRigaPayPal(row);
-            break;
-          default:
-            studiaRiga(row);
-            break;
-        }
-      }
-    } catch (Exception e) {
-      s_log.error("Errore studia riga, err={}", e.getMessage(), e);
-    } finally {
-      Utils.setLocale(prevloc);
-    }
-    return righeBanca;
   }
 
   private void studiaRigaWise(DtsRow row) {
@@ -623,9 +660,30 @@ public class CsvImportBanca
     return dtsCsv.toString();
   }
 
-  //  @Override
-  //  public void uncaughtException(Thread t, Throwable e) {
-  //    s_log.error("Exception on thread, {}", e.getMessage(), e);
-  //  }
+  private void firePropertyChange(String szEvt, Double dbl) {
+    prchsupp.firePropertyChange(szEvt, -1., dbl);
+    updateProgress(dbl, dblQtaRows);
+  }
+
+  public void addPropertyChangeListener(PropertyChangeListener loadBancaController) {
+    System.out.println("CsvImportBanca.addPropertyChangeListener()");
+    prchsupp.addPropertyChangeListener(loadBancaController);
+  }
+
+  public void removePropertyChangeListener(PropertyChangeListener loadBancaController) {
+    System.out.println("CsvImportBanca.removePropertyChangeListener()");
+    prchsupp.removePropertyChangeListener(loadBancaController);
+  }
+
+  @Override
+  public void close() throws IOException {
+    System.out.println("CsvImportBanca.close()");
+    if (null != prchsupp) {
+      List<PropertyChangeListener> li = Arrays.asList(prchsupp.getPropertyChangeListeners());
+      for (PropertyChangeListener el : li)
+        prchsupp.removePropertyChangeListener(el);
+    }
+    prchsupp = null;
+  }
 
 }

@@ -1,6 +1,8 @@
 package sm.clagenna.banca.javafx;
 
 import java.awt.Desktop;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -37,6 +39,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -61,7 +65,7 @@ import sm.clagenna.stdcla.utils.Log4jRow;
 import sm.clagenna.stdcla.utils.MioAppender;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class LoadBancaController implements Initializable, ILog4jReader, IStartApp {
+public class LoadBancaController implements Initializable, ILog4jReader, IStartApp, PropertyChangeListener {
   private static final Logger s_log         = LogManager.getLogger(LoadBancaController.class);
   public static final String  CSZ_FXMLNAME  = "BancaJavaFX.fxml";
   private static final String CSZ_LOG_LEVEL = "logLevel";
@@ -110,6 +114,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private Level                         levelMin;
   @FXML
   private Label                         lbProgressione;
+  @FXML
+  private ProgressBar                   prgrb;
 
   private DataController cntrlr;
   //  private Path                    pthDirCSV;
@@ -120,9 +126,10 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private ViewContanti          cntrViewContanti;
   // private ObservableList<FileCSV> liFilesCSV;
   private List<Log4jRow> m_liMsgs;
+  private double         endProgressNo;
 
   public LoadBancaController() {
-    //
+    endProgressNo = 0.;
   }
 
   @Override
@@ -205,7 +212,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
 
   @SuppressWarnings("unchecked")
   private void initTblFilesCSV() {
-    System.out.println("LoadBancaController.initTblFilesCSV()");
+    // System.out.println("LoadBancaController.initTblFilesCSV()");
     colId = new TableColumn<>("Id");
     colId.setCellValueFactory(cell -> cell.getValue().getOid());
 
@@ -512,27 +519,45 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     ExecutorService backGrService = Executors.newFixedThreadPool(cntrlr.getQtaThreads());
     btConvCSV.setDisable(true);
     for (ImpFile impf : sels) {
+      CsvImportBanca csvimp = new CsvImportBanca();
       try {
-        CsvImportBanca cvsimp = new CsvImportBanca();
-        cvsimp.setCsvFile(impf.fullPath(cntrlr.getLastDir()));
-        lbProgressione.textProperty().bind(cvsimp.messageProperty());
-        cvsimp.setOnRunning(ev -> {
+        csvimp.addPropertyChangeListener(this);
+        csvimp.setCsvFile(impf.fullPath(cntrlr.getLastDir()));
+        // lbProgressione.textProperty().bind(csvimp.messageProperty());
+        // prgrb.setProgress(0);
+        prgrb.progressProperty().unbind();
+        prgrb.progressProperty().bind(csvimp.progressProperty());
+
+        csvimp.setOnRunning(ev -> {
           // System.out.println("LoadBancaController.eseguiConversioneRunTask() RUNNING");
           setSemafore(1);
         });
-        cvsimp.setOnSucceeded(ev -> {
+        csvimp.setOnSucceeded(ev -> {
           // System.out.println("LoadBancaController.eseguiConversioneRunTask() SUCCEDED");
           setSemafore(0);
+          //          try {
+          //            csvimp.close();
+          //          } catch (Exception e) {
+          //            e.printStackTrace();
+          //          }
           s_log.info("Fine del Task Background per {}", impf.toString());
         });
-        cvsimp.setOnFailed(ev -> {
+        csvimp.setOnFailed(ev -> {
           setSemafore(0);
+          //          try {
+          //            csvimp.close();
+          //          } catch (Exception e) {
+          //            e.printStackTrace();
+          //          }
           Throwable ex = ev.getSource().getException();
           s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
         });
         DBConn connSQL = LoadBancaMainApp.getInst().getConnSQL();
-        cvsimp.setConnSql(connSQL);
-        backGrService.execute(cvsimp);
+        csvimp.setConnSql(connSQL);
+        //        prgrb.setProgress(0);
+        //        prgrb.progressProperty().unbind();
+        //        prgrb.progressProperty().bind(csvimp.progressProperty());
+        backGrService.execute(csvimp);
       } catch (Exception e) {
         lbProgressione.textProperty().unbind();
         s_log.error("Errore conversione PDF {}", impf.toString(), e);
@@ -630,6 +655,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     menu.getItems().add(mi1);
     // liBanca.setContextMenu(menu);
     tblvFiles.setContextMenu(menu);
+    tblvFiles.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     btConvCSV.setDisable(false);
 
     s_log.debug("Ricaricata lista files dal dir \"{}\"", cntrlr.getLastDir().toString());
@@ -642,16 +668,16 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     Callback<TableColumn<ImpFile, String>, TableCell<ImpFile, String>> cellFactory = col -> {
       TableCell<ImpFile, String> cell = defaultCellFactory.call(col);
       cell.itemProperty().addListener((obs, oldValue, newValue) -> {
-        String szNa = obs.getClass().getSimpleName();
-        String ov = "ov=*null*";
-        String nv = "nv=*null*";
-        if (null != oldValue)
-          ov = "ov=" + oldValue;
-        if (null != newValue)
-          nv = "nv=" + newValue;
-        String stcl = cell.getStyle();
-        System.out.printf("LoadBancaController.colorizeTblView(%s:%s:%s) style=%s\n", szNa, ov, nv,stcl);
-        if ( ! Utils.isValue(newValue))
+        //        String szNa = obs.getClass().getSimpleName();
+        //        String ov = "ov=*null*";
+        //        String nv = "nv=*null*";
+        //        if (null != oldValue)
+        //          ov = "ov=" + oldValue;
+        //        if (null != newValue)
+        //          nv = "nv=" + newValue;
+        //        String stcl = cell.getStyle();
+        // System.out.printf("LoadBancaController.colorizeTblView(%s:%s:%s) style=%s\n", szNa, ov, nv, stcl);
+        if ( !Utils.isValue(newValue))
           cell.setStyle("-fx-background-color: tomato;");
         else
           cell.setStyle("");
@@ -743,6 +769,61 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     p_props.setProperty(CSZ_COL_leve, Integer.valueOf((int) vv));
     vv = colMsg.getWidth();
     p_props.setProperty(CSZ_COL_mesg, Integer.valueOf((int) vv));
+  }
+
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    var sz = evt.getPropertyName();
+    var val = evt.getNewValue();
+    double currProgressNo = 0;
+    // System.out.printf("LoadBancaController.propertyChange(\"%s\" = %s )\n", sz, val);
+    switch (sz) {
+
+      case CsvImportBanca.EVT_SIZEDTS:
+        endProgressNo = (double) val;
+        currProgressNo = 0;
+        // prgrb.setProgress(0);
+        setLbProgr(sz);
+        break;
+
+      case CsvImportBanca.EVT_DTSROW:
+        currProgressNo = (double) val;
+        if (currProgressNo % 7 == 0) {
+          double dbl = endProgressNo * 2 / currProgressNo * 100.;
+          setLbProgr(String.format("Csv:%.0f%%", dbl));
+          // prgrb.setProgress(dbl);
+        }
+        break;
+
+      case CsvImportBanca.EVT_ENDDTSROW:
+        setLbProgr("50%");
+        // prgrb.setProgress(50);
+        break;
+
+      case CsvImportBanca.EVT_SAVEDBROW:
+        currProgressNo = (double) val + endProgressNo;
+        if (currProgressNo % 7 == 0) {
+          double dbl = currProgressNo / (endProgressNo * 2.) * 100.;
+          setLbProgr(String.format("su DB:%.0f%%", dbl));
+          // prgrb.setProgress(dbl);
+        }
+        break;
+
+      case CsvImportBanca.EVT_ENDSAVEDB:
+        setLbProgr("Done 100%");
+        break;
+
+    }
+  }
+
+  private void setLbProgr(String psz) {
+    Platform.runLater(new Runnable() {
+      @Override
+      public void run() {
+        lbProgressione.setText(psz);
+      }
+    });
+
   }
 
 }

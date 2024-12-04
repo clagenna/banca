@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -55,6 +56,10 @@
 
 		<AnchorPane maxHeight="-1.0" maxWidth="-1.0" prefHeight="466.0" prefWidth="640.0" VBox.vgrow="ALWAYS">
 			<Label layoutX="3.0" layoutY="17.0" prefHeight="17.0" prefWidth="68.0" text="Dir CSV" AnchorPane.leftAnchor="3.0" AnchorPane.topAnchor="17.0" />
+			<Button fx:id="btCercaDir" layoutX="637.0" layoutY="14.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca..." AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="14.0" />
+			<TextField fx:id="txDirExports" layoutX="75.0" layoutY="14.0" onAction="#onEnterDirCSV" onKeyReleased="#premutoTasto" prefHeight="25.0" prefWidth="451.0" promptText="Scegli il direttorio con i files CSV" AnchorPane.leftAnchor="75.0" AnchorPane.rightAnchor="72.0" AnchorPane.topAnchor="14.0" />
+			<Button fx:id="btConvCSV" layoutX="69.0" layoutY="51.0" mnemonicParsing="false" onAction="#btConvCSV_Click" prefHeight="25.0" prefWidth="131.0" text="Import" AnchorPane.leftAnchor="69.0" AnchorPane.topAnchor="51.0" />
+                        <Button layoutX="317.0" layoutY="51.0" mnemonicParsing="false" onAction="#mnuConfMostraDatiClick" prefHeight="25.0" prefWidth="68.0" text="Dati" />
 			<SplitPane fx:id="spltPane" dividerPositions="0.7" layoutY="85.0" orientation="VERTICAL" prefHeight="443.0" prefWidth="701.0" AnchorPane.bottomAnchor="27.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="85.0">
 				<items>
 					<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="253.0" prefWidth="679.0">
@@ -79,11 +84,13 @@
 					</AnchorPane>
 				</items>
 			</SplitPane>
-			<Label fx:id="lbProgressione" layoutX="3.0" layoutY="523.0" prefHeight="32.0" prefWidth="698.0" text="Processo..." AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
-			<Button fx:id="btCercaDir" layoutX="637.0" layoutY="14.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca..." AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="14.0" />
-			<TextField fx:id="txDirExports" layoutX="75.0" layoutY="14.0" onAction="#onEnterDirCSV" onKeyReleased="#premutoTasto" prefHeight="25.0" prefWidth="451.0" promptText="Scegli il direttorio con i files CSV" AnchorPane.leftAnchor="75.0" AnchorPane.rightAnchor="72.0" AnchorPane.topAnchor="14.0" />
-			<Button fx:id="btConvCSV" layoutX="69.0" layoutY="51.0" mnemonicParsing="false" onAction="#btConvCSV_Click" prefHeight="25.0" prefWidth="131.0" text="Import" AnchorPane.leftAnchor="69.0" AnchorPane.topAnchor="51.0" />
-         <Button layoutX="317.0" layoutY="51.0" mnemonicParsing="false" onAction="#mnuConfMostraDatiClick" prefHeight="25.0" prefWidth="68.0" text="Dati" />
+                        <AnchorPane id="progress" prefHeight="27.0" prefWidth="698.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                            <children>
+  		              <Label fx:id="lbProgressione" prefHeight="25.0" prefWidth="698.0" text="Processo..." AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
+               <ProgressBar fx:id="prgrb" layoutX="89.0" layoutY="5.0" prefWidth="200.0" progress="0.0" AnchorPane.bottomAnchor="4.0" AnchorPane.leftAnchor="89.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
+                            </children>
+                        </AnchorPane>
+         
        </AnchorPane>			
 		</children>
 	</VBox>

@@ -155,6 +155,10 @@ public class CsvFileContainer {
       stmtSel.setString(k++, fi.getFileName());
       stmtSel.setString(k++, fi.getRelDir());
       try (ResultSet res = stmtSel.executeQuery()) {
+        if (res.isClosed()) {
+          s_log.warn("dataset closed on SEL info ImpFiles for {}", fi.getFileName().toString());
+          return qtaRec;
+        }
         while (res.next()) {
           fi.setId(res.getInt(CO_id));
           fi.setFileName(res.getString(CO_filename));
@@ -173,7 +177,7 @@ public class CsvFileContainer {
         }
       }
     } catch (SQLException e) {
-      s_log.error("Errore get info ImpFiles with err={}", e.getMessage());
+      s_log.error("Errore get info ImpFiles on {} with err={}", fi.toString(), e.getMessage(), e);
     }
     return qtaRec;
   }
