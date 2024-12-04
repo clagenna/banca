@@ -31,7 +31,7 @@ public interface ISQLGest {
 
   List<Integer> getListAnni();
 
-  List<String> getListMeseComp();
+  List<String> getListMeseComp(Integer m_fltrAnnoComp);
 
   List<String> getListCausABI();
 

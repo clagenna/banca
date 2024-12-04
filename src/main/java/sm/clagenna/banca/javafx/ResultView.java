@@ -153,7 +153,7 @@ public class ResultView implements Initializable, IStartApp {
   }
 
   private void caricaComboMesecomp() {
-    List<String> li = m_db.getListMeseComp();
+    List<String> li = m_db.getListMeseComp(m_fltrAnnoComp);
     cbMeseComp.getItems().clear();
     cbMeseComp.getItems().add((String) null);
     cbMeseComp.getItems().addAll(li);
@@ -267,6 +267,7 @@ public class ResultView implements Initializable, IStartApp {
   void cbAnnoCompSel(ActionEvent event) {
     m_fltrAnnoComp = cbAnnoComp.getSelectionModel().getSelectedItem();
     s_log.debug("ResultView.cbAnnoCompSel({}):", m_fltrAnnoComp);
+    caricaComboMesecomp();
     abilitaBottoni();
   }
 
