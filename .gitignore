@@ -4,3 +4,4 @@
 *.zip
 *.db
 *.csv
+/Banca.properties

@@ -1,5 +1,6 @@
 package sm.clagenna.banca.javafx;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -30,6 +31,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -40,6 +43,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.dati.CsvFileContainer;
+import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.sql.Dataset;
@@ -356,36 +362,15 @@ public class ResultView implements Initializable, IStartApp {
     return szQryFltr;
   }
 
-  //  @SuppressWarnings("unused")
-  //  private void creaTableResult(String szQryFltr) {
-  //    m_tbvf = new TableViewFiller(tblview);
-  //    tblview = m_tbvf.openQuery(szQryFltr);
-  //    tblview.setRowFactory(tbl -> new TableRow<List<Object>>() {
-  //      {
-  //        setOnMouseClicked(ev -> {
-  //          if (isEmpty())
-  //            return;
-  //          if (ev.getClickCount() == 2) {
-  //            tableRow_dblclick(this);
-  //          }
-  //        });
-  //      }
-  //    });
-  //    tblview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-  //  }
-
   private void creaTableResultThread(String szQryFltr) {
     TableViewFiller.setNullRetValue("");
     m_tbvf = new TableViewFiller(tblview);
     m_tbvf.setSzQry(szQryFltr);
 
     ExecutorService backGrService = Executors.newFixedThreadPool(1);
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        lstage.getScene().setCursor(Cursor.WAIT);
-        btCerca.setDisable(true);
-      }
+    Platform.runLater(() -> {
+      lstage.getScene().setCursor(Cursor.WAIT);
+      btCerca.setDisable(true);
     });
 
     try {
@@ -394,17 +379,36 @@ public class ResultView implements Initializable, IStartApp {
       });
       m_tbvf.setOnSucceeded(ev -> {
         s_log.debug("TableViewFiller task Finished!");
-        endTask();
+        Platform.runLater(() -> {
+          lstage.getScene().setCursor(Cursor.DEFAULT);
+          btCerca.setDisable(false);
+          btExportCsv.setDisable(false);
+        });
       });
       m_tbvf.setOnFailed(ev -> {
         s_log.debug("TableViewFiller task failure");
-        endTask();
+        Platform.runLater(() -> {
+          lstage.getScene().setCursor(Cursor.DEFAULT);
+          btCerca.setDisable(false);
+          btExportCsv.setDisable(false);
+        });
       });
       backGrService.execute(m_tbvf);
     } catch (Exception e) {
       s_log.error("Errore task TableViewFiller");
     }
     backGrService.shutdown();
+
+    // Context menu open document
+    MenuItem mi1 = new MenuItem("Vedi Documento");
+    mi1.setOnAction((ActionEvent ev) -> {
+      tableRow_dblclick(null);
+    });
+    ContextMenu menu = new ContextMenu();
+    menu.getItems().add(mi1);
+    // liBanca.setContextMenu(menu);
+    tblview.setContextMenu(menu);
+
     tblview.setRowFactory(tbl -> new TableRow<List<Object>>() {
       {
         setOnMouseClicked(ev -> {
@@ -419,33 +423,38 @@ public class ResultView implements Initializable, IStartApp {
     tblview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
   }
 
-  private void endTask() {
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        lstage.getScene().setCursor(Cursor.DEFAULT);
-        btCerca.setDisable(false);
-        btExportCsv.setDisable(false);
-      }
-    });
-  }
-
   protected void tableRow_dblclick(TableRow<List<Object>> row) {
     //    System.out.println("ResultView.tableRow_dblclick(row):" + (null != row ? row.getClass().getSimpleName() : "**null**"));
     List<Object> r = tblview.getSelectionModel().getSelectedItem();
-    @SuppressWarnings("unused") String szPdf = null;
-    if (null != r) {
-      // System.out.println("r.=" + r.toString());
-      for (Object e : r) {
-        if (null != e) {
-          String sz = e.toString();
-          if (sz.toLowerCase().endsWith(".pdf")) {
-            szPdf = sz;
-            break;
-          }
-        }
+    Dataset dts = m_tbvf.getDataset();
+    int nCol = dts.getColumNo(ImpFile.COL_IdFile);
+    if (nCol < 0 || r.size() <= nCol) {
+      s_log.warn("Non trovo la colonna {} sulla Table", ImpFile.COL_IdFile);
+      return;
+    }
+    Integer iidFil = (Integer) r.get(nCol);
+    if (null == iidFil) {
+      s_log.warn("IdFile = {} sulla Table", ImpFile.COL_IdFile);
+      return;
+    }
+    DataController data = m_appmain.getData();
+    Path lastd = data.getLastDir();
+    CsvFileContainer csvf = data.getContCsv();
+    ImpFile impf = csvf.getFromIndex(iidFil);
+    if (null == impf) {
+      s_log.warn("IdFile = {} non memorizzato ?", iidFil);
+      return;
+    }
+    Path fullp = impf.fullPath(lastd);
+    try {
+      if (Desktop.isDesktopSupported()) {
+        s_log.info("Apro il documento  {}", fullp.toString());
+        Desktop.getDesktop().open(fullp.toFile());
+      } else {
+        s_log.error("Desktop not supported");
       }
-      // System.out.println("PDF = " + szPdf);
+    } catch (IOException e) {
+      s_log.error("Desktop launch error:{}", e.getMessage(), e);
     }
   }
 
@@ -463,7 +472,7 @@ public class ResultView implements Initializable, IStartApp {
       szFilNam.append("_").append(m_fltrAnnoComp);
     }
     @SuppressWarnings("unused") LoadBancaController cntrl = (LoadBancaController) LoadBancaMainApp.getInst().getController();
-    szFilNam.append("_").append(ParseData.s_fmtDtDate.format(new Date()).replaceAll(" ", "_").replaceAll(":", "-"));
+    szFilNam.append("_").append(ParseData.s_fmtDtDate.format(new Date()).replace(' ', '_').replace(':', '-'));
     szFilNam.append(".csv");
     // System.out.println("ResultView.btExportCsvClick():" + szFilNam.toString());
     m_CSVfile = Paths.get(szFilNam.toString());

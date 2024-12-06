@@ -21,6 +21,6 @@ if ( Test-Path $zipFile ) {
 
 Start-Process -Wait -FilePath $mvnCmd -ArgumentList 'clean','package'
 
-Get-ChildItem -path ".\bin\${AppName}.cmd", "${AppName}.properties", "target\${AppName}.jar", ".\bin\installApp.ps1", ".\dati\Estrattoconto_Contanti.xlsx", ".\dati\SQLite\BancaNuovo.db"   |
+Get-ChildItem -path ".\bin\${AppName}.cmd", "${AppName}.properties", "target\${AppName}.jar", ".\bin\installApp.cmd", ".\bin\installApp.ps1", ".\dati\Estrattoconto_Contanti.xlsx", ".\dati\SQLite\BancaNuovo.db"   |
     Compress-Archive  -CompressionLevel Fastest -DestinationPath $zipFile
 

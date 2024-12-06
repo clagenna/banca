@@ -25,6 +25,17 @@ public class ImpFile implements Cloneable {
   @SuppressWarnings("unused")
   private static final Logger s_log = LogManager.getLogger(ImpFile.class);
 
+  public static final String COL_Tipo      = "tipo";
+  public static final String COL_IdFile    = "idfile";
+  public static final String COL_dtMov     = "dtmov";
+  public static final String COL_dtVal     = "dtval";
+  public static final String COL_Dare      = "dare";
+  public static final String COL_Avere     = "avere";
+  public static final String COL_CardId    = "cardid";
+  public static final String COL_Descr     = "descr";
+  public static final String COL_ABICaus   = "abicaus";
+  public static final String COL_DescrCaus = "descrcaus";
+
   @Getter
   private Integer       id;
   @Getter
@@ -55,9 +66,9 @@ public class ImpFile implements Cloneable {
     init();
   }
 
-  public ImpFile(Path pth) {
+  public ImpFile(Path lastd, Path pth) {
     init();
-    assignPath(pth);
+    assignPath(lastd, pth);
   }
 
   private void init() {
@@ -71,14 +82,18 @@ public class ImpFile implements Cloneable {
     oUltagg = new SimpleStringProperty();
   }
 
-  public ImpFile assignPath(Path pth) {
-    int n = pth.getNameCount();
+  public ImpFile assignPath(Path rad, Path pth) {
     fileName = pth.getFileName().toString();
-    relDir = pth.subpath(n - 2, n - 1).toString();
+    int n1 = rad.toString().length() + 1;
+    int n2 = pth.toString().indexOf(fileName.toString());
+    if (n2 - n1 <= 0)
+      relDir = ".";
+    else
+      relDir = pth.toString().substring(n1, n2 - 1);
     try {
       size = (int) Files.size(pth);
     } catch (IOException e) {
-      e.printStackTrace();
+      s_log.error("Errore estrazione nome file, err={}", e.getMessage(), e);
     }
     qtarecs = 0;
     dtmin = null;

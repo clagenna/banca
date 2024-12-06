@@ -267,46 +267,6 @@ public class ViewContanti implements Initializable, IStartApp {
     }
   }
 
-  //  private void trovaMaxId() {
-  //    if (null == stmtMaxId) {
-  //      try {
-  //        Connection conn = m_db.getDbconn().getConn();
-  //        stmtMaxId = conn.prepareStatement(CSZ_QRY_IDMAX);
-  //      } catch (SQLException e) {
-  //        s_log.error("Errore prep statement IDMAX on contanti with err={}", e.getMessage());
-  //        return;
-  //      }
-  //    }
-  //    try {
-  //      ResultSet res = stmtMaxId.executeQuery();
-  //      while (res.next()) {
-  //        contante.setId(res.getInt(1) + 1);
-  //        Platform.runLater(new Runnable() {
-  //          @Override
-  //          public void run() {
-  //            txId.setText(String.valueOf(contante.getId()));
-  //          }
-  //        });
-  //
-  //      }
-  //    } catch (SQLException e) {
-  //      s_log.error("Errore IDMAX on contanti with err={}", e.getMessage());
-  //      return;
-  //    }
-  //
-  //  }
-
-  //  private void trovaMaxId() {
-  //    int nextId = m_db.getLastRowid();
-  //    contante.setRigaid(nextId);
-  //    Platform.runLater(new Runnable() {
-  //      @Override
-  //      public void run() {
-  //        txId.setText(String.valueOf(contante.getRigaid()));
-  //      }
-  //    });
-  //  }
-
   private void azzeraCampi() {
     txId.setText("");
     txDtmov.setText("");
@@ -462,12 +422,9 @@ public class ViewContanti implements Initializable, IStartApp {
     m_tbvf.setSzQry(szQryFltr);
 
     ExecutorService backGrService = Executors.newFixedThreadPool(1);
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        lstage.getScene().setCursor(Cursor.WAIT);
-        btCerca.setDisable(true);
-      }
+    Platform.runLater(() -> {
+      lstage.getScene().setCursor(Cursor.WAIT);
+      btCerca.setDisable(true);
     });
 
     try {
@@ -502,12 +459,9 @@ public class ViewContanti implements Initializable, IStartApp {
   }
 
   private void endTask() {
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        lstage.getScene().setCursor(Cursor.DEFAULT);
-        btCerca.setDisable(false);
-      }
+    Platform.runLater(() -> {
+      lstage.getScene().setCursor(Cursor.DEFAULT);
+      btCerca.setDisable(false);
     });
   }
 
@@ -622,7 +576,7 @@ public class ViewContanti implements Initializable, IStartApp {
     cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
     m_db.insertMovimento(CSZ_TABLE_NAME, contante);
     contante.setRigaid(m_db.getLastRowid());
-    cambiaTxId();
+    Platform.runLater(() -> txId.setText(String.valueOf(contante.getRigaid())));
   }
 
   private void deleteRecord() {
@@ -630,16 +584,6 @@ public class ViewContanti implements Initializable, IStartApp {
     cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
     int qtaDel = m_db.deleteMovimento(CSZ_TABLE_NAME, contante);
     s_log.info("Cancellato {} records con {}", qtaDel, contante.toString().replace("\t", ";"));
-  }
-
-  private void cambiaTxId() {
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        txId.setText(String.valueOf(contante.getRigaid()));
-      }
-    });
-
   }
 
   @Override

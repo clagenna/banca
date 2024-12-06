@@ -50,38 +50,18 @@ public class TableViewFiller extends Task<String> {
       s_log.warn("Nulla da mostrare sulla tabella");
       return ".. nulla da mostrare";
     }
-    // creato semaforo altrimenti la "runlater" parte dopo la fillTableView
-    //    final boolean CON_THREAD = false;
-    //    if (CON_THREAD) {
-    //      Semaphore semaf = new Semaphore(0);
-    //      Platform.runLater(new Runnable() {
-    //        @Override
-    //        public void run() {
-    //          tableview.getItems().clear();
-    //          tableview.getColumns().clear();
-    //          creaTableView(m_dts);
-    //          semaf.release();
-    //        }
-    //      });
-    //      semaf.acquire();
     clearColumsTableView();
     creaTableView(m_dts);
-    //    } else {
-    //      creaTableView(m_dts);
-    //    }
     fillTableView();
     return "..Finito!";
   }
 
   private void clearColumsTableView() {
     Semaphore semaf = new Semaphore(0);
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        tableview.getItems().clear();
-        tableview.getColumns().clear();
-        semaf.release();
-      }
+    Platform.runLater(() -> {
+      tableview.getItems().clear();
+      tableview.getColumns().clear();
+      semaf.release();
     });
     try {
       semaf.acquire();
@@ -158,14 +138,8 @@ public class TableViewFiller extends Task<String> {
         SimpleObjectProperty<Object> cel = new SimpleObjectProperty<Object>(formattaCella(param.getValue().get(j)));
         return cel;
       });
-
       tbcol.setStyle(cssAlign);
-      Platform.runLater(new Runnable() {
-        @Override
-        public void run() {
-          tableview.getColumns().add(tbcol);
-        }
-      });
+      Platform.runLater(() -> tableview.getColumns().add(tbcol));
     }
   }
 

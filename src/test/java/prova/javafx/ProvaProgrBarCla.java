@@ -303,7 +303,6 @@ public class ProvaProgrBarCla extends Application {
     }
   }
 
-
   private ObservableList<ImpFile> loadListFiles() {
     elenco = new ArrayList<ImpFile>();
     String fltrFiles = "wise,estra";
@@ -314,7 +313,7 @@ public class ProvaProgrBarCla extends Application {
     try (Stream<Path> walk = Files.walk(lastDir)) {
       elenco = walk.filter(p -> !Files.isDirectory(p)) //
           .filter(f -> matcher.matches(f)) // check end with
-          .map(pth -> convert(pth)) //
+          .map(pth -> convert(lastDir, pth)) //
           .collect(Collectors.toList()); // collect all matched to a List
     } catch (IOException e) {
       System.err.printf("Errore scan dir\"%s\" msg=%s\n", lastDir.toString(), e.getMessage());
@@ -323,8 +322,8 @@ public class ProvaProgrBarCla extends Application {
     return liFilesCSV;
   }
 
-  private ImpFile convert(Path p_pth) {
-    ImpFile imf = new ImpFile().assignPath(p_pth);
+  private ImpFile convert(Path p_lastd, Path pth) {
+    ImpFile imf = new ImpFile().assignPath(p_lastd, pth);
     return imf;
   }
 

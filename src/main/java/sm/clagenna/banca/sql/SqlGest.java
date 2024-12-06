@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
 
@@ -315,12 +314,12 @@ public abstract class SqlGest implements ISQLGest {
     } catch (SQLException e) {
       getLog().error("Query {}; err={}", getQryListMESI(), e.getMessage(), e);
     }
-    if ( null == pAnno)
-       return liMesi;
+    if (null == pAnno)
+      return liMesi;
     List<String> li2 = liMesi //
-    		.stream() //
-    		.filter( s -> s.startsWith(pAnno.toString())) //
-    		.toList();
+        .stream() //
+        .filter(s -> s.startsWith(pAnno.toString())) //
+        .toList();
     return li2;
   }
 

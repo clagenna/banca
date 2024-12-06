@@ -300,15 +300,6 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     // questa
     tblLogs.getItems()
         .addListener((ListChangeListener<Log4jRow>) s -> Platform.runLater(() -> tblLogs.scrollTo(s.getList().size() - 1)));
-    //    tblView.getItems().addListener(new ListChangeListener<Log4jRow>(){
-    //
-    //      @Override
-    //      public void onChanged(ListChangeListener.Change<? extends Log4jRow> c) {
-    //          // tblView.scrollTo(c.getList().size()-1);
-    //        Platform.runLater( () -> tblView.scrollTo(c.getList().size()-1) );
-    //      }
-    //
-    //  });
   }
 
   @FXML
@@ -565,8 +556,6 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     }
     backGrService.shutdown();
     reloadListFilesCSV();
-    // btConvCSV.setDisable(false);
-    // s_log.debug("Fine conversione in background");
   }
 
   private synchronized void setSemafore(int nTask) {
@@ -578,24 +567,18 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         else
           System.err.println("Active Tasks < 0 !");
         if (qtaActiveTasks == 0) {
-          Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-              getStage().getScene().setCursor(Cursor.DEFAULT);
-              btConvCSV.setDisable(false);
-            }
+          Platform.runLater(() -> {
+            getStage().getScene().setCursor(Cursor.DEFAULT);
+            btConvCSV.setDisable(false);
           });
         }
         break;
       case 1:
         qtaActiveTasks++;
         if (qtaActiveTasks == 1) {
-          Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-              getStage().getScene().setCursor(Cursor.WAIT);
-              btConvCSV.setDisable(true);
-            }
+          Platform.runLater(() -> {
+            getStage().getScene().setCursor(Cursor.WAIT);
+            btConvCSV.setDisable(true);
           });
         }
         break;
@@ -647,7 +630,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     tblvFiles.getItems().addAll(liFilesCSV);
     colorizeTblView();
 
-    MenuItem mi1 = new MenuItem("Vedi Fattura");
+    MenuItem mi1 = new MenuItem("Vedi Documento");
     mi1.setOnAction((ActionEvent ev) -> {
       showPdfDoc();
     });
@@ -704,13 +687,13 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     // System.out.println("Ctx menu: path="+it);
     try {
       if (Desktop.isDesktopSupported()) {
-        s_log.info("Apro lettore PDF per {}", it.toString());
+        s_log.info("Apro il documento {}", imf.getFileName());
         Desktop.getDesktop().open(it.toFile());
       } else {
         s_log.error("Desktop not supported");
       }
     } catch (IOException e) {
-      s_log.error("Desktop PDF launch error:" + e.getMessage(), e);
+      s_log.error("Desktop launch error:{}", e.getMessage(), e);
     }
   }
 
@@ -776,54 +759,41 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     var sz = evt.getPropertyName();
     var val = evt.getNewValue();
     double currProgressNo = 0;
-    // System.out.printf("LoadBancaController.propertyChange(\"%s\" = %s )\n", sz, val);
     switch (sz) {
 
       case CsvImportBanca.EVT_SIZEDTS:
         endProgressNo = (double) val;
         currProgressNo = 0;
-        // prgrb.setProgress(0);
-        setLbProgr(sz);
+        Platform.runLater(() -> lbProgressione.setText(sz));
         break;
 
       case CsvImportBanca.EVT_DTSROW:
         currProgressNo = (double) val;
         if (currProgressNo % 7 == 0) {
           double dbl = endProgressNo * 2 / currProgressNo * 100.;
-          setLbProgr(String.format("Csv:%.0f%%", dbl));
-          // prgrb.setProgress(dbl);
+          String sz2 = String.format("Csv:%.0f%%", dbl);
+          Platform.runLater(() -> lbProgressione.setText(sz2));
         }
         break;
 
       case CsvImportBanca.EVT_ENDDTSROW:
-        setLbProgr("50%");
-        // prgrb.setProgress(50);
+        Platform.runLater(() -> lbProgressione.setText("50%"));
         break;
 
       case CsvImportBanca.EVT_SAVEDBROW:
         currProgressNo = (double) val + endProgressNo;
         if (currProgressNo % 7 == 0) {
           double dbl = currProgressNo / (endProgressNo * 2.) * 100.;
-          setLbProgr(String.format("su DB:%.0f%%", dbl));
-          // prgrb.setProgress(dbl);
+          String sz2 = String.format("su DB:%.0f%%", dbl);
+          Platform.runLater(() -> lbProgressione.setText(sz2));
         }
         break;
 
       case CsvImportBanca.EVT_ENDSAVEDB:
-        setLbProgr("Done 100%");
+        Platform.runLater(() -> lbProgressione.setText("Done 100%"));
         break;
 
     }
-  }
-
-  private void setLbProgr(String psz) {
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        lbProgressione.setText(psz);
-      }
-    });
-
   }
 
 }

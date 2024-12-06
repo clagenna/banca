@@ -76,13 +76,14 @@ public class CsvFileContainer {
   private final int CO_dtmax    = 7;
   private final int CO_ultagg   = 8;
 
-  private List<ImpFile>        elenco;
-  private Map<String, ImpFile> mappa;
-  private DataController       cntrl;
-  private ISQLGest             sqlg;
-  private PreparedStatement    stmtSel;
-  private PreparedStatement    stmtUpd;
-  private PreparedStatement    stmtIns;
+  private List<ImpFile>         elenco;
+  private Map<String, ImpFile>  mapStrToPath;
+  private Map<Integer, ImpFile> mapIndxToPath;
+  private DataController        cntrl;
+  private ISQLGest              sqlg;
+  private PreparedStatement     stmtSel;
+  private PreparedStatement     stmtUpd;
+  private PreparedStatement     stmtIns;
 
   private DBConn connSQL;
 
@@ -107,7 +108,8 @@ public class CsvFileContainer {
           // not a directory
           // .map(p -> p.toString().toLowerCase()) // convert path to string
           .filter(f -> matcher.matches(f)) // check end with
-          .map(pth -> convert(pth)).collect(Collectors.toList()); // collect all matched to a List
+          .map(pth -> convert(lastDir, pth)) //
+          .collect(Collectors.toList()); // collect all matched to a List
     } catch (IOException e) {
       s_log.error("Errore scan dir\"{}\" msg={}", lastDir.toString(), e.getMessage(), e);
     }
@@ -118,9 +120,11 @@ public class CsvFileContainer {
   }
 
   public ImpFile addFile(Path pth) {
-    ImpFile imf = new ImpFile(pth);
+    Path lastd = cntrl.getLastDir();
+    ImpFile imf = new ImpFile(lastd, pth);
     elenco.add(imf);
-    mappa.put(imf.relativePath().toString(), imf);
+    mapStrToPath.put(imf.relativePath().toString(), imf);
+    mapIndxToPath.put(imf.getId(), imf);
     return imf;
   }
 
@@ -242,25 +246,34 @@ public class CsvFileContainer {
   }
 
   private void preparaMappa() {
-    mappa = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    mapStrToPath = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    mapIndxToPath = new TreeMap<>();
     for (ImpFile pp : elenco) {
       Path pthRel = pp.relativePath();
       String szRel = pthRel.toString();
-      mappa.put(szRel, pp);
+      mapStrToPath.put(szRel, pp);
+      mapIndxToPath.put(pp.getId(), pp);
     }
   }
 
   public ImpFile getFromPath(Path pth) {
-    if (null == mappa)
+    if (null == mapStrToPath)
       return null;
-    ImpFile imf = new ImpFile(pth);
+    ImpFile imf = new ImpFile(cntrl.getLastDir(), pth);
     Path rel = imf.relativePath();
-    imf = mappa.get(rel.toString());
+    imf = mapStrToPath.get(rel.toString());
     return imf;
   }
 
-  private ImpFile convert(Path p_pth) {
-    ImpFile imf = new ImpFile().assignPath(p_pth);
+  public ImpFile getFromIndex(Integer indx) {
+    if (null == mapIndxToPath)
+      return null;
+    ImpFile imf = mapIndxToPath.get(indx);
+    return imf;
+  }
+
+  private ImpFile convert(Path p_lastd, Path p_pth) {
+    ImpFile imf = new ImpFile().assignPath(p_lastd, p_pth);
     return imf;
   }
 
