@@ -68,6 +68,11 @@
             <TextArea fx:id="txWhere" layoutX="87.0" layoutY="40.0" prefHeight="37.0" prefWidth="484.0" promptText="Testo della WHERE SQL " />
 				<Button fx:id="btCerca" layoutX="609.0" layoutY="46.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca" />
 				<Button fx:id="btExportCsv" layoutX="692.0" layoutY="45.0" mnemonicParsing="false" onAction="#btExportCsvClick" text="To CSV" />
+            <CheckBox fx:id="ckScartaImp" layoutX="770.0" layoutY="17.0" mnemonicParsing="false" text="Scarta Imp. di trasferimento">
+               <tooltip>
+                  <Tooltip text="Scarta le doppie registrazione che hanno causale ('45','S3','S4') e i trasferimenti in WISE" />
+               </tooltip>
+            </CheckBox>
             <CheckBox fx:id="ckLanciaExcel" layoutX="770.0" layoutY="39.0" mnemonicParsing="false" text="Lancia Excel" />
             <CheckBox fx:id="ckCvsBlankOnZero" layoutX="770.0" layoutY="60.0" mnemonicParsing="false" text="CSV con Zero null" />
          </children>

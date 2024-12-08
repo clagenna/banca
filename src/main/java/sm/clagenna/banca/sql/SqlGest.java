@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,8 @@ import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.stdcla.sql.DBConn;
 
 public abstract class SqlGest implements ISQLGest {
+
+  public static List<String> allTables;
 
   private PreparedStatement stmtSel;
   private PreparedStatement stmtIns;
@@ -42,6 +45,11 @@ public abstract class SqlGest implements ISQLGest {
   private int     lastRowid;
 
   private HashMap<String, String> m_mapCausABI;
+
+  static {
+    allTables = Arrays.asList(new String[] { "impFiles", "movimentiBSI", "movimentiBSICredit", "movimentiCarisp",
+        "movimentiCarispCredit", "movimentiPaypal", "movimentiWise", "movimentiContanti", "movimentiSmac" });
+  }
 
   public SqlGest() {
     init();

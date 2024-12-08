@@ -10,9 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -106,6 +108,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     try {
       importCSV();
       analizzaBanca();
+      analizzaRighe();
       saveSuDB();
     } catch (Exception e) {
       s_log.error("Errore background Job:{}", e.getMessage(), e);
@@ -189,6 +192,21 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     return righeBanca;
   }
 
+  /**
+   * Routine che verifica che se due righe sono uguali per <code>idSet</code>
+   * (<code>dtmov+dare+avere</code>) allora siano almeno differenti nel orario
+   * sommando 5sec <code>dtmov</code>
+   */
+  private void analizzaRighe() {
+    Set<String> myset = new HashSet<String>();
+    for (RigaBanca rb : righeBanca) {
+      while (myset.contains(rb.getIdSet())) {
+        rb.suply(5);
+      }
+      myset.add(rb.getIdSet());
+    }
+  }
+
   private void saveSuDB() {
     if (skipSaveDB)
       return;
@@ -225,12 +243,12 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       for (RigaBanca ri : getRigheBanca()) {
         ri.setIdfile(impf.getId());
         sqlg.write(ri);
-        firePropertyChange(EVT_SAVEDBROW, (double)(nRow++));
+        firePropertyChange(EVT_SAVEDBROW, (double) nRow++);
       }
     } finally {
       dtc.setFiltriQuery(qryFiltrBefore);
       firePropertyChange(EVT_ENDSAVEDB, dblQtaRows * 2.);
-      System.out.println("CsvImportBanca.saveSuDB() - " + EVT_ENDSAVEDB);
+      s_log.debug("CsvImportBanca.saveSuDB() - " + EVT_ENDSAVEDB);
     }
   }
 

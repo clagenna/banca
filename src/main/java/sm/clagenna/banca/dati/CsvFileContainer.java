@@ -3,12 +3,14 @@ package sm.clagenna.banca.dati;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ISQLGest;
+import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -123,9 +126,20 @@ public class CsvFileContainer {
     Path lastd = cntrl.getLastDir();
     ImpFile imf = new ImpFile(lastd, pth);
     elenco.add(imf);
-    mapStrToPath.put(imf.relativePath().toString(), imf);
-    mapIndxToPath.put(imf.getId(), imf);
+    //    mapStrToPath.put(imf.relativePath().toString(), imf);
+    //    mapIndxToPath.put(imf.getId(), imf);
+    updateMaps(imf);
     return imf;
+  }
+
+  private void updateMaps(ImpFile pimp) {
+    if (null == mapIndxToPath)
+      mapStrToPath = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    if (null == mapIndxToPath)
+      mapIndxToPath = new TreeMap<>();
+    mapStrToPath.put(pimp.relativePath().toString(), pimp);
+    if (null != pimp.getId())
+      mapIndxToPath.put(pimp.getId(), pimp);
   }
 
   private List<ImpFile> completaFilesDaDB(List<ImpFile> p_li) {
@@ -217,6 +231,7 @@ public class CsvFileContainer {
       stmtIns.executeUpdate();
       int ii = connSQL.getLastIdentity();
       impf.setId(ii);
+      updateMaps(impf);
     } catch (SQLException e) {
       s_log.error("Errore get info ImpFiles with err={}", e.getMessage());
     }
@@ -239,6 +254,7 @@ public class CsvFileContainer {
       if (qtaRecsUpd != 1) {
         s_log.warn("Non sono riuscito ad aggiornare il file {} su DB", impf.getFileName());
       }
+      updateMaps(impf);
     } catch (SQLException e) {
       s_log.error("Errore get info ImpFiles with err={}", e.getMessage());
     }
@@ -252,7 +268,8 @@ public class CsvFileContainer {
       Path pthRel = pp.relativePath();
       String szRel = pthRel.toString();
       mapStrToPath.put(szRel, pp);
-      mapIndxToPath.put(pp.getId(), pp);
+      if (null != pp.getId())
+        mapIndxToPath.put(pp.getId(), pp);
     }
   }
 
@@ -269,6 +286,8 @@ public class CsvFileContainer {
     if (null == mapIndxToPath)
       return null;
     ImpFile imf = mapIndxToPath.get(indx);
+    if (null == imf)
+      s_log.error("Non trovo ImpFile No={}", indx);
     return imf;
   }
 
@@ -296,6 +315,77 @@ public class CsvFileContainer {
         .map(p -> p.fullPath(lastd)) //
         .collect(Collectors.toList());
     return li;
+  }
+
+  public List<ImpFile> controllaFilesAssenti() {
+    List<ImpFile> lipth = new ArrayList<>();
+    Path basep = cntrl.getLastDir();
+    for (ImpFile imp : getFilesFromDB()) {
+      Path pth = imp.fullPath(basep);
+      if ( !Files.exists(pth, LinkOption.NOFOLLOW_LINKS))
+        lipth.add(imp);
+    }
+    return lipth;
+  }
+
+  private List<ImpFile> getFilesFromDB() {
+    List<ImpFile> liDbFiles = new ArrayList<ImpFile>();
+    String szQry = QRY_SEL.substring(0, QRY_SEL.indexOf("WHERE"));
+    szQry += " order by id";
+    PreparedStatement lstmt = null;
+
+    try {
+      Connection conn = sqlg.getDbconn().getConn();
+      lstmt = conn.prepareStatement(szQry);
+    } catch (SQLException e) {
+      s_log.error("Errore prep statement {} on ImpFiles with err={}", szQry, e.getMessage());
+    }
+    try {
+      try (ResultSet res = lstmt.executeQuery()) {
+        if (res.isClosed()) {
+          s_log.warn("dataset closed on SEL info ImpFiles");
+          return liDbFiles;
+        }
+        while (res.next()) {
+          ImpFile fi = new ImpFile();
+          fi.setId(res.getInt(CO_id));
+          fi.setFileName(res.getString(CO_filename));
+          fi.setRelDir(res.getString(CO_reldir));
+          if ( !Utils.isValue(fi.getSize()))
+            fi.setSize(res.getInt(CO_size));
+          if ( !Utils.isValue(fi.getQtarecs()))
+            fi.setQtarecs(res.getInt(CO_qtarecs));
+          if ( !Utils.isValue(fi.getDtmin()))
+            fi.setDtmin(ParseData.parseData(res.getString(CO_dtmin)));
+          if ( !Utils.isValue(fi.getDtmax()))
+            fi.setDtmax(ParseData.parseData(res.getString(CO_dtmax)));
+          if ( !Utils.isValue(fi.getUltagg()))
+            fi.setUltagg(ParseData.parseData(res.getString(CO_ultagg)));
+          liDbFiles.add(fi);
+        }
+      }
+    } catch (SQLException e) {
+      s_log.error("Errore get info ImpFiles with err={}", e.getMessage(), e);
+    }
+    return liDbFiles;
+  }
+
+  public void cancellaRegsFiles(List<ImpFile> li) {
+    String szWhe = li.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
+    final String szQryMas = "DELETE FROM %s WHERE %s IN (%s)";
+    Connection conn = sqlg.getDbconn().getConn();
+    for (String szTb : SqlGest.allTables) {
+      String szId = "id";
+      if (szTb.startsWith("mov"))
+        szId = "idfile";
+      String szQry = String.format(szQryMas, szTb, szId, szWhe);
+      try (Statement stmt = conn.createStatement()) {
+        stmt.executeLargeUpdate(szQry);
+        s_log.warn("Delete da tabella {} con ID files {}", szTb, szWhe);
+      } catch (Exception e) {
+        s_log.error("Errore SQL \"{}\"", szQry, e);
+      }
+    }
   }
 
 }

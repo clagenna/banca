@@ -23,8 +23,9 @@ import sm.clagenna.stdcla.sql.DtsCols;
 import sm.clagenna.stdcla.sql.DtsRow;
 
 public class TableViewFiller extends Task<String> {
-  private static final Logger s_log       = LogManager.getLogger(TableViewFiller.class);
-  private static String       CSZ_NULLVAL = "**null**";
+  private static final Logger s_log           = LogManager.getLogger(TableViewFiller.class);
+  private static String       CSZ_NULLVAL     = "**null**";
+  private static String       QRY_WHE_NOTRASF = "AND abicaus not in ('45','S3','S4') AND descr NOT LIKE '%wise%'";
 
   @Getter @Setter
   private String                  szQry;
@@ -32,6 +33,7 @@ public class TableViewFiller extends Task<String> {
   private TableView<List<Object>> tableview;
   private DBConn                  m_db;
   private Dataset                 m_dts;
+  private boolean                 m_bScartaImpTrasf;
 
   public TableViewFiller(TableView<List<Object>> tblview) {
     setTableview(tblview);
@@ -90,7 +92,19 @@ public class TableViewFiller extends Task<String> {
 
   private Dataset openDataSet() {
     m_dts = null;
+    if (m_bScartaImpTrasf) {
+      int ndx = szQry.toLowerCase().indexOf("order");
+      if (ndx > 0) {
+        StringBuilder szQry2 = new StringBuilder();
+        szQry2.append(szQry.substring(0, ndx)) //
+            .append(QRY_WHE_NOTRASF) //
+            .append(" ") //
+            .append(szQry.substring(ndx));
+        szQry = szQry2.toString();
+      }
+    }
     s_log.debug("Lancio query:{}", szQry);
+
     try (Dataset dtset = new Dataset(m_db)) {
       if ( !dtset.executeQuery(szQry)) {
         s_log.error("Lettura andata male !");
@@ -123,6 +137,7 @@ public class TableViewFiller extends Task<String> {
         default:
           break;
       }
+      // System.out.printf("\tcreaTableView(%s(%s),\"%s\")\n", col.getName(), col.getType().toString(), cssAlign);
       TableColumn<List<Object>, Object> tbcol = new TableColumn<>(szColNam);
       //      tbcol.setCellFactory(tc -> {
       //        TableCell<List<Object>, Object> cel = new TableCell<List<Object>, Object>();
@@ -180,6 +195,10 @@ public class TableViewFiller extends Task<String> {
         return p_o;
     }
     return p_o;
+  }
+
+  public void setScartaImpTrasf(boolean selected) {
+    m_bScartaImpTrasf = selected;
   }
 
 }

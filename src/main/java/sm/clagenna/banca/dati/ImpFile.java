@@ -22,7 +22,6 @@ import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class ImpFile implements Cloneable {
-  @SuppressWarnings("unused")
   private static final Logger s_log = LogManager.getLogger(ImpFile.class);
 
   public static final String COL_Tipo      = "tipo";

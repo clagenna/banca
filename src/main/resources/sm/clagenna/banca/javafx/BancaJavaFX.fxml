@@ -26,6 +26,11 @@
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#mnuCheckFiles" text="Check Presenza Files">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="M" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
 	                  <SeparatorMenuItem mnemonicParsing="false" />
 	            <MenuItem mnemonicParsing="false" onAction="#mnuExitClick" text="Quit" />
 	          </items>

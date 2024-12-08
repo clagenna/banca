@@ -1,10 +1,10 @@
 package sm.clagenna.banca.dati;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class RigaBanca {
@@ -47,9 +47,8 @@ public class RigaBanca {
 
   @Override
   public String toString() {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    String sz1 = null == dtmov ? "*null*" : formatter.format(dtmov);
-    String sz2 = null == dtval ? "*null*" : formatter.format(dtval);
+    String sz1 = null == dtmov ? "*null*" : ParseData.formatDate(dtmov);
+    String sz2 = null == dtval ? "*null*" : ParseData.formatDate(dtval);
     return sz1 + "\t" + sz2 + "\t" + dare + "\t" + avere + "\t" + descr + "\t" + caus + "\t" + cardid + "\\n";
   }
 
@@ -84,12 +83,27 @@ public class RigaBanca {
   public boolean isValido() {
     if ( !Utils.isValue(rigaid) || !Utils.isValue(dtmov) || !Utils.isValue(dtval))
       return false;
-    if (null == dare || null == avere || (dare == 0 && avere == 0))
+    if (null == dare || null == avere || dare == 0 && avere == 0)
       return false;
-    if ( !Utils.isValue(descr))
-      return false;
-    if ( !Utils.isValue(caus))
+    if ( !Utils.isValue(descr) || !Utils.isValue(caus))
       return false;
     return true;
+  }
+
+  /**
+   * Creo un id univoco per dtmov + dare + avere
+   *
+   * @return
+   */
+  public String getIdSet() {
+    StringBuilder szRet = new StringBuilder().append(ParseData.formatDate(dtmov));
+    szRet.append("_").append(Utils.formatDouble(dare));
+    szRet.append("_").append(Utils.formatDouble(avere));
+    return szRet.toString();
+  }
+
+  public void suply(int i) {
+    LocalDateTime ldt = dtmov.plusSeconds(i);
+    dtmov = ldt;
   }
 }

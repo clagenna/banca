@@ -82,6 +82,8 @@ public class ResultView implements Initializable, IStartApp {
   @FXML
   private Button            btExportCsv;
   @FXML
+  private CheckBox          ckScartaImp;
+  @FXML
   private CheckBox          ckLanciaExcel;
   @FXML
   private CheckBox          ckCvsBlankOnZero;
@@ -366,6 +368,7 @@ public class ResultView implements Initializable, IStartApp {
     TableViewFiller.setNullRetValue("");
     m_tbvf = new TableViewFiller(tblview);
     m_tbvf.setSzQry(szQryFltr);
+    m_tbvf.setScartaImpTrasf(ckScartaImp.isSelected());
 
     ExecutorService backGrService = Executors.newFixedThreadPool(1);
     Platform.runLater(() -> {

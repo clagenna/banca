@@ -12,9 +12,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -33,8 +35,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -117,8 +121,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @FXML
   private ProgressBar                   prgrb;
 
-  private DataController cntrlr;
-  //  private Path                    pthDirCSV;
+  private DataController        cntrlr;
   private AppProperties         props;
   private ConfOpzioniController cntrlConfOpz;
   private int                   qtaActiveTasks;
@@ -372,6 +375,11 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @FXML
   void mnuRescanDirs(ActionEvent event) {
     reloadListFilesCSV();
+  }
+
+  @FXML
+  void mnuCheckFiles(ActionEvent event) {
+    checkPresenceFilesCSV();
   }
 
   @FXML
@@ -630,18 +638,46 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     tblvFiles.getItems().addAll(liFilesCSV);
     colorizeTblView();
 
-    MenuItem mi1 = new MenuItem("Vedi Documento");
+    MenuItem mi1 = new MenuItem("Import");
     mi1.setOnAction((ActionEvent ev) -> {
+      btConvCSV_Click(ev);
+    });
+
+    MenuItem mi2 = new MenuItem("Vedi Documento");
+    mi2.setOnAction((ActionEvent ev) -> {
       showPdfDoc();
     });
+
     ContextMenu menu = new ContextMenu();
-    menu.getItems().add(mi1);
+    menu.getItems().addAll(mi1, mi2);
     // liBanca.setContextMenu(menu);
     tblvFiles.setContextMenu(menu);
     tblvFiles.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     btConvCSV.setDisable(false);
 
     s_log.debug("Ricaricata lista files dal dir \"{}\"", cntrlr.getLastDir().toString());
+  }
+
+  private void checkPresenceFilesCSV() {
+    s_log.debug("Verifica presenza files registrati nel DB sul dir");
+    List<ImpFile> li = cntrlr.getContCsv().controllaFilesAssenti();
+    if (null == li || li.size() == 0) {
+      s_log.info("Tutti i file registrati sono presenti");
+      return;
+    }
+    Alert dial = new Alert(AlertType.INFORMATION);
+    dial.setTitle("Controllo sui files");
+    dial.setHeaderText("Elenco files registrati nel DB ma mancanti sul File System!");
+    String sz = li.stream().map(s -> s.getFileName().toString()).collect(Collectors.joining("\n"));
+    dial.setContentText(sz);
+    dial.setResizable(true);
+
+    ButtonType btClear = new ButtonType("Elimina Regs.");
+    ButtonType btOk = new ButtonType("Ok");
+    dial.getButtonTypes().setAll(btClear, btOk);
+    Optional<ButtonType> res = dial.showAndWait();
+    if (res.get() == btClear)
+      cntrlr.getContCsv().cancellaRegsFiles(li);
   }
 
   private void colorizeTblView() {
