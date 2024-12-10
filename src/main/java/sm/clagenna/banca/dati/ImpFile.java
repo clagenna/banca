@@ -70,6 +70,19 @@ public class ImpFile implements Cloneable {
     assignPath(lastd, pth);
   }
 
+  public ImpFile(Integer p_id, String p_fileName, String p_relDir, int p_size, int p_qtarecs, LocalDateTime p_dtmin,
+      LocalDateTime p_dtmax, LocalDateTime p_ultagg) {
+    init();
+    setId(p_id);
+    setRelDir(p_relDir);
+    setFileName(p_fileName);
+    setSize(p_size);
+    setQtarecs(p_qtarecs);
+    setDtmin(p_dtmin);
+    setDtmax(p_dtmax);
+    setUltagg(p_ultagg);
+  }
+
   private void init() {
     oId = new SimpleStringProperty();
     oFileName = new SimpleStringProperty();
@@ -79,6 +92,10 @@ public class ImpFile implements Cloneable {
     oDtmin = new SimpleStringProperty();
     oDtmax = new SimpleStringProperty();
     oUltagg = new SimpleStringProperty();
+  }
+
+  public ImpFile assignPath(String rad, String pth) {
+    return assignPath(Paths.get(rad), Paths.get(pth));
   }
 
   public ImpFile assignPath(Path rad, Path pth) {

@@ -45,6 +45,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -127,6 +128,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private int                   qtaActiveTasks;
   private ResultView            cntrResultView;
   private ViewContanti          cntrViewContanti;
+  private SovrapposView         cntrViewSovrapp;
   // private ObservableList<FileCSV> liFilesCSV;
   private List<Log4jRow> m_liMsgs;
   private double         endProgressNo;
@@ -648,8 +650,18 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       showPdfDoc();
     });
 
+    MenuItem mi3 = new MenuItem("Mostra Sovrapposizioni");
+    mi3.setOnAction((ActionEvent ev) -> {
+      mnuSovrapposizioniClick(ev);
+    });
+
+    MenuItem mi4 = new MenuItem("Elimina Registrazioni");
+    mi4.setOnAction((ActionEvent ev) -> {
+      eliminaRegistrazioni();
+    });
+
     ContextMenu menu = new ContextMenu();
-    menu.getItems().addAll(mi1, mi2);
+    menu.getItems().addAll(mi1, mi2, mi3, new SeparatorMenuItem(), mi4);
     // liBanca.setContextMenu(menu);
     tblvFiles.setContextMenu(menu);
     tblvFiles.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -731,6 +743,49 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     } catch (IOException e) {
       s_log.error("Desktop launch error:{}", e.getMessage(), e);
     }
+  }
+
+  @FXML
+  void mnuSovrapposizioniClick(ActionEvent event) {
+    ImpFile imf = tblvFiles.getSelectionModel().getSelectedItem();
+
+    LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
+    Stage primaryStage = mainApp.getPrimaryStage();
+
+    URL url = getClass().getResource(SovrapposView.CSZ_FXMLNAME);
+    if (url == null)
+      url = getClass().getClassLoader().getResource(SovrapposView.CSZ_FXMLNAME);
+    Parent radice;
+    cntrViewSovrapp = null;
+    try {
+      FXMLLoader fxmlLoad = new FXMLLoader(url);
+      radice = fxmlLoad.load();
+      cntrViewSovrapp = fxmlLoad.getController();
+      cntrViewSovrapp.setImpFileStart(imf);
+    } catch (IOException e) {
+      s_log.error("Errore caricamento FXML {}", SovrapposView.CSZ_FXMLNAME, e);
+      return;
+    }
+
+    Stage stageViewsovrapp = new Stage();
+    Scene scene = new Scene(radice, 300, 240);
+    stageViewsovrapp.setScene(scene);
+    stageViewsovrapp.setWidth(800);
+    stageViewsovrapp.setHeight(600);
+    stageViewsovrapp.initOwner(primaryStage);
+    stageViewsovrapp.initModality(Modality.APPLICATION_MODAL);
+    stageViewsovrapp.setTitle("Visualizzazione delle sovrapposizioni dei files CSV");
+    stageViewsovrapp.setX(20.);
+    stageViewsovrapp.setY(20.);
+    if (cntrViewSovrapp != null) {
+      cntrViewSovrapp.setMyScene(scene);
+      cntrViewSovrapp.initApp(props);
+    }
+    stageViewsovrapp.show();
+  }
+
+  private void eliminaRegistrazioni() {
+    System.out.println("LoadBancaController.eliminaRegistrazioni()");
   }
 
   public Stage getStage() {

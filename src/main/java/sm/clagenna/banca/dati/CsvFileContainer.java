@@ -388,4 +388,13 @@ public class CsvFileContainer {
     }
   }
 
+  public List<ImpFile> getListSiblings(ImpFile imf) {
+    // FIXME mettere nel filtro anche la distinzione del Card Holder (cla,eug)
+    List<ImpFile> liFi = elenco //
+        .stream() //
+        .filter(s -> s.getRelDir().equals(imf.getRelDir()))
+        .collect(Collectors.toList());
+    return liFi;
+  }
+
 }

@@ -49,9 +49,8 @@ public class LoadBancaMainApp extends Application implements IStartApp {
   @Getter @Setter
   private DataController data;
 
-
-  List<ResultView>     m_liResViews;
-  private ViewContanti m_viewContanti;
+  private List<ResultView> m_liResViews;
+  private ViewContanti     m_viewContanti;
 
   public LoadBancaMainApp() {
     //
