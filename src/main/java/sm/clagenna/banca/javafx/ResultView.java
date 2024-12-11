@@ -48,13 +48,13 @@ import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
+import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sys.ex.DatasetException;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-// FIXME Emettere un errore su clausola WHERE sbagliata
 public class ResultView implements Initializable, IStartApp {
   private static final Logger s_log = LogManager.getLogger(ResultView.class);
 
@@ -325,7 +325,11 @@ public class ResultView implements Initializable, IStartApp {
   @FXML
   void btCercaClick(ActionEvent event) {
     System.out.println("ResultView.btCercaClick()");
-    String szQryFltr = creaQuery();
+    String szQryFltr = creaQuery(); 
+    // test validita query
+    DBConn dbc = m_db.getDbconn();
+    if (! dbc.testQuery(szQryFltr) ) 
+      return;
     creaTableResultThread(szQryFltr);
     abilitaBottoni();
   }

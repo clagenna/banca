@@ -76,9 +76,9 @@ public class ProvaOverlap extends Application {
     int intlMax = lPosMax - posDtMin;
     double py = top_pad + progr * 40;
     double px1 = left_pad + dlt_x * intlMin;
-    px1 -= (dlt_x / 31.) * ( 31 - pif.getDtmin().getDayOfMonth());
+    px1 -= dlt_x / 31. * (31 - pif.getDtmin().getDayOfMonth());
     double px2 = left_pad + dlt_x * intlMax;
-    px2 -= (dlt_x / 31.) * ( 31 - pif.getDtmax().getDayOfMonth());
+    px2 -= dlt_x / 31. * (31 - pif.getDtmax().getDayOfMonth());
     Color strk = Color.GREEN;
 
     Line tickLine1 = new Line(px1, pyRuller, px1, py - TIC_MAX);
@@ -164,16 +164,19 @@ public class ProvaOverlap extends Application {
 
   private void fillFiles() {
     liFil = new ArrayList<ImpFile>();
-    liFil.add(new ImpFile(4, "estrattoconto_BSI_2112.csv", "Banca BSI", 1104, 10, ParseData.parseData("2021-03-04 00:00:00"),
+    liFil.add(new ImpFile(4, "estrattoconto_BSI_2112.csv", "Banca BSI", null, 1104, 10, ParseData.parseData("2021-03-04 00:00:00"),
         ParseData.parseData("2021-12-31 00:00:00"), ParseData.parseData("2024-12-07 17:57:12")));
-    liFil.add(new ImpFile(5, "estrattoconto_BSI_2212.csv", "Banca BSI", 875, 7, ParseData.parseData("2022-03-04 00:00:00"),
+    liFil.add(new ImpFile(5, "estrattoconto_BSI_2212.csv", "Banca BSI", null, 875, 7, ParseData.parseData("2022-03-04 00:00:00"),
         ParseData.parseData("2022-12-31 00:00:00"), ParseData.parseData("2024-12-07 17:57:13")));
-    liFil.add(new ImpFile(6, "estrattoconto_BSI_2312.csv", "Banca BSI", 28002, 202, ParseData.parseData("2023-03-07 00:00:00"),
-        ParseData.parseData("2023-12-31 00:00:00"), ParseData.parseData("2024-12-07 17:57:15")));
-    liFil.add(new ImpFile(1, "estrattoconto_BSI_2410.csv", "Banca BSI", 25866, 192, ParseData.parseData("2024-01-02 00:00:00"),
-        ParseData.parseData("2024-11-02 00:00:00"), ParseData.parseData("2024-12-07 17:39:18")));
-    liFil.add(new ImpFile(2, "estrattoconto_BSI_2411.csv", "Banca BSI", 29879, 220, ParseData.parseData("2023-11-27 00:00:00"),
-        ParseData.parseData("2024-11-11 00:00:00"), ParseData.parseData("2024-12-08 14:51:20")));
+    liFil
+        .add(new ImpFile(6, "estrattoconto_BSI_2312.csv", "Banca BSI", null, 28002, 202, ParseData.parseData("2023-03-07 00:00:00"),
+            ParseData.parseData("2023-12-31 00:00:00"), ParseData.parseData("2024-12-07 17:57:15")));
+    liFil
+        .add(new ImpFile(1, "estrattoconto_BSI_2410.csv", "Banca BSI", null, 25866, 192, ParseData.parseData("2024-01-02 00:00:00"),
+            ParseData.parseData("2024-11-02 00:00:00"), ParseData.parseData("2024-12-07 17:39:18")));
+    liFil
+        .add(new ImpFile(2, "estrattoconto_BSI_2411.csv", "Banca BSI", null, 29879, 220, ParseData.parseData("2023-11-27 00:00:00"),
+            ParseData.parseData("2024-11-11 00:00:00"), ParseData.parseData("2024-12-08 14:51:20")));
     dtMin = liFil.stream().map(s -> s.getDtmin()).min(LocalDateTime::compareTo).orElseThrow(NoSuchElementException::new);
     dtMax = liFil.stream().map(s -> s.getDtmax()).max(LocalDateTime::compareTo).orElseThrow(NoSuchElementException::new);
     posDtMin = getDtPos(dtMin);

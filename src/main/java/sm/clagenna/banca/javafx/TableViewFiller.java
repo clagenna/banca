@@ -73,19 +73,6 @@ public class TableViewFiller extends Task<String> {
 
   }
 
-  //
-  //  private TableView<List<Object>> openQuery(String szQryFltr) {
-  //    szQry = szQryFltr;
-  //    openDataSet();
-  //    if (null == m_dts) {
-  //      s_log.warn("Nulla da mostrare sulla tabella");
-  //      return tableview;
-  //    }
-  //    creaTableView(m_dts);
-  //    fillTableView();
-  //    return tableview;
-  //  }
-
   public Dataset getDataset() {
     return m_dts;
   }

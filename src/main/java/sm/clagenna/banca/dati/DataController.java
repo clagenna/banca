@@ -30,8 +30,6 @@ public class DataController implements IStartApp {
   public static final String  CSZ_FILTER_FILES = "filter_files";
 
   private static DataController s_inst;
-  // FIXME filtrare doppie registrazioni con "abicaus not in ('45','S3','S4') "
-  // FIXME Scartare usite su WISE ignorando descr LIKE '%WISE%'
 
   @Getter
   private Path                 lastDir;

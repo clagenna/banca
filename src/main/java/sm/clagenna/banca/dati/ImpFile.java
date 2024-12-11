@@ -11,6 +11,8 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,7 +24,8 @@ import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class ImpFile implements Cloneable {
-  private static final Logger s_log = LogManager.getLogger(ImpFile.class);
+  private static final Logger  s_log      = LogManager.getLogger(ImpFile.class);
+  private static final Pattern s_cardHold = Pattern.compile(".*_([a-z]+)\\.[a-z]+", Pattern.CASE_INSENSITIVE);
 
   public static final String COL_Tipo      = "tipo";
   public static final String COL_IdFile    = "idfile";
@@ -42,6 +45,8 @@ public class ImpFile implements Cloneable {
   @Getter
   private String        relDir;
   @Getter
+  private String        cardHold;
+  @Getter
   private int           size;
   @Getter
   private int           qtarecs;
@@ -55,6 +60,7 @@ public class ImpFile implements Cloneable {
   private SimpleStringProperty  oId;
   private SimpleStringProperty  oFileName;
   private SimpleStringProperty  oRelDir;
+  private SimpleStringProperty  oCardHold;
   private SimpleIntegerProperty oSize;
   private SimpleIntegerProperty oQtarecs;
   private SimpleStringProperty  oDtmin;
@@ -70,12 +76,13 @@ public class ImpFile implements Cloneable {
     assignPath(lastd, pth);
   }
 
-  public ImpFile(Integer p_id, String p_fileName, String p_relDir, int p_size, int p_qtarecs, LocalDateTime p_dtmin,
-      LocalDateTime p_dtmax, LocalDateTime p_ultagg) {
+  public ImpFile(Integer p_id, String p_fileName, String p_relDir, String p_cardHold, int p_size, int p_qtarecs,
+      LocalDateTime p_dtmin, LocalDateTime p_dtmax, LocalDateTime p_ultagg) {
     init();
     setId(p_id);
     setRelDir(p_relDir);
     setFileName(p_fileName);
+    setCardHold(p_cardHold);
     setSize(p_size);
     setQtarecs(p_qtarecs);
     setDtmin(p_dtmin);
@@ -87,6 +94,7 @@ public class ImpFile implements Cloneable {
     oId = new SimpleStringProperty();
     oFileName = new SimpleStringProperty();
     oRelDir = new SimpleStringProperty();
+    oCardHold = new SimpleStringProperty();
     oSize = new SimpleIntegerProperty();
     oQtarecs = new SimpleIntegerProperty();
     oDtmin = new SimpleStringProperty();
@@ -106,6 +114,10 @@ public class ImpFile implements Cloneable {
       relDir = ".";
     else
       relDir = pth.toString().substring(n1, n2 - 1);
+    cardHold = null;
+    Matcher mat = s_cardHold.matcher(fileName);
+    if (mat.find())
+      cardHold = mat.group(1);
     try {
       size = (int) Files.size(pth);
     } catch (IOException e) {
@@ -143,6 +155,11 @@ public class ImpFile implements Cloneable {
   public SimpleStringProperty getORelDir() {
     oRelDir.set(relDir);
     return oRelDir;
+  }
+
+  public SimpleStringProperty getOCardHold() {
+    oCardHold.set(cardHold);
+    return oCardHold;
   }
 
   public SimpleIntegerProperty getOSize() {
@@ -224,6 +241,11 @@ public class ImpFile implements Cloneable {
     oRelDir.set(rd);
   }
 
+  public void setCardHold(String rd) {
+    cardHold = rd;
+    oCardHold.set(rd);
+  }
+
   public void setSize(int sze) {
     size = sze;
     oSize.set(sze);
@@ -247,6 +269,18 @@ public class ImpFile implements Cloneable {
   public void setUltagg(LocalDateTime ul) {
     ultagg = ul;
     oUltagg.set(ParseData.formatDate(ul));
+  }
+
+  public boolean hasPeriodo() {
+    return null != dtmin && null != dtmax;
+  }
+
+  public boolean sameCardHold(String szCardh) {
+    if (null == szCardh)
+      return true;
+    if (null == cardHold)
+      return false;
+    return cardHold.equals(szCardh);
   }
 
 }

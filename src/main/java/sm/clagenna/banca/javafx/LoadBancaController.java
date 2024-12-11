@@ -11,6 +11,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -96,6 +97,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private TableColumn<ImpFile, String> colId;
   private TableColumn<ImpFile, String> colName;
   private TableColumn<ImpFile, String> colRelDir;
+  private TableColumn<ImpFile, String> colCardHold;
   private TableColumn<ImpFile, Number> colSize;
   private TableColumn<ImpFile, Number> colQtaRecs;
   private TableColumn<ImpFile, String> colDtmin;
@@ -227,6 +229,9 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     colRelDir = new TableColumn<>("Path Rel.");
     colRelDir.setCellValueFactory(cell -> cell.getValue().getORelDir());
 
+    colCardHold = new TableColumn<>("Hold.");
+    colCardHold.setCellValueFactory(cell -> cell.getValue().getOCardHold());
+
     colSize = new TableColumn<>("Dimensione");
     colSize.setCellValueFactory(cell -> cell.getValue().getOSize());
 
@@ -242,7 +247,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     colUltagg = new TableColumn<>("Data Reg.");
     colUltagg.setCellValueFactory(cell -> cell.getValue().getOUltagg());
 
-    tblvFiles.getColumns().addAll(colId, colName, colRelDir, colSize, colQtaRecs, colDtmin, colDtmax, colUltagg);
+    tblvFiles.getColumns().addAll(colId, colName, colRelDir, colCardHold, colSize, colQtaRecs, colDtmin, colDtmax, colUltagg);
   }
 
   private void initTblLogs() {
@@ -699,32 +704,13 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     Callback<TableColumn<ImpFile, String>, TableCell<ImpFile, String>> cellFactory = col -> {
       TableCell<ImpFile, String> cell = defaultCellFactory.call(col);
       cell.itemProperty().addListener((obs, oldValue, newValue) -> {
-        //        String szNa = obs.getClass().getSimpleName();
-        //        String ov = "ov=*null*";
-        //        String nv = "nv=*null*";
-        //        if (null != oldValue)
-        //          ov = "ov=" + oldValue;
-        //        if (null != newValue)
-        //          nv = "nv=" + newValue;
-        //        String stcl = cell.getStyle();
-        // System.out.printf("LoadBancaController.colorizeTblView(%s:%s:%s) style=%s\n", szNa, ov, nv, stcl);
         if ( !Utils.isValue(newValue))
           cell.setStyle("-fx-background-color: tomato;");
         else
           cell.setStyle("");
-
-        //        if (newValue == null) {
-        //          cell.setStyle("cell-selection-color: -fx-selection-bar ;");
-        //        } else {
-        //          System.out.println("LoadBancaController.colorizeTblView()");
-        //          String formattedColor = formatColor(color);
-        //          cell.setStyle("cell-selection-color: " + formattedColor + " ;");
-        //        }
       });
       return cell;
     };
-    // colName.setCellFactory(cellFactory);
-    // colRelDir.setCellFactory(cellFactory);
     colId.setCellFactory(cellFactory);
   }
 
@@ -748,6 +734,10 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @FXML
   void mnuSovrapposizioniClick(ActionEvent event) {
     ImpFile imf = tblvFiles.getSelectionModel().getSelectedItem();
+    if (null == imf || !imf.hasPeriodo()) {
+      s_log.warn("Non ho info sul periodo di {}", imf.getFileName());
+      return;
+    }
 
     LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
     Stage primaryStage = mainApp.getPrimaryStage();
@@ -761,7 +751,11 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       FXMLLoader fxmlLoad = new FXMLLoader(url);
       radice = fxmlLoad.load();
       cntrViewSovrapp = fxmlLoad.getController();
-      cntrViewSovrapp.setImpFileStart(imf);
+      int qtaFils = cntrViewSovrapp.setImpFileStart(imf);
+      if (qtaFils <= 1) {
+        mainApp.messageDialog(AlertType.WARNING, "Non ci sono sufficienti periodi da analizzare");
+        return;
+      }
     } catch (IOException e) {
       s_log.error("Errore caricamento FXML {}", SovrapposView.CSZ_FXMLNAME, e);
       return;
@@ -785,7 +779,16 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   }
 
   private void eliminaRegistrazioni() {
-    System.out.println("LoadBancaController.eliminaRegistrazioni()");
+    ImpFile imf = tblvFiles.getSelectionModel().getSelectedItem();
+    LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
+    Optional<ButtonType> ret = mainApp.messageDialog(AlertType.CONFIRMATION,
+        "Sei sicuro di voler eliminare le registrazioni di <br/><b>" + imf.getFileName() + "</b>");
+    if (ret.isEmpty() || ret.get() != ButtonType.OK)
+      return;
+    System.out.printf("LoadBancaController.eliminaRegistrazioni(%s)\n", imf.getFileName());
+    s_log.warn("Elimino le registrazioini di {}", imf.getFileName());
+    cntrlr.getContCsv().cancellaRegsFiles(Arrays.asList(new ImpFile[] { imf }));
+    reloadListFilesCSV();
   }
 
   public Stage getStage() {

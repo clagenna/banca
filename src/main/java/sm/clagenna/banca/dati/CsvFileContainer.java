@@ -389,11 +389,20 @@ public class CsvFileContainer {
   }
 
   public List<ImpFile> getListSiblings(ImpFile imf) {
-    // FIXME mettere nel filtro anche la distinzione del Card Holder (cla,eug)
-    List<ImpFile> liFi = elenco //
-        .stream() //
-        .filter(s -> s.getRelDir().equals(imf.getRelDir()))
-        .collect(Collectors.toList());
+    String szCardh = imf.getCardHold();
+    List<ImpFile> liFi = null;
+    if (null != szCardh) {
+      liFi = elenco //
+          .stream() //
+          .filter(s -> s.sameCardHold(szCardh)) //
+          .filter(s -> s.hasPeriodo()) //
+          .filter(s -> s.getRelDir().equals(imf.getRelDir())).collect(Collectors.toList());
+    } else {
+      liFi = elenco //
+          .stream() //
+          .filter(s -> s.hasPeriodo()) //
+          .filter(s -> s.getRelDir().equals(imf.getRelDir())).collect(Collectors.toList());
+    }
     return liFi;
   }
 

@@ -137,23 +137,27 @@ public class SovrapposView implements Initializable, IStartApp {
   }
 
   private void drawImpFiles(ImpFile pif, int progr) {
-    int lPosMin = getDtPos(pif.getDtmin());
+    if ( !pif.hasPeriodo()) {
+      s_log.warn("Non considero {} perche' non ha periodo", pif.getFileName());
+      return;
+    }
+    int lPosMin = getDtPos(pif.getDtmin()) + 1;
     int intlMin = lPosMin - posDtMin;
     int lPosMax = getDtPos(pif.getDtmax());
     int intlMax = lPosMax - posDtMin;
     double py = top_pad + progr * 40;
     double px1 = left_pad + dlt_x * intlMin;
-    px1 -= (dlt_x / 31.) * ( 31 - pif.getDtmin().getDayOfMonth());
+    px1 -= dlt_x / 31. * (31 - pif.getDtmin().getDayOfMonth());
     double px2 = left_pad + dlt_x * intlMax;
-    px2 -= (dlt_x / 31.) * ( 31 - pif.getDtmax().getDayOfMonth());
+    px2 -= dlt_x / 31. * (31 - pif.getDtmax().getDayOfMonth());
     Color strk = Color.GREEN;
 
     Line tickLine1 = new Line(px1, pyRuller, px1, py - TIC_MAX);
     tickLine1.setStroke(strk);
-    tickLine1.getStrokeDashArray().addAll(5d, 20d);
+    tickLine1.getStrokeDashArray().addAll(5d, 15d);
     Line tickLine2 = new Line(px2, pyRuller, px2, py - TIC_MAX);
     tickLine2.setStroke(strk);
-    tickLine2.getStrokeDashArray().addAll(5d, 20d);
+    tickLine2.getStrokeDashArray().addAll(3d, 8d);
     Line tickLine = new Line(px1, py, px2, py);
     pane.getChildren().addAll(tickLine1, tickLine2, tickLine);
 
@@ -164,7 +168,6 @@ public class SovrapposView implements Initializable, IStartApp {
   }
 
   private void drawRuller() {
-    // FIXME visualizzare un mese prima della data di inizio
     int qtaMesi = posDtMax - posDtMin;
     dlt_x = (win_wi - left_pad - right_pad) / qtaMesi;
     pyRuller = win_he - bottom_pad;
@@ -237,14 +240,25 @@ public class SovrapposView implements Initializable, IStartApp {
     p_props.setProperty(CSZ_PROP_DIMRESVIEW_Y, (int) dy);
   }
 
-  public void setImpFileStart(ImpFile imf) {
+  public int setImpFileStart(ImpFile imf) {
     DataController data = DataController.getInst();
     CsvFileContainer csvf = data.getContCsv();
     liFil = csvf.getListSiblings(imf);
-    dtMin = liFil.stream().map(s -> s.getDtmin()).min(LocalDateTime::compareTo).orElseThrow(NoSuchElementException::new);
-    dtMax = liFil.stream().map(s -> s.getDtmax()).max(LocalDateTime::compareTo).orElseThrow(NoSuchElementException::new);
+    if (null == liFil || liFil.size() <= 1)
+      return 1;
+    dtMin = liFil.stream() //
+        .filter(s -> s.hasPeriodo())//
+        .map(s -> s.getDtmin())//
+        .min(LocalDateTime::compareTo) //
+        .orElseThrow(NoSuchElementException::new);
+    dtMax = liFil.stream()//
+        .filter(s -> s.hasPeriodo())//
+        .map(s -> s.getDtmax())//
+        .max(LocalDateTime::compareTo) //
+        .orElseThrow(NoSuchElementException::new);
     posDtMin = getDtPos(dtMin);
     posDtMax = getDtPos(dtMax);
+    return liFil.size();
   }
 
 }

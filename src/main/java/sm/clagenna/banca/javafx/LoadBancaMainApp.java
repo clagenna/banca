@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -148,7 +149,6 @@ public class LoadBancaMainApp extends Application implements IStartApp {
       connSQL = conFact.get(szDbType);
       connSQL.readProperties(props);
       connSQL.doConn();
-      // TODO Apri le tabelle ausiliarie
     } catch (Exception e) {
       s_log.error("Errore apertura DB, error={}", e.getMessage(), e);
     }
@@ -189,8 +189,8 @@ public class LoadBancaMainApp extends Application implements IStartApp {
 
   }
 
-  public void messageDialog(AlertType typ, String p_msg) {
-    messageDialog(typ, p_msg, ButtonType.CLOSE);
+  public Optional<ButtonType> messageDialog(AlertType typ, String p_msg) {
+    return messageDialog(typ, p_msg, ButtonType.CLOSE);
   }
 
   /**
@@ -208,9 +208,11 @@ public class LoadBancaMainApp extends Application implements IStartApp {
    *          Il messaggio (anche HTML) da emettere
    * @param bt
    *          Il tipo di {@link ButtonType}
+   * @return
    */
-  public void messageDialog(AlertType typ, String p_msg, ButtonType bt) {
-    Alert alert = new Alert(typ, p_msg, bt);
+  public Optional<ButtonType> messageDialog(AlertType typ, String p_msg, ButtonType bt) {
+    Alert alert = new Alert(typ);
+    alert.setResizable(true);
     Scene scene = primaryStage.getScene();
     double posx = scene.getWindow().getX();
     double posy = scene.getWindow().getY();
@@ -219,17 +221,21 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     double py = posy + 50;
     alert.setX(px);
     alert.setY(py);
-    // alert.setWidth(300);
+    alert.setWidth(400);
 
     switch (typ) {
+      case CONFIRMATION:
+        alert.setTitle("Verifica");
+        alert.setHeaderText("Scegli cosa fare");
+        break;
       case INFORMATION:
         alert.setTitle("Informa");
-        alert.setHeaderText("Ok !");
+        alert.setHeaderText("Comunicazione");
         break;
 
       case WARNING:
         alert.setTitle("Attenzione");
-        alert.setHeaderText("Fai Attenzione !");
+        alert.setHeaderText("Occhio !");
         break;
 
       case ERROR:
@@ -245,7 +251,8 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     webView.getEngine().loadContent(p_msg);
     webView.setPrefSize(300, 60);
     alert.getDialogPane().setContent(webView);
-    alert.showAndWait();
+    Optional<ButtonType> btret = alert.showAndWait();
+    return btret;
   }
 
   public void addViewContanti(ViewContanti pview) {
