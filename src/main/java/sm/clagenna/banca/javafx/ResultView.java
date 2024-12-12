@@ -66,27 +66,31 @@ public class ResultView implements Initializable, IStartApp {
   private static final String CSZ_QRY_TRUE          = "1=1";
 
   @FXML
-  private ComboBox<String>  cbTipoBanca;
+  protected ComboBox<String>  cbTipoBanca;
   @FXML
-  private ComboBox<Integer> cbAnnoComp;
+  protected ComboBox<String>  cbQuery;
   @FXML
-  private ComboBox<String>  cbMeseComp;
+  protected ComboBox<Integer> cbAnnoComp;
   @FXML
-  private TextField         txParola;
+  protected ComboBox<String>  cbMeseComp;
   @FXML
-  private TextArea          txWhere;
+  protected TextField         txParola;
   @FXML
-  private ComboBox<String>  cbQuery;
+  protected TextArea          txWhere;
   @FXML
-  private Button            btCerca;
+  private Button              btCerca;
   @FXML
-  private Button            btExportCsv;
+  protected ComboBox<String>  cbSaveQuery;
   @FXML
-  private CheckBox          ckScartaImp;
+  private Button              btSaveQuery;
   @FXML
-  private CheckBox          ckLanciaExcel;
+  private Button              btExportCsv;
   @FXML
-  private CheckBox          ckCvsBlankOnZero;
+  private CheckBox            ckScartaImp;
+  @FXML
+  private CheckBox            ckLanciaExcel;
+  @FXML
+  private CheckBox            ckCvsBlankOnZero;
 
   @FXML
   private TableView<List<Object>> tblview;
@@ -96,15 +100,17 @@ public class ResultView implements Initializable, IStartApp {
   private Stage lstage;
   //   private AppProperties       m_prQries;
   private LoadBancaMainApp    m_appmain;
-  private AppProperties       m_mainProps;
+  @Getter
+  private AppProperties       mainProps;
   private ISQLGest            m_db;
   private Map<String, String> m_mapQry;
 
-  private Integer m_fltrAnnoComp;
-  private String  m_fltrMeseComp;
-  private String  m_fltrWhere;
-  private String  m_fltrParola;
-  private String  m_qry;
+  private Integer                m_fltrAnnoComp;
+  private String                 m_fltrMeseComp;
+  private String                 m_fltrWhere;
+  private String                 m_fltrParola;
+  private String                 m_qry;
+  private GestResViewQueryParams m_gestQry;
 
   private TableViewFiller m_tbvf;
   private Path            m_CSVfile;
@@ -126,7 +132,7 @@ public class ResultView implements Initializable, IStartApp {
     TableViewFiller.setNullRetValue("");
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addResView(this);
-    m_mainProps = m_appmain.getProps();
+    mainProps = m_appmain.getProps();
     String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
     m_db = SqlGestFactory.get(szSQLType);
     m_db.setDbconn(LoadBancaMainApp.getInst().getConnSQL());
@@ -138,10 +144,11 @@ public class ResultView implements Initializable, IStartApp {
     caricaComboQueriesFromDB();
     txParola.textProperty().addListener((obj, old, nv) -> txParolaSel(obj, old, nv));
     txWhere.textProperty().addListener((obj, old, nv) -> txWhereSel(obj, old, nv));
-    impostaForma(m_mainProps);
+    m_gestQry = new GestResViewQueryParams(this);
+    impostaForma(mainProps);
     if (lstage != null)
       lstage.setOnCloseRequest(e -> {
-        closeApp(m_mainProps);
+        closeApp(mainProps);
       });
     abilitaBottoni();
   }
@@ -171,7 +178,7 @@ public class ResultView implements Initializable, IStartApp {
   private void caricaComboQueries() {
     m_mapQry = new HashMap<>();
     List<String> liQry = new ArrayList<>();
-    Set<Object> keys = m_mainProps.getProperties().keySet();
+    Set<Object> keys = mainProps.getProperties().keySet();
     for (Object k : keys) {
       String szKey = k.toString();
       if ( !szKey.startsWith("QRY."))
@@ -325,13 +332,25 @@ public class ResultView implements Initializable, IStartApp {
   @FXML
   void btCercaClick(ActionEvent event) {
     System.out.println("ResultView.btCercaClick()");
-    String szQryFltr = creaQuery(); 
+    String szQryFltr = creaQuery();
     // test validita query
     DBConn dbc = m_db.getDbconn();
-    if (! dbc.testQuery(szQryFltr) ) 
+    if ( !dbc.testQuery(szQryFltr))
       return;
     creaTableResultThread(szQryFltr);
     abilitaBottoni();
+  }
+
+  @FXML
+  void btSaveQueryClick(ActionEvent event) {
+    String szNam = cbSaveQuery.getSelectionModel().getSelectedItem();
+    m_gestQry.saveQuery(szNam);
+  }
+
+  @FXML
+  void cbSaveQuerySel(ActionEvent event) {
+    System.out.printf("ResultView.cbSaveQuerySel(%s)\n", cbSaveQuery.getSelectionModel().getSelectedItem());
+    m_gestQry.readQuery(cbSaveQuery.getSelectionModel().getSelectedItem());
   }
 
   private String creaQuery() {
