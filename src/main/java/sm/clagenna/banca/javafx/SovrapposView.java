@@ -66,12 +66,12 @@ public class SovrapposView implements Initializable, IStartApp {
 
   @Override
   public void initialize(URL location, ResourceBundle resources) {
-    //
-
+    // System.out.println("SovrapposView.initialize()");
   }
 
   @Override
   public void initApp(AppProperties p_props) {
+    // System.out.println("SovrapposView.initApp()");
     m_appmain = LoadBancaMainApp.getInst();
     m_mainProps = m_appmain.getProps();
     impostaForma(m_mainProps);
@@ -151,14 +151,20 @@ public class SovrapposView implements Initializable, IStartApp {
     double px2 = left_pad + dlt_x * intlMax;
     px2 -= dlt_x / 31. * (31 - pif.getDtmax().getDayOfMonth());
     Color strk = Color.GREEN;
+    Color oriz = Color.BLUEVIOLET;
 
     Line tickLine1 = new Line(px1, pyRuller, px1, py - TIC_MAX);
     tickLine1.setStroke(strk);
     tickLine1.getStrokeDashArray().addAll(5d, 15d);
+    
     Line tickLine2 = new Line(px2, pyRuller, px2, py - TIC_MAX);
     tickLine2.setStroke(strk);
     tickLine2.getStrokeDashArray().addAll(3d, 8d);
+    
     Line tickLine = new Line(px1, py, px2, py);
+    tickLine.setStroke(oriz);
+    tickLine.setStrokeWidth(5.);
+    
     pane.getChildren().addAll(tickLine1, tickLine2, tickLine);
 
     Text lab = new Text(px1, py + 15, pif.getFileName());

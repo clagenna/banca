@@ -262,7 +262,7 @@ public class ProvaProgrBarCla extends Application {
         backGrService.execute(cvsimp);
       } catch (Exception e) {
         progb.progressProperty().unbind();
-        s_log.error("Errore conversione PDF {}", impf.toString(), e);
+        s_log.error("Errore {} su file {}", e.getMessage(), impf.toString(), e);
       }
     }
     backGrService.shutdown();

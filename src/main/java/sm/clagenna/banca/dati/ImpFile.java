@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
@@ -281,6 +282,17 @@ public class ImpFile implements Cloneable {
     if (null == cardHold)
       return false;
     return cardHold.equals(szCardh);
+  }
+
+  public void garbleName(Path p_based) {
+    String szOld = String.format("%s\\%s\\%s", p_based.toString(), relDir, fileName);
+    String szNew = String.format("%s\\%s\\XEliminato_%s", p_based.toString(), relDir, fileName);
+    try {
+      Files.move(Paths.get(szOld), Paths.get(szNew), StandardCopyOption.REPLACE_EXISTING);
+      s_log.info("Rinominato \"{}\" in \"{}\"", fileName, szNew);
+    } catch (IOException e) {
+      s_log.error("Non riesco a rinominare \"{}\" in \"{}\"", fileName, szNew);
+    }
   }
 
 }

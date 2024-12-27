@@ -4,7 +4,7 @@ Set-Location (Split-Path $PSCommandPath)
 $AppName = "Banca"
 $JdkVers = "21.0.1"
 $JavaFXVers = "23.0.1"
-$zipApp = ".\$AppName.zip"
+$zipApp = ".\$AppName_Inst.zip"
 $zipJdk = "openjdk-${JdkVers}_windows-x64_bin.zip"
 $zipJfx = "openjfx-${JavaFXVers}_windows-x64_bin-sdk.zip"
 

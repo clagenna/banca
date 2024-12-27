@@ -1,7 +1,10 @@
 /target/
 /log/
 /old/
+/zip/
+/Banca.properties
 *.zip
+*.exe
 *.db
 *.csv
-/Banca.properties
+*.bak

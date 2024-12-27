@@ -41,6 +41,7 @@
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#mnuSovrapposizioniClick" text="Mostra Sovrapposizioni" />
                   <MenuItem fx:id="mnuGEstDati" mnemonicParsing="false" onAction="#mnuConfMostraDatiClick" text="Mostra Dati">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="D" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
@@ -53,7 +54,7 @@
             </Menu>
 	        <Menu mnemonicParsing="false" text="Help">
 	          <items>
-	            <MenuItem mnemonicParsing="false" text="Circa Gest. Banche" />
+	            <MenuItem mnemonicParsing="false" onAction="#mnuhAbout" text="Circa Gest. Banche" />
 	          </items>
 	        </Menu>
 	      </menus>

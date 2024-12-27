@@ -18,8 +18,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.DataController;
@@ -31,7 +33,7 @@ import sm.clagenna.stdcla.utils.Utils;
 public class LoadBancaMainApp extends Application implements IStartApp {
   private static final Logger s_log            = LogManager.getLogger(LoadBancaMainApp.class);
   private static final String CSZ_MAIN_APP_CSS = "LoadBancaFX.css";
-  private static final String CSZ_MAIN_ICON    = "sm/clagenna/banca/javafx/banca-100.png";
+  public static final String  CSZ_MAIN_ICON    = "sm/clagenna/banca/javafx/banca-100.png";
   private static final String CSZ_MAIN_PROPS   = "Banca.properties";
 
   @Getter
@@ -253,6 +255,45 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     alert.getDialogPane().setContent(webView);
     Optional<ButtonType> btret = alert.showAndWait();
     return btret;
+  }
+
+  public void msgBox(String p_txt) {
+    msgBox(p_txt, AlertType.INFORMATION);
+  }
+
+  public boolean msgBox(String p_txt, AlertType tipo) {
+    return msgBox(p_txt, tipo, (String) null);
+  }
+
+  public boolean msgBox(String p_txt, AlertType tipo, String p_ico) {
+    boolean bRet = true;
+    Alert alt = new Alert(tipo);
+    Scene sce = getPrimaryStage().getScene();
+    if (null != p_ico) {
+      URL resico = getClass().getResource(p_ico);
+      if (null == resico)
+        resico = getClass().getClassLoader().getResource(CSZ_MAIN_ICON);
+      if (null != resico) {
+        ImageView ico = new ImageView(resico.toString());
+        alt.setGraphic(ico);
+      }
+    }
+
+    Window wnd = null;
+    if (sce != null)
+      wnd = sce.getWindow();
+    if (wnd != null) {
+      alt.initOwner(wnd);
+      alt.setTitle(tipo.toString());
+      alt.setHeaderText(tipo.toString());
+      alt.setContentText(p_txt);
+      Optional<ButtonType> result = alt.showAndWait();
+      if (tipo == AlertType.CONFIRMATION) {
+        bRet = result.get() == ButtonType.OK;
+      }
+    } else
+      s_log.error("Windows==null; msg={}", p_txt);
+    return bRet;
   }
 
   public void addViewContanti(ViewContanti pview) {

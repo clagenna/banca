@@ -64,6 +64,7 @@ import javafx.util.Callback;
 import sm.clagenna.banca.dati.CsvImportBanca;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.ImpFile;
+import sm.clagenna.banca.dati.Versione;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ILog4jReader;
@@ -178,7 +179,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   public void initApp(AppProperties props) {
     LoadBancaMainApp main = LoadBancaMainApp.getInst();
     main.setController(this);
-    getStage().setTitle("Caricamento degli Export CSV dalle Banche su DB");
+    impostaTitolo();
     // vedi: https://stackoverflow.com/questions/27160951/javafx-open-another-fxml-in-the-another-window-with-button
     getStage().onCloseRequestProperty().setValue(e -> Platform.exit());
 
@@ -196,6 +197,15 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     initTblFilesCSV();
     initTblLogs();
     initTxLastDir(props);
+  }
+
+  private void impostaTitolo() {
+    String szTit = "Caricamento degli Export CSV dalle Banche su DB, %s";
+    String szDir = Versione.getVersionEx();
+    if (null != cntrlr)
+      szDir = "Ricerca CSV da:" + cntrlr.getLastDir().toString();
+    final String tit = String.format(szTit, szDir);
+    Platform.runLater(() -> getStage().setTitle(tit));
   }
 
   private void initTxLastDir(AppProperties props) {
@@ -513,8 +523,14 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   }
 
   @FXML
+  public void mnuhAbout() {
+    String szMsg = "Versione dell'applicazione\n" + Versione.getVersionEx();
+    var mainapp = LoadBancaMainApp.getInst();
+    mainapp.msgBox(szMsg, AlertType.INFORMATION, LoadBancaMainApp.CSZ_MAIN_ICON);
+  }
+
+  @FXML
   void btConvCSV_Click(ActionEvent event) {
-    // System.out.println("LoadBancaController.btConvPDF()");
     eseguiConversioneRunTask();
   }
 
@@ -566,7 +582,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         backGrService.execute(csvimp);
       } catch (Exception e) {
         lbProgressione.textProperty().unbind();
-        s_log.error("Errore conversione PDF {}", impf.toString(), e);
+        s_log.error("Errore {} file {}", e.getMessage(), impf.toString(), e);
       }
     }
     backGrService.shutdown();
@@ -631,6 +647,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     //    String szFiin = p_fi.toString();
     //    props.setLastDir(szFiin);
     p_fi = cntrlr.assegnaLastDir(p_fi, bForce);
+    impostaTitolo();
     if (p_setTx)
       txDirExports.setText(p_fi.toString());
     // pthDirCSV = p_fi;
@@ -652,7 +669,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
 
     MenuItem mi2 = new MenuItem("Vedi Documento");
     mi2.setOnAction((ActionEvent ev) -> {
-      showPdfDoc();
+      showFileDoc();
     });
 
     MenuItem mi3 = new MenuItem("Mostra Sovrapposizioni");
@@ -714,7 +731,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     colId.setCellFactory(cellFactory);
   }
 
-  private void showPdfDoc() {
+  private void showFileDoc() {
     // Path it = liBanca.getSelectionModel().getSelectedItem();
     ImpFile imf = tblvFiles.getSelectionModel().getSelectedItem();
     Path it = imf.fullPath(cntrlr.getLastDir());
@@ -734,12 +751,14 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @FXML
   void mnuSovrapposizioniClick(ActionEvent event) {
     ImpFile imf = tblvFiles.getSelectionModel().getSelectedItem();
+    LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
     if (null == imf || !imf.hasPeriodo()) {
-      s_log.warn("Non ho info sul periodo di {}", imf.getFileName());
+      final String p_msg = "Devi selezionare un file per consultare le sue sovrapposizioni";
+      s_log.warn(p_msg);
+      mainApp.messageDialog(AlertType.WARNING, p_msg);
       return;
     }
 
-    LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
     Stage primaryStage = mainApp.getPrimaryStage();
 
     URL url = getClass().getResource(SovrapposView.CSZ_FXMLNAME);
@@ -785,9 +804,10 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         "Sei sicuro di voler eliminare le registrazioni di <br/><b>" + imf.getFileName() + "</b>");
     if (ret.isEmpty() || ret.get() != ButtonType.OK)
       return;
-    System.out.printf("LoadBancaController.eliminaRegistrazioni(%s)\n", imf.getFileName());
+    // System.out.printf("LoadBancaController.eliminaRegistrazioni(%s)\n", imf.getFileName());
     s_log.warn("Elimino le registrazioini di {}", imf.getFileName());
     cntrlr.getContCsv().cancellaRegsFiles(Arrays.asList(new ImpFile[] { imf }));
+    imf.garbleName(cntrlr.getLastDir());
     reloadListFilesCSV();
   }
 

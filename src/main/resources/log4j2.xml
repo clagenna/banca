@@ -4,19 +4,19 @@
 
 		<Console name="console" target="SYSTEM_OUT">
 			<PatternLayout
-				pattern="%d %-5p  %X{loginame} %-32F:%L - %m%n" />
+				pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p  %-32c{3}:%L - %m%n" />
 		</Console>
 
 		<File name="banca" fileName="log/banca.log" append="true">
 			<PatternLayout
-				pattern="%-32c  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
+				pattern="%-32c{3}  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
 		</File>
 
 		<RollingFile name="rollingFile"
 			fileName="log/rollbanca.log"
 			filePattern="log/banca.%d{yyyy-MM-dd}.log" ignoreExceptions="false">
 			<PatternLayout
-				pattern="%-32c  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
+				pattern="%-32c{3}  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
 			<Policies>
 				<TimeBasedTriggeringPolicy interval="1" />
 			</Policies>
@@ -35,7 +35,7 @@
 			</triggeringPolicy>
 			<layout class="org.apache.log4j.PatternLayout">
 				<param name="ConversionPattern"
-					value="%-32c  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
+					value="%-32c{3}  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
 			</layout>
 		</appender>
 

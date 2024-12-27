@@ -4,6 +4,8 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -103,7 +105,6 @@ public class CsvImportBanca extends Task<String> implements Closeable {
 
   @Override
   protected String call() throws Exception {
-    // System.out.println("GestPDFFatt Runner .call()");
     s_log.debug("Start background import of {}", getCsvFile().toString());
     try {
       importCSV();
@@ -268,9 +269,10 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     String sz2 = p_sz.substring(n - 2);
     Pattern pat = Pattern.compile(".*_([a-z]+)\\.[a-z]+", Pattern.CASE_INSENSITIVE);
     Matcher mat = pat.matcher(sz2);
-    if (mat.find())
+    if (mat.find()) {
       cardIdent = mat.group(1);
-    s_log.debug("cardIdent:{} for file: {}", cardIdent, p_sz);
+      s_log.debug("cardIdent:{} for file: {}", cardIdent, p_sz);
+    }
   }
 
   private void discerniSqlTable(String p_sz) {
@@ -303,7 +305,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       sqlTableName = BANCA_SMAC;
 
     if (null == sqlTableName)
-      throw new UnsupportedOperationException("Non trovo il nome Tabella; Il nome file mal formato?");
+      throw new UnsupportedOperationException("Non trovo il nome Banca; Il nome file mal formato?");
   }
 
   public Path getCsvFile() {
@@ -312,6 +314,8 @@ public class CsvImportBanca extends Task<String> implements Closeable {
 
   public void setCsvFile(Path p_csvFile) {
     csvFile = p_csvFile;
+    if ( !Files.exists(p_csvFile, LinkOption.NOFOLLOW_LINKS))
+      throw new UnsupportedOperationException("File non trovato" + p_csvFile.toString());
     discerniCardIdent(csvFile.toString());
     discerniSqlTable(csvFile.toString());
   }
