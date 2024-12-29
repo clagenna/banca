@@ -1,5 +1,6 @@
 package sm.clagenna.banca.javafx;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -8,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ComboBox;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -20,13 +22,13 @@ public class GestResViewQueryParams {
   private static final String PROP_KEY     = "SQry_%03d";
   private static final String PROP_SEP     = "@";
   @SuppressWarnings("unused")
-  private static int          col_name     = 0;
-  private static int          col_tipo     = 1;
-  private static int          col_query    = 2;
-  private static int          col_annoComp = 3;
-  private static int          col_meseComp = 4;
-  private static int          col_parola   = 5;
-  private static int          col_where    = 6;
+  private static final int    col_name     = 0;
+  private static final int    col_tipo     = 1;
+  private static final int    col_query    = 2;
+  private static final int    col_annoComp = 3;
+  private static final int    col_meseComp = 4;
+  private static final int    col_parola   = 5;
+  private static final int    col_where    = 6;
 
   @Getter @Setter
   private String  tipoBanca;
@@ -122,7 +124,7 @@ public class GestResViewQueryParams {
 
   public void readQuery(String szNam) {
     LoadBancaMainApp main = LoadBancaMainApp.getInst();
-    if ( !mapName2Id.containsKey(szNam)) {
+    if ( !Utils.isValue(szNam) || !mapName2Id.containsKey(szNam)) {
       //      main.messageDialog(AlertType.WARNING, String.format("Non hai nessun save query con nome {}", szNam));
       return;
     }
@@ -161,6 +163,17 @@ public class GestResViewQueryParams {
       mapName2Id.put(szNam, szK);
       mapId2Text.put(szK, szv);
     }
+  }
+
+  public void caricaCombo(ComboBox<String> cbSaveQuery) {
+    if (null == mapName2Id || mapName2Id.size() == 0)
+      return;
+    // preso da: https://stackoverflow.com/questions/1018750/how-to-convert-object-array-to-string-array-in-java
+    String[] arr = Arrays.stream(mapName2Id.keySet().toArray()) //
+        .map(Object::toString) //
+        .toArray(String[]::new);
+    cbSaveQuery.getItems().clear();
+    cbSaveQuery.getItems().addAll(arr);
   }
 
 }

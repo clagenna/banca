@@ -245,7 +245,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     colSize = new TableColumn<>("Dimensione");
     colSize.setCellValueFactory(cell -> cell.getValue().getOSize());
 
-    colQtaRecs = new TableColumn<>("Qta .rows");
+    colQtaRecs = new TableColumn<>("Qta. Righe");
     colQtaRecs.setCellValueFactory(cell -> cell.getValue().getOQtarecs());
 
     colDtmin = new TableColumn<>("Data min.");
@@ -715,20 +715,25 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   }
 
   private void colorizeTblView() {
+    final String rAlign = "-fx-alignment: center-right;";
     // Default cell factory provides text field for editing and converts text in text field to int.
     Callback<TableColumn<ImpFile, String>, TableCell<ImpFile, String>> defaultCellFactory = TextFieldTableCell.forTableColumn();
     // Cell factory implementation that uses default cell factory above, and augments the implementation
     Callback<TableColumn<ImpFile, String>, TableCell<ImpFile, String>> cellFactory = col -> {
       TableCell<ImpFile, String> cell = defaultCellFactory.call(col);
       cell.itemProperty().addListener((obs, oldValue, newValue) -> {
+        String value = "-fx-alignment: center-right;";
+        String szCss = value;
         if ( !Utils.isValue(newValue))
-          cell.setStyle("-fx-background-color: tomato;");
-        else
-          cell.setStyle("");
+          szCss += " " + rAlign;
+        cell.setStyle(szCss);
       });
       return cell;
     };
     colId.setCellFactory(cellFactory);
+    colSize.setStyle(rAlign);
+    colQtaRecs.setStyle(rAlign);
+    colQtaRecs.setStyle(rAlign);
   }
 
   private void showFileDoc() {

@@ -144,13 +144,20 @@ public class ResultView implements Initializable, IStartApp {
     caricaComboQueriesFromDB();
     txParola.textProperty().addListener((obj, old, nv) -> txParolaSel(obj, old, nv));
     txWhere.textProperty().addListener((obj, old, nv) -> txWhereSel(obj, old, nv));
-    m_gestQry = new GestResViewQueryParams(this);
+    caricaComboQrySalvate();
     impostaForma(mainProps);
     if (lstage != null)
       lstage.setOnCloseRequest(e -> {
         closeApp(mainProps);
       });
     abilitaBottoni();
+  }
+
+  private void caricaComboQrySalvate() {
+    m_gestQry = new GestResViewQueryParams(this);
+    m_gestQry.caricaCombo(cbSaveQuery);
+    btSaveQuery.setDisable(true);
+    cbSaveQuery.getEditor().textProperty().addListener((obj, old, nv) -> cbSaveQueryUpd(obj, old, nv));
   }
 
   private void caricaComboTipoBanca() {
@@ -318,6 +325,11 @@ public class ResultView implements Initializable, IStartApp {
     abilitaBottoni();
   }
 
+  private Object cbSaveQueryUpd(ObservableValue<? extends String> obj, String old, String nv) {
+    btSaveQuery.setDisable(!(Utils.isValue(nv) && nv.length() > 2) );
+    return null;
+  }
+
   private void abilitaBottoni() {
     boolean bv = Utils.isValue(m_qry);
     btCerca.setDisable( !bv);
@@ -345,11 +357,12 @@ public class ResultView implements Initializable, IStartApp {
   void btSaveQueryClick(ActionEvent event) {
     String szNam = cbSaveQuery.getSelectionModel().getSelectedItem();
     m_gestQry.saveQuery(szNam);
+    m_gestQry.caricaCombo(cbSaveQuery);
   }
 
   @FXML
   void cbSaveQuerySel(ActionEvent event) {
-    System.out.printf("ResultView.cbSaveQuerySel(%s)\n", cbSaveQuery.getSelectionModel().getSelectedItem());
+    // System.out.printf("ResultView.cbSaveQuerySel(%s)\n", cbSaveQuery.getSelectionModel().getSelectedItem());
     m_gestQry.readQuery(cbSaveQuery.getSelectionModel().getSelectedItem());
   }
 
@@ -367,20 +380,20 @@ public class ResultView implements Initializable, IStartApp {
     String szLeft = m_qry.substring(0, n + CSZ_QRY_TRUE.length());
     String szRight = m_qry.substring(n + CSZ_QRY_TRUE.length());
     StringBuilder szFiltr = new StringBuilder();
-    if (m_fltrTipoBanca != null) {
+    if (Utils.isValue(m_fltrTipoBanca)) {
       szFiltr.append(String.format(" AND tipo='%s'", m_fltrTipoBanca));
     }
-    if (m_fltrAnnoComp != null) {
+    if (Utils.isValue(m_fltrAnnoComp) ) {
       szFiltr.append(String.format(" AND movStr like '%d%%'", m_fltrAnnoComp));
     }
-    if (m_fltrMeseComp != null) {
+    if (Utils.isValue(m_fltrMeseComp )) {
       szFiltr.append(String.format(" AND movStr='%s'", m_fltrMeseComp));
     }
 
-    if (null != m_fltrParola && m_fltrParola.trim().length() >= 1) {
+    if (Utils.isValue(m_fltrParola) && m_fltrParola.trim().length() >= 1) {
       szFiltr.append(String.format(" AND descr LIKE '%%%s%%'", m_fltrParola));
     }
-    if (null != m_fltrWhere && m_fltrWhere.length() > 3) {
+    if (Utils.isValue(m_fltrWhere) && m_fltrWhere.length() > 3) {
       szFiltr.append(String.format(" AND %s", m_fltrWhere));
     }
     szQryFltr = String.format("%s %s %s", szLeft, szFiltr.toString(), szRight);

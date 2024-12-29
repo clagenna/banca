@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -153,6 +154,8 @@ public class LoadBancaMainApp extends Application implements IStartApp {
       connSQL.doConn();
     } catch (Exception e) {
       s_log.error("Errore apertura DB, error={}", e.getMessage(), e);
+      Platform.exit();
+      System.exit(1957);
     }
   }
 

@@ -57,6 +57,11 @@
                </tooltip>
             </Label>
             <TextField fx:id="txParola" layoutX="87.0" layoutY="7.0" prefHeight="25.0" prefWidth="484.0" promptText="Parola da cercare" />
+            <ComboBox fx:id="cbSaveQuery" editable="true" layoutX="581.0" layoutY="7.0" onAction="#cbSaveQuerySel" prefHeight="25.0" prefWidth="236.0" promptText="Id query salvata">
+               <tooltip>
+                  <Tooltip text="Tutti gli identificativi di query salvate con &quot;Salva Query&quot;" />
+               </tooltip>
+            </ComboBox>
             <Label layoutY="45.0" text="Where SQL">
                <padding>
                   <Insets left="5.0" right="5.0" />
@@ -66,18 +71,13 @@
                </tooltip>
             </Label>
             <TextArea fx:id="txWhere" layoutX="87.0" layoutY="40.0" prefHeight="37.0" prefWidth="484.0" promptText="Testo della WHERE SQL " />
-				<Button fx:id="btCerca" layoutX="589.0" layoutY="7.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca" />
-				<Button fx:id="btExportCsv" layoutX="663.0" layoutY="8.0" mnemonicParsing="false" onAction="#btExportCsvClick" text="To CSV" />
-            <ComboBox fx:id="cbSaveQuery" editable="true" layoutX="581.0" layoutY="46.0" onAction="#cbSaveQuerySel" prefHeight="25.0" prefWidth="183.0" promptText="Id query salvata">
-               <tooltip>
-                  <Tooltip text="Tutti gli identificativi di query salvate con &quot;Salva Query&quot;" />
-               </tooltip>
-            </ComboBox>
-            <Button fx:id="btSaveQuery" layoutX="776.0" layoutY="48.0" mnemonicParsing="false" onAction="#btSaveQueryClick" text="Salva Query">
+				<Button fx:id="btCerca" layoutX="581.0" layoutY="44.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca" />
+            <Button fx:id="btSaveQuery" layoutX="642.0" layoutY="44.0" mnemonicParsing="false" onAction="#btSaveQueryClick" text="Salva Query">
                <tooltip>
                   <Tooltip text="Permette di salvare tutti i parametri di ricerca impostati con un identificativo richiamabile in futuro" />
                </tooltip>
             </Button>
+				<Button fx:id="btExportCsv" layoutX="764.0" layoutY="44.0" mnemonicParsing="false" onAction="#btExportCsvClick" text="To CSV" />
             <CheckBox fx:id="ckScartaImp" layoutX="866.0" layoutY="17.0" mnemonicParsing="false" text="Scarta Imp. di trasferimento">
                <tooltip>
                   <Tooltip text="Scarta le doppie registrazione che hanno causale ('45','S3','S4') e i trasferimenti in WISE" />
