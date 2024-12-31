@@ -57,7 +57,7 @@
                </tooltip>
             </Label>
             <TextField fx:id="txParola" layoutX="87.0" layoutY="7.0" prefHeight="25.0" prefWidth="484.0" promptText="Parola da cercare" />
-            <ComboBox fx:id="cbSaveQuery" editable="true" layoutX="581.0" layoutY="7.0" onAction="#cbSaveQuerySel" prefHeight="25.0" prefWidth="236.0" promptText="Id query salvata">
+            <ComboBox fx:id="cbSaveQuery" editable="true" layoutX="581.0" layoutY="7.0" onAction="#cbSaveQuerySel" prefHeight="25.0" prefWidth="236.0">
                <tooltip>
                   <Tooltip text="Tutti gli identificativi di query salvate con &quot;Salva Query&quot;" />
                </tooltip>
@@ -78,7 +78,12 @@
                </tooltip>
             </Button>
 				<Button fx:id="btExportCsv" layoutX="764.0" layoutY="44.0" mnemonicParsing="false" onAction="#btExportCsvClick" text="To CSV" />
-            <CheckBox fx:id="ckScartaImp" layoutX="866.0" layoutY="17.0" mnemonicParsing="false" text="Scarta Imp. di trasferimento">
+            <CheckBox fx:id="ckRegExp" layoutX="866.0" layoutY="-3.0" mnemonicParsing="false" onAction="#ckRegExpClick" text="Espressione Regolare su Descr.">
+               <tooltip>
+                  <Tooltip text="Permette la ricerca con Reg.Expr. sul campo &quot;Parola Descr&quot;" />
+               </tooltip>
+            </CheckBox>
+            <CheckBox fx:id="ckScartaImp" layoutX="866.0" layoutY="18.0" mnemonicParsing="false" text="Scarta Imp. di trasferimento">
                <tooltip>
                   <Tooltip text="Scarta le doppie registrazione che hanno causale ('45','S3','S4') e i trasferimenti in WISE" />
                </tooltip>

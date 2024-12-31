@@ -65,6 +65,7 @@ import sm.clagenna.banca.dati.CsvImportBanca;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.dati.Versione;
+import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ILog4jReader;

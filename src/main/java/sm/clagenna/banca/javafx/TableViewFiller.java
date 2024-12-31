@@ -3,6 +3,7 @@ package sm.clagenna.banca.javafx;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,11 +17,13 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.dati.CsvImportBanca;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsCol;
 import sm.clagenna.stdcla.sql.DtsCols;
 import sm.clagenna.stdcla.sql.DtsRow;
+import sm.clagenna.stdcla.utils.Utils;
 
 public class TableViewFiller extends Task<String> {
   private static final Logger s_log           = LogManager.getLogger(TableViewFiller.class);
@@ -29,6 +32,10 @@ public class TableViewFiller extends Task<String> {
 
   @Getter @Setter
   private String                  szQry;
+  @Getter @Setter
+  private boolean                 fltrParolaRegEx;
+  @Getter @Setter
+  private String                  fltrParola;
   @Getter @Setter
   private TableView<List<Object>> tableview;
   private DBConn                  m_db;
@@ -153,7 +160,18 @@ public class TableViewFiller extends Task<String> {
       s_log.info("Nessuna informazione da mostrare");
       return;
     }
+    Pattern patt = null;
+    if (fltrParolaRegEx)
+      patt = Pattern.compile(fltrParola);
     for (DtsRow riga : m_dts.getRighe()) {
+      if (fltrParolaRegEx) {
+        String desc = (String) riga.get(CsvImportBanca.COL_DESCR);
+        if (Utils.isValue(desc)) {
+          if ( !patt.matcher(desc).find())
+            continue;
+        } else
+          continue;
+      }
       ObservableList<Object> tbRiga = FXCollections.observableArrayList();
       tbRiga.addAll(riga.getValues(true));
       dati.add(tbRiga);

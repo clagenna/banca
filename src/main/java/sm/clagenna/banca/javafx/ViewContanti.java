@@ -32,6 +32,7 @@ import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
+import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;

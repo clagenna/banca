@@ -26,6 +26,7 @@ import javafx.stage.Window;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.DBConnFactory;
 import sm.clagenna.stdcla.utils.AppProperties;

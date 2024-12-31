@@ -16,9 +16,10 @@ import org.apache.logging.log4j.Logger;
 import javafx.collections.ObservableList;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.javafx.IStartApp;
+
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ESqlFiltri;
+import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 

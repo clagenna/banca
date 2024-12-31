@@ -33,6 +33,7 @@ import lombok.Setter;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.stdcla.enums.EServerId;
+import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class ConfOpzioniController implements Initializable, IStartApp {
@@ -149,7 +150,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
 
   private void prepareDbVal(AppProperties p_props) {
     String szServerId = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
-    serverId = EServerId.valueOf(szServerId);
+    serverId = EServerId.parse(szServerId);
     cbServerIdClick(serverId);
     cbServerId.getItems().clear();
     cbServerId.getItems().add((EServerId) null);

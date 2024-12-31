@@ -37,6 +37,13 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class CsvImportBanca extends Task<String> implements Closeable {
 
+  public static final String COL_DTMOV = "dtmov";
+  public static final String COL_DTVAL = "dtval";
+  public static final String COL_DARE = "dare";
+  public static final String COL_AVERE = "avere";
+  public static final String COL_DESCR = "descr";
+  public static final String COL_CAUS = "caus";
+
   private static final Logger s_log = LogManager.getLogger(CsvImportBanca.class);
 
   public static final String EVT_PARSECSV  = "parsecsv";
@@ -91,13 +98,13 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     prchsupp = new PropertyChangeSupport(this);
     Utils.setLocale(Locale.ITALY);
     nomiCols = new HashMap<>();
-    nomiCols.put("dtmov", Arrays.asList(new String[] { "dtmov", "data", "Date", "Data transazione", "Created on", "" }));
-    nomiCols.put("dtval", Arrays.asList(new String[] { "dtval", "valuta", "Data contabile", "Finished on" }));
-    nomiCols.put("dare", Arrays.asList(new String[] { "dare", "importo", "Amount", "Source amount (after fees)" }));
-    nomiCols.put("avere", Arrays.asList(new String[] { "avere", "*no*", "*no*" }));
-    nomiCols.put("descr",
-        Arrays.asList(new String[] { "descr", "causale", "descrizione", "Target name", "Esercente", "Merchant" }));
-    nomiCols.put("caus", Arrays.asList(new String[] { "causabi", "causale abi", "categoria", "ID" }));
+    nomiCols.put(COL_DTMOV, Arrays.asList(new String[] { COL_DTMOV, "data", "Date", "Data transazione", "Created on", "" }));
+    nomiCols.put(COL_DTVAL, Arrays.asList(new String[] { COL_DTVAL, "valuta", "Data contabile", "Finished on" }));
+    nomiCols.put(COL_DARE, Arrays.asList(new String[] { COL_DARE, "importo", "Amount", "Source amount (after fees)" }));
+    nomiCols.put(COL_AVERE, Arrays.asList(new String[] { COL_AVERE, "*no*", "*no*" }));
+    nomiCols.put(COL_DESCR,
+        Arrays.asList(new String[] { COL_DESCR, "causale", "descrizione", "Target name", "Esercente", "Merchant" }));
+    nomiCols.put(COL_CAUS, Arrays.asList(new String[] { "causabi", "causale abi", "categoria", "ID" }));
 
     cntrl = DataController.getInst();
     // Thread.setDefaultUncaughtExceptionHandler(this);
@@ -336,7 +343,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     final String CAUS_TRANSF = "Z7";
     final String CAUS_CASH = "18";
 
-    Object val = getRowVal("dtmov", row);
+    Object val = getRowVal(COL_DTMOV, row);
     if (null == val) {
       s_log.debug("Scarto riga Wise: {}", row.toString());
       return;
@@ -417,7 +424,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     final String OPER_Spesa = "spesa"; // s2
     final String OPER_Spesa_fiscale = "spesa fiscale"; // S1
 
-    Object val = getRowVal("dtmov", row);
+    Object val = getRowVal(COL_DTMOV, row);
     if (null == val) {
       s_log.debug("Scarto riga SMAC: {}", row.toString());
       return;
@@ -481,7 +488,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
 
   private void studiaRigaContanti(DtsRow row) {
     RigaBanca rb = new RigaBanca();
-    Object val = getRowVal("dtmov", row);
+    Object val = getRowVal(COL_DTMOV, row);
     if (null == val) {
       s_log.warn("Scarto riga contante: {}", row.toString());
       return;
@@ -583,7 +590,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     String descr;
     String caus = null;
     String cardid = null;
-    Object val = getRowVal("dtmov", row);
+    Object val = getRowVal(COL_DTMOV, row);
     if (null == val) {
       s_log.debug("Scarto riga : {}", row.toString());
       return;

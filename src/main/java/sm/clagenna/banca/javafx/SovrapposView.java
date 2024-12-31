@@ -23,6 +23,7 @@ import lombok.Setter;
 import sm.clagenna.banca.dati.CsvFileContainer;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.ImpFile;
+import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class SovrapposView implements Initializable, IStartApp {

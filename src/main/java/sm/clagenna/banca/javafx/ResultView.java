@@ -28,6 +28,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -48,6 +49,7 @@ import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
+import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sys.ex.DatasetException;
@@ -86,6 +88,8 @@ public class ResultView implements Initializable, IStartApp {
   @FXML
   private Button              btExportCsv;
   @FXML
+  protected CheckBox          ckRegExp;
+  @FXML
   private CheckBox            ckScartaImp;
   @FXML
   private CheckBox            ckLanciaExcel;
@@ -109,6 +113,8 @@ public class ResultView implements Initializable, IStartApp {
   private String                 m_fltrMeseComp;
   private String                 m_fltrWhere;
   private String                 m_fltrParola;
+  @Getter @Setter
+  private boolean                fltrParolaRegEx;
   private String                 m_qry;
   private GestResViewQueryParams m_gestQry;
 
@@ -256,6 +262,8 @@ public class ResultView implements Initializable, IStartApp {
   @Override
   public void closeApp(AppProperties p_props) {
     m_appmain.removeResView(this);
+    if ( null != m_gestQry)
+      m_gestQry.closeApp(p_props);
     if (myScene == null) {
       s_log.error("Il campo Scene risulta = **null**");
       return;
@@ -320,13 +328,14 @@ public class ResultView implements Initializable, IStartApp {
 
   @FXML
   void txParolaSel(ObservableValue<? extends String> obj, String old, String nval) {
+    // System.out.printf("ResultView.txParolaSel(%s)\n", nval);
     m_fltrParola = nval;
     // s_log.debug("ResultView.txWhereSel({}):", m_fltrWhere);
     abilitaBottoni();
   }
 
   private Object cbSaveQueryUpd(ObservableValue<? extends String> obj, String old, String nv) {
-    btSaveQuery.setDisable(!(Utils.isValue(nv) && nv.length() > 2) );
+    btSaveQuery.setDisable( ! (Utils.isValue(nv) && nv.length() > 2));
     return null;
   }
 
@@ -356,7 +365,9 @@ public class ResultView implements Initializable, IStartApp {
   @FXML
   void btSaveQueryClick(ActionEvent event) {
     String szNam = cbSaveQuery.getSelectionModel().getSelectedItem();
-    m_gestQry.saveQuery(szNam);
+    if ( ! m_gestQry.saveQuery(szNam) )
+      m_appmain.msgBox(m_gestQry.getErrorMesg(), AlertType.ERROR);
+    else
     m_gestQry.caricaCombo(cbSaveQuery);
   }
 
@@ -366,6 +377,11 @@ public class ResultView implements Initializable, IStartApp {
     m_gestQry.readQuery(cbSaveQuery.getSelectionModel().getSelectedItem());
   }
 
+  @FXML
+  void ckRegExpClick(ActionEvent event) {
+    setFltrParolaRegEx(ckRegExp.isSelected());
+  }
+  
   private String creaQuery() {
     String szQryFltr = null;
     if (m_qry == null) {
@@ -383,15 +399,16 @@ public class ResultView implements Initializable, IStartApp {
     if (Utils.isValue(m_fltrTipoBanca)) {
       szFiltr.append(String.format(" AND tipo='%s'", m_fltrTipoBanca));
     }
-    if (Utils.isValue(m_fltrAnnoComp) ) {
+    if (Utils.isValue(m_fltrAnnoComp)) {
       szFiltr.append(String.format(" AND movStr like '%d%%'", m_fltrAnnoComp));
     }
-    if (Utils.isValue(m_fltrMeseComp )) {
+    if (Utils.isValue(m_fltrMeseComp)) {
       szFiltr.append(String.format(" AND movStr='%s'", m_fltrMeseComp));
     }
 
     if (Utils.isValue(m_fltrParola) && m_fltrParola.trim().length() >= 1) {
-      szFiltr.append(String.format(" AND descr LIKE '%%%s%%'", m_fltrParola));
+      if ( !fltrParolaRegEx)
+        szFiltr.append(String.format(" AND descr LIKE '%%%s%%'", m_fltrParola));
     }
     if (Utils.isValue(m_fltrWhere) && m_fltrWhere.length() > 3) {
       szFiltr.append(String.format(" AND %s", m_fltrWhere));
@@ -403,6 +420,10 @@ public class ResultView implements Initializable, IStartApp {
   private void creaTableResultThread(String szQryFltr) {
     TableViewFiller.setNullRetValue("");
     m_tbvf = new TableViewFiller(tblview);
+    if ( fltrParolaRegEx) {
+      m_tbvf.setFltrParolaRegEx(fltrParolaRegEx);
+      m_tbvf.setFltrParola(m_fltrParola);
+    }
     m_tbvf.setSzQry(szQryFltr);
     m_tbvf.setScartaImpTrasf(ckScartaImp.isSelected());
 
