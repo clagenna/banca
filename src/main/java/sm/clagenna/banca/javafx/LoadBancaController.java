@@ -133,12 +133,14 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private ResultView            cntrResultView;
   private ViewContanti          cntrViewContanti;
   private SovrapposView         cntrViewSovrapp;
+  private List<Log4jRow>        m_liMsgs;
+  private String                styRowZeroRecs;
+  private double                endProgressNo;
   // private ObservableList<FileCSV> liFilesCSV;
-  private List<Log4jRow> m_liMsgs;
-  private double         endProgressNo;
 
   public LoadBancaController() {
     endProgressNo = 0.;
+    styRowZeroRecs = "gold";
   }
 
   @Override
@@ -259,6 +261,29 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     colUltagg.setCellValueFactory(cell -> cell.getValue().getOUltagg());
 
     tblvFiles.getColumns().addAll(colId, colName, colRelDir, colCardHold, colSize, colQtaRecs, colDtmin, colDtmax, colUltagg);
+
+    tblvFiles.setRowFactory(row -> new TableRow<ImpFile>() {
+      @Override
+      public void updateItem(ImpFile item, boolean empty) {
+        super.updateItem(item, empty);
+        if (item == null || empty) {
+          setStyle("");
+          return;
+        }
+        String cssForegSty = "-fx-text-fill: black;";
+        StringBuilder cssBackgSty = new StringBuilder();
+        var idf = item.getId();
+        if (null == idf)
+          cssBackgSty //
+              .append(cssForegSty) //
+              .append("-fx-background-color: ") //
+              .append(styRowZeroRecs) //
+              .append(";");
+        setStyle(cssBackgSty.toString());
+
+      }
+    });
+
   }
 
   private void initTblLogs() {
@@ -724,10 +749,10 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       TableCell<ImpFile, String> cell = defaultCellFactory.call(col);
       cell.itemProperty().addListener((obs, oldValue, newValue) -> {
         String value = "-fx-alignment: center-right;";
-        String szCss = value;
+        StringBuilder szCss = new StringBuilder().append(value);
         if ( !Utils.isValue(newValue))
-          szCss += " " + rAlign;
-        cell.setStyle(szCss);
+          szCss.append(" ").append(rAlign);
+        cell.setStyle(szCss.toString());
       });
       return cell;
     };
