@@ -153,7 +153,7 @@ public class TableViewFiller extends Task<String> {
   }
 
   private void fillTableView() {
-    System.out.println("TableViewFiller.fillTableView()");
+    // System.out.println("TableViewFiller.fillTableView()");
     ObservableList<List<Object>> dati = FXCollections.observableArrayList();
     List<DtsRow> righe = m_dts.getRighe();
     if (righe == null) {
@@ -162,12 +162,13 @@ public class TableViewFiller extends Task<String> {
     }
     Pattern patt = null;
     if (fltrParolaRegEx)
-      patt = Pattern.compile(fltrParola);
+      patt = Pattern.compile(fltrParola.toLowerCase());
     for (DtsRow riga : m_dts.getRighe()) {
       if (fltrParolaRegEx) {
         String desc = (String) riga.get(CsvImportBanca.COL_DESCR);
         if (Utils.isValue(desc)) {
-          if ( !patt.matcher(desc).find())
+          var lo = desc.toLowerCase();
+          if ( !patt.matcher(lo).find())
             continue;
         } else
           continue;

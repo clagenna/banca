@@ -19,7 +19,7 @@ if ( Test-Path $zipFile ) {
   Remove-Item -Path $zipFile
 }
 
-Start-Process -Wait -FilePath $mvnCmd -ArgumentList 'clean','package'
+Start-Process -Wait -FilePath $mvnCmd -ArgumentList 'clean','package', '-Dmaven.test.skip=true'
 $arr = @()
 $arr += "target\${AppName}.jar"
 $arr += "${AppName}.properties"

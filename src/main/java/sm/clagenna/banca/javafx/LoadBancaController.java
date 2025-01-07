@@ -61,6 +61,8 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import lombok.Getter;
+import lombok.Setter;
 import sm.clagenna.banca.dati.CsvImportBanca;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.ImpFile;
@@ -93,6 +95,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private Button    btCercaDir;
   @FXML
   private SplitPane spltPane;
+  private double    spltDivPos;
 
   @FXML
   private TableView<ImpFile>           tblvFiles;
@@ -131,9 +134,11 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private ConfOpzioniController cntrlConfOpz;
   private int                   qtaActiveTasks;
   private ResultView            cntrResultView;
+  private CodStatView           cntrCodStatView;
   private ViewContanti          cntrViewContanti;
   private SovrapposView         cntrViewSovrapp;
   private List<Log4jRow>        m_liMsgs;
+  @Getter @Setter
   private String                styRowZeroRecs;
   private double                endProgressNo;
   // private ObservableList<FileCSV> liFilesCSV;
@@ -141,6 +146,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   public LoadBancaController() {
     endProgressNo = 0.;
     styRowZeroRecs = "gold";
+    spltDivPos = 0.7;
   }
 
   @Override
@@ -192,21 +198,32 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       if (sz != null)
         levelMin = Level.toLevel(sz);
     }
-    String szPos = props.getProperty(CSZ_SPLITPOS);
-    if (szPos != null) {
-      double dbl = Double.valueOf(szPos);
-      spltPane.setDividerPositions(dbl);
-    }
+    initSplitPos(props);
     initTblFilesCSV();
     initTblLogs();
     initTxLastDir(props);
+  }
+
+  private void initSplitPos(AppProperties props) {
+    String szPos = props.getProperty(CSZ_SPLITPOS);
+    if (Utils.isValue(szPos)) {
+      Stage stage = getStage();
+      spltDivPos = Double.valueOf(szPos);
+      // spltPane.setDividerPositions(dbl);
+      stage.showingProperty().addListener((obj, ov, nv) -> {
+        if (nv && spltDivPos != 0) {
+          spltPane.setDividerPositions(spltDivPos);
+          spltDivPos = 0;
+        }
+      });
+    }
   }
 
   private void impostaTitolo() {
     String szTit = "Caricamento degli Export CSV dalle Banche su DB, %s";
     String szDir = Versione.getVersionEx();
     if (null != cntrlr)
-      szDir = "Ricerca CSV da:" + cntrlr.getLastDir().toString();
+      szDir = "da:" + cntrlr.getLastDir().toString();
     final String tit = String.format(szTit, szDir);
     Platform.runLater(() -> getStage().setTitle(tit));
   }
@@ -273,17 +290,21 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         String cssForegSty = "-fx-text-fill: black;";
         StringBuilder cssBackgSty = new StringBuilder();
         var idf = item.getId();
-        if (null == idf)
+        if (null == idf && !isSelected()) {
+          //          System.out.printf("initTbl:sel(%s) class(%s) .style(%s)\n", //
+          //              isSelected() ? "X" : "", //
+          //              getStyleClass(), //
+          //              getStyle());
           cssBackgSty //
               .append(cssForegSty) //
               .append("-fx-background-color: ") //
               .append(styRowZeroRecs) //
               .append(";");
-        setStyle(cssBackgSty.toString());
-
+          setStyle(cssBackgSty.toString());
+        } else
+          setStyle("");
       }
     });
-
   }
 
   private void initTblLogs() {
@@ -514,6 +535,45 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   }
 
   @FXML
+  void mnuConfMostraCodStatClick(ActionEvent event) {
+    LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
+    if ( mainApp.isCodeStatViewOpened()) {
+      s_log.warn("La finestra dei codici statistici e' gia' aperta!");
+      return;
+    }
+    Stage primaryStage = mainApp.getPrimaryStage();
+
+    URL url = getClass().getResource(CodStatView.CSZ_FXMLNAME);
+    if (url == null)
+      url = getClass().getClassLoader().getResource(CodStatView.CSZ_FXMLNAME);
+    Parent radice;
+    cntrCodStatView = null;
+    FXMLLoader fxmlLoad = new FXMLLoader(url);
+    try {
+      // radice = FXMLLoader.load(url);
+      radice = fxmlLoad.load();
+      cntrCodStatView = fxmlLoad.getController();
+    } catch (IOException e) {
+      s_log.error("Errore caricamento FXML {}", CodStatView.CSZ_FXMLNAME, e);
+      return;
+    }
+
+    Stage stageResults = new Stage();
+    Scene scene = new Scene(radice, 600, 440);
+    stageResults.setScene(scene);
+    stageResults.setWidth(800);
+    stageResults.setHeight(600);
+    stageResults.initOwner(primaryStage);
+    stageResults.initModality(Modality.NONE);
+    stageResults.setTitle("Visualizzazione Codici Statistici");
+    if (cntrCodStatView != null) {
+      cntrCodStatView.setMyScene(scene);
+      cntrCodStatView.initApp(props);
+    }
+    stageResults.show();
+  }
+
+  @FXML
   void mnuMostraViewContantiClick(ActionEvent event) {
     LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
     Stage primaryStage = mainApp.getPrimaryStage();
@@ -698,18 +758,23 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       showFileDoc();
     });
 
-    MenuItem mi3 = new MenuItem("Mostra Sovrapposizioni");
+    MenuItem mi3 = new MenuItem("Vai sul dir.");
     mi3.setOnAction((ActionEvent ev) -> {
+      vaiAlDir();
+    });
+
+    MenuItem mi4 = new MenuItem("Mostra Sovrapposizioni");
+    mi4.setOnAction((ActionEvent ev) -> {
       mnuSovrapposizioniClick(ev);
     });
 
-    MenuItem mi4 = new MenuItem("Elimina Registrazioni");
-    mi4.setOnAction((ActionEvent ev) -> {
+    MenuItem mi5 = new MenuItem("Elimina Registrazioni");
+    mi5.setOnAction((ActionEvent ev) -> {
       eliminaRegistrazioni();
     });
 
     ContextMenu menu = new ContextMenu();
-    menu.getItems().addAll(mi1, mi2, mi3, new SeparatorMenuItem(), mi4);
+    menu.getItems().addAll(mi1, mi2, mi3, mi4, new SeparatorMenuItem(), mi5);
     // liBanca.setContextMenu(menu);
     tblvFiles.setContextMenu(menu);
     tblvFiles.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -779,6 +844,19 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     }
   }
 
+  private void vaiAlDir() {
+    ImpFile imf = tblvFiles.getSelectionModel().getSelectedItem();
+    Path pth = cntrlr.getLastDir();
+    String pth2 = imf.getRelDir();
+    Path padre = Paths.get(pth.toString(), pth2);
+    // System.out.printf("LoadBancaController.vaiAlDir(%s)\n", padre.toString());
+    try {
+      Desktop.getDesktop().open(padre.toFile());
+    } catch (IOException e) {
+      s_log.error("Errore apertura Explorer: {}", e.getMessage());
+    }
+  }
+
   @FXML
   void mnuSovrapposizioniClick(ActionEvent event) {
     ImpFile imf = tblvFiles.getSelectionModel().getSelectedItem();
@@ -817,7 +895,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     stageViewsovrapp.setWidth(800);
     stageViewsovrapp.setHeight(600);
     stageViewsovrapp.initOwner(primaryStage);
-    stageViewsovrapp.initModality(Modality.APPLICATION_MODAL);
+    stageViewsovrapp.initModality(Modality.NONE);
     stageViewsovrapp.setTitle("Visualizzazione delle sovrapposizioni dei files CSV");
     stageViewsovrapp.setX(20.);
     stageViewsovrapp.setY(20.);
@@ -889,6 +967,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   public void closeApp(AppProperties p_props) {
     p_props.setProperty(CSZ_LOG_LEVEL, levelMin.toString());
     double[] pos = spltPane.getDividerPositions();
+    //    for (double dbl : pos)
+    //      System.out.printf("LoadBancaController.closeApp(divp=%.4f)\n", dbl);
     String szPos = String.format("%.4f", pos[0]).replace(",", ".");
     p_props.setProperty(CSZ_SPLITPOS, szPos);
     double vv = colTime.getWidth();

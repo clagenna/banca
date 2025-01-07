@@ -105,8 +105,8 @@ public class CsvFileContainer {
     String szGlobMatch = creaGlobMatch(fltrFiles);
     // String szGlobMatch = "glob:*:/**/{estra*,wise*}*.csv";
     PathMatcher matcher = FileSystems.getDefault().getPathMatcher(szGlobMatch);
-    Path lastDir = cntrl.getLastDir();
-    try (Stream<Path> walk = Files.walk(lastDir)) {
+    final Path  lastDir = cntrl.getLastDir();
+    try (Stream<Path> walk = Files.walk(lastDir.toAbsolutePath())) {
       elenco = walk.filter(p -> !Files.isDirectory(p)) //
           // not a directory
           // .map(p -> p.toString().toLowerCase()) // convert path to string
@@ -292,6 +292,7 @@ public class CsvFileContainer {
   }
 
   private ImpFile convert(Path p_lastd, Path p_pth) {
+    // System.out.printf("CsvFileContainer.convert(%s + %s)\n",p_lastd.toString(), p_pth.toString() );
     ImpFile imf = new ImpFile().assignPath(p_lastd, p_pth);
     return imf;
   }

@@ -1,5 +1,6 @@
 package sm.clagenna.banca.dati;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -109,12 +110,25 @@ public class ImpFile implements Cloneable {
 
   public ImpFile assignPath(Path rad, Path pth) {
     fileName = pth.getFileName().toString();
-    int n1 = rad.toString().length() + 1;
-    int n2 = pth.toString().indexOf(fileName.toString());
-    if (n2 - n1 <= 0)
-      relDir = ".";
-    else
-      relDir = pth.toString().substring(n1, n2 - 1);
+
+    //    int n1 = rad.toString().length() + 1;
+    //    int n2 = pth.toString().indexOf(fileName.toString());
+    //    if (n2 - n1 <= 0)
+    //      relDir = ".";
+    //    else
+    //      relDir = pth.toString().substring(n1, n2 - 1);
+
+    String ss = File.separator;
+    String szRelRadice = String.format("%s%s%s", ss, rad.getFileName().toString(), ss);
+    String szFullFile = pth.toAbsolutePath().toString();
+    int n1 = szFullFile.indexOf(szRelRadice);
+    int n2 = n1 + szRelRadice.length();
+    int n3 = szFullFile.length() - fileName.length() - 1;
+
+    relDir = ".";
+    if (n2 < n3)
+      relDir = szFullFile.substring(n2, n3);
+
     cardHold = null;
     Matcher mat = s_cardHold.matcher(fileName);
     if (mat.find())

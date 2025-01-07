@@ -46,6 +46,7 @@
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="D" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#mnuConfMostraCodStatClick" text="Codici Statistici" />
                   <MenuItem mnemonicParsing="false" onAction="#mnuMostraViewContantiClick" text="Gestione Contanti">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />

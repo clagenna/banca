@@ -39,10 +39,10 @@ public class CsvImportBanca extends Task<String> implements Closeable {
 
   public static final String COL_DTMOV = "dtmov";
   public static final String COL_DTVAL = "dtval";
-  public static final String COL_DARE = "dare";
+  public static final String COL_DARE  = "dare";
   public static final String COL_AVERE = "avere";
   public static final String COL_DESCR = "descr";
-  public static final String COL_CAUS = "caus";
+  public static final String COL_CAUS  = "caus";
 
   private static final Logger s_log = LogManager.getLogger(CsvImportBanca.class);
 
@@ -55,13 +55,16 @@ public class CsvImportBanca extends Task<String> implements Closeable {
   public static final String EVT_SAVEDBROW = "savedbrow";
   public static final String EVT_ENDSAVEDB = "endsavedb";
 
-  public static final String BANCA_BKN301   = "carispcredit";
-  public static final String BANCA_BSI      = "bsi";
-  public static final String BANCA_CARISP   = "carisp";
-  public static final String BANCA_CONTANTI = "contanti";
-  public static final String BANCA_PAYPAL   = "paypal";
-  public static final String BANCA_SMAC     = "smac";
-  public static final String BANCA_WISE     = "wise";
+  public static final String BANCA_BSI           = "bsi";
+  public static final String BANCA_BSICREDIT     = "bsicredit";
+  public static final String BANCA_BSICREDIT_UND = "bsi_credit";
+  public static final String BANCA_CARISP        = "carisp";
+  public static final String BANCA_CARCREDIT     = "carispcredit";
+  public static final String BANCA_CARCREDIT_UND = "carisp_credit";
+  public static final String BANCA_CONTANTI      = "contanti";
+  public static final String BANCA_PAYPAL        = "paypal";
+  public static final String BANCA_SMAC          = "smac";
+  public static final String BANCA_WISE          = "wise";
 
   private Path    csvFile;
   @Getter @Setter
@@ -294,21 +297,25 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     }
 
     String sz = mat.group(1).toLowerCase();
-    if (sz.contains(BANCA_BSI))
+    if (sz.contains(BANCA_BSICREDIT) || sz.contains(BANCA_BSICREDIT_UND))
+      sqlTableName = BANCA_BSICREDIT;
+    else if (sz.contains(BANCA_BSI))
       sqlTableName = BANCA_BSI;
-    if (sz.contains("cari"))
+    else if (sz.contains(BANCA_CARCREDIT) || sz.contains(BANCA_CARCREDIT_UND))
+      sqlTableName = BANCA_CARCREDIT;
+    else if (sz.contains("tpay") || sz.contains("bkn3"))
+      sqlTableName = BANCA_CARCREDIT;
+    else if (sz.contains("cari"))
       sqlTableName = BANCA_CARISP;
-    if (sz.contains("contant"))
+    else if (sz.contains("contant"))
       sqlTableName = BANCA_CONTANTI;
     //    if (sz.contains("cred"))
     //      sqlTableName += "Credit";
-    if (sz.contains("tpay") || sz.contains("bkn3"))
-      sqlTableName = BANCA_BKN301;
-    if (sz.contains(BANCA_PAYPAL))
+    else if (sz.contains(BANCA_PAYPAL))
       sqlTableName = BANCA_PAYPAL;
-    if (sz.contains(BANCA_WISE))
+    else if (sz.contains(BANCA_WISE))
       sqlTableName = BANCA_WISE;
-    if (sz.contains(BANCA_SMAC))
+    else if (sz.contains(BANCA_SMAC))
       sqlTableName = BANCA_SMAC;
 
     if (null == sqlTableName)

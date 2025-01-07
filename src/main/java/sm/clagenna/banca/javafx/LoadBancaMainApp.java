@@ -56,6 +56,7 @@ public class LoadBancaMainApp extends Application implements IStartApp {
 
   private List<ResultView> m_liResViews;
   private ViewContanti     m_viewContanti;
+  private CodStatView      m_viewCodStat;
 
   public LoadBancaMainApp() {
     //
@@ -321,6 +322,18 @@ public class LoadBancaMainApp extends Application implements IStartApp {
       return;
     if (m_liResViews.contains(resultView))
       m_liResViews.remove(resultView);
+  }
+
+  public void addCodeStatView(CodStatView codStatView) {
+    m_viewCodStat = codStatView;
+  }
+
+  public void removeCodStatView(CodStatView codStatView) {
+    m_viewCodStat = null;
+  }
+
+  public boolean isCodeStatViewOpened() {
+    return null != m_viewCodStat;
   }
 
 }

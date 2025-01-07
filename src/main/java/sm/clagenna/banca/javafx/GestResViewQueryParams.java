@@ -2,6 +2,7 @@ package sm.clagenna.banca.javafx;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Map;
@@ -107,13 +108,12 @@ public class GestResViewQueryParams implements IStartApp {
     try {
       if (regexp) {
         bRet = Utils.isValue(descr);
-        if (bRet) {
-          /* Pattern patt = */ Pattern.compile(descr);
-        } else { 
+        if ( !bRet) {
           errorMesg = "Espressione regolare ma nessun valore nel campo \"Parola descr\"";
           return bRet;
         }
-        
+        /* Pattern patt = */ Pattern.compile(descr);
+
       }
     } catch (Exception e) {
       errorMesg = String.format("Errore nell'espressione regolare \"%s\", err=%s", descr, e.getMessage());
@@ -188,7 +188,7 @@ public class GestResViewQueryParams implements IStartApp {
     resview.setFltrParolaRegEx(bRegEx);
     resview.cbTipoBanca.getSelectionModel().select(arr[col_tipo]);
     resview.cbQuery.getSelectionModel().select(arr[col_query]);
-    Integer iAnnoComp= Utils.isValue(arr[col_annoComp]) ? Integer.valueOf(arr[col_annoComp]) : null;
+    Integer iAnnoComp = Utils.isValue(arr[col_annoComp]) ? Integer.valueOf(arr[col_annoComp]) : null;
     resview.cbAnnoComp.getSelectionModel().select(iAnnoComp);
     resview.cbMeseComp.getSelectionModel().select(arr[col_meseComp]);
     resview.txParola.setText(arr[col_parola]);
@@ -235,7 +235,10 @@ public class GestResViewQueryParams implements IStartApp {
       props = new AppProperties();
       String curr = this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
       curr = curr.substring(1).replace("/target/classes/", "");
-      fileProps = Paths.get(curr, PROP_FILE).toFile();
+      Path pthCurr = Paths.get(curr);
+      if (curr.toLowerCase().endsWith(".jar"))
+        pthCurr = pthCurr.getParent();
+      fileProps = Paths.get(pthCurr.toAbsolutePath().toString(), PROP_FILE).toFile();
       props.leggiPropertyFile(fileProps, false, false);
     } catch (AppPropsException | URISyntaxException e) {
       s_log.error("Errore apertura file properties dei filtri:{}", PROP_FILE);

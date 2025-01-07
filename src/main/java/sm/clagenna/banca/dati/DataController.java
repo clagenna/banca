@@ -16,11 +16,11 @@ import org.apache.logging.log4j.Logger;
 import javafx.collections.ObservableList;
 import lombok.Getter;
 import lombok.Setter;
-
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.sql.DBConn;
+import sm.clagenna.stdcla.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class DataController implements IStartApp {
@@ -29,10 +29,10 @@ public class DataController implements IStartApp {
   private static final String CSZ_FLAG_FILTRI  = "FLAG_FILTRI";
   private static final String CSZ_QTA_THREADS  = "QTA_THREADS";
   public static final String  CSZ_FILTER_FILES = "filter_files";
+  public static final String  FILE_CODSTAT     = "CodStat.properties";
 
   private static DataController s_inst;
 
-  @Getter
   private Path                 lastDir;
   @Getter @Setter
   private ObservableList<Path> selPaths;
@@ -47,6 +47,8 @@ public class DataController implements IStartApp {
   @Getter
   private CsvFileContainer     contCsv;
   private AppProperties        props;
+  @Getter
+  private AppProperties        codstats;
   private List<String>         scartaVoci;
 
   public DataController() {
@@ -76,6 +78,10 @@ public class DataController implements IStartApp {
 
   public static DataController getInst() {
     return s_inst;
+  }
+
+  public Path getLastDir() {
+    return lastDir;
   }
 
   public void mettiFiltro(ESqlFiltri pf, boolean bset) {
@@ -148,6 +154,14 @@ public class DataController implements IStartApp {
     }
     associd = new CardidAssoc();
     associd.load(p_props);
+    try {
+      codstats = new AppProperties();
+      codstats.leggiPropertyFile(FILE_CODSTAT,true,false);
+    } catch (AppPropsException e) {
+      e.printStackTrace();
+      return;
+    }
+    
   }
 
   @Override
@@ -182,5 +196,5 @@ public class DataController implements IStartApp {
     String sz = descr.trim().toLowerCase();
     return scartaVoci.contains(sz);
   }
-  
+
 }

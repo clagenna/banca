@@ -245,6 +245,8 @@ public class SovrapposView implements Initializable, IStartApp {
     p_props.setProperty(CSZ_PROP_POSRESVIEW_Y, (int) py);
     p_props.setProperty(CSZ_PROP_DIMRESVIEW_X, (int) dx);
     p_props.setProperty(CSZ_PROP_DIMRESVIEW_Y, (int) dy);
+    
+    
   }
 
   public int setImpFileStart(ImpFile imf) {

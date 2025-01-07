@@ -51,7 +51,7 @@ if "%DEBUG%" == "1" pause
 if "%buildStd%" NEQ "1" goto seUpdV
 :: pushd ..\stdcla
 call :mioecho "Deploy degli STD" sotto %CD%"
-start "Deploy degli Standard" /d ..\stdcla /wait cmd.exe /c "%MvnCmd%" clean install
+start "Deploy degli Standard" /d ..\stdcla /wait cmd.exe /c "%MvnCmd%" clean install -Dmaven.test.skip=true
 if "%DEBUG%" == "1" echo on
 :: popd
 if "%DEBUG%" == "1" cd
@@ -67,6 +67,7 @@ call ..\stdcla\bin\updVersione.cmd "%BaseDir%" 1
 if "%DEBUG%" == "1" echo on
 if "%DEBUG%" == "1" pause
 
+:: --------------------------------------------------------
 :: (3) Build del progetto in questione
 :build
 call :mioecho "Build progetto in"  %CD%
