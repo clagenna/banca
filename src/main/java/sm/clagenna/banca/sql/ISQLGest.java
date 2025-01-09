@@ -17,9 +17,17 @@ public interface ISQLGest {
 
   void write(RigaBanca ri);
 
+  void beginTrans();
+
+  void commitTrans();
+
+  void rollBackTrans();
+
   boolean existMovimento(String p_tab, RigaBanca rig);
 
   boolean updateMovimento(String p_tab, RigaBanca rig);
+  
+  boolean updateCodStat(RigaBanca rig);
 
   int deleteMovimento(String p_tab, RigaBanca rig);
 

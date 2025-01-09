@@ -33,7 +33,7 @@ public class CodStatTreeItem {
 
   public TreeItem<CodStat> getTree(CodStat p_cds) {
     trit = new TreeItem<CodStat>(p_cds);
-    trit.setExpanded(p_cds.getLivello() <= 0);
+    trit.setExpanded(p_cds.getLivello() <= 0 || p_cds.isMatched());
     addTreeItems(trit, p_cds);
     return trit;
   }

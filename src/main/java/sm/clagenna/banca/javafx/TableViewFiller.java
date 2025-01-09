@@ -77,7 +77,6 @@ public class TableViewFiller extends Task<String> {
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-
   }
 
   public Dataset getDataset() {

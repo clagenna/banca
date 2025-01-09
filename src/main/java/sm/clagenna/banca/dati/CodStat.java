@@ -65,6 +65,10 @@ public class CodStat implements Comparable<CodStat> {
   }
 
   private void calcKey() {
+    if ( cod1 == 0) {
+      codice="Codici stat.";
+      return;
+    }
     StringBuilder sb = new StringBuilder();
     sb.append(String.format("%02d", cod1));
     if (cod2 > 0) {

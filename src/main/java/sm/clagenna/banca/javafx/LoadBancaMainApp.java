@@ -68,6 +68,8 @@ public class LoadBancaMainApp extends Application implements IStartApp {
 
   @Override
   public void start(Stage p_primaryStage) throws Exception {
+    s_log.info("Java Version:{}", System.getProperty("java.runtime.version"));
+    s_log.info("JavaFX Version:{}", System.getProperty("javafx.runtime.version"));
     setPrimaryStage(p_primaryStage);
     LoadBancaMainApp.inst = this;
     initApp(null);
@@ -315,17 +317,24 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     if (m_liResViews == null)
       m_liResViews = new ArrayList<>();
     m_liResViews.add(resultView);
+    if (null != m_viewCodStat)
+      m_viewCodStat.addPropertyChangeListener(resultView);
   }
 
   public void removeResView(ResultView resultView) {
     if (m_liResViews == null || m_liResViews.size() == 0)
       return;
+    if (null != m_viewCodStat)
+      m_viewCodStat.removePropertyChangeListener(resultView);
     if (m_liResViews.contains(resultView))
       m_liResViews.remove(resultView);
   }
 
   public void addCodeStatView(CodStatView codStatView) {
     m_viewCodStat = codStatView;
+    if (null != m_liResViews) {
+      m_liResViews.stream().forEach(s -> m_viewCodStat.addPropertyChangeListener(s));
+    }
   }
 
   public void removeCodStatView(CodStatView codStatView) {
@@ -335,5 +344,4 @@ public class LoadBancaMainApp extends Application implements IStartApp {
   public boolean isCodeStatViewOpened() {
     return null != m_viewCodStat;
   }
-
 }

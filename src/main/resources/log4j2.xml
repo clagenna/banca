@@ -14,9 +14,8 @@
 
 		<RollingFile name="rollingFile"
 			fileName="log/rollbanca.log"
-			filePattern="log/banca.%d{yyyy-MM-dd}.log" ignoreExceptions="false">
-			<PatternLayout
-				pattern="%-32c{3}  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
+			filePattern="log/rollbanca.%d{yyyy-MM-dd}.log" ignoreExceptions="false">
+			<PatternLayout pattern="%-32c{3}  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
 			<Policies>
 				<TimeBasedTriggeringPolicy interval="1" />
 			</Policies>

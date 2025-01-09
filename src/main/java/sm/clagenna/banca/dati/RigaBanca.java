@@ -1,9 +1,11 @@
 package sm.clagenna.banca.dati;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
@@ -11,11 +13,17 @@ public class RigaBanca {
   @Getter @Setter
   private Integer       rigaid;
   @Getter @Setter
+  private String        tiporec;
+  @Getter @Setter
   private Integer       idfile;
-  @Getter @Setter
+  @Getter
   private LocalDateTime dtmov;
-  @Getter @Setter
+  @Getter
   private LocalDateTime dtval;
+  @Getter
+  private String        movstr;
+  @Getter @Setter
+  private String        valstr;
   @Getter @Setter
   private Double        dare;
   @Getter
@@ -24,8 +32,14 @@ public class RigaBanca {
   private String        descr;
   @Getter @Setter
   private String        caus;
+  @Getter @Setter
+  private String        descrcaus;
+  @Getter @Setter
+  private Integer       costo;
   @Getter
   private String        cardid;
+  @Getter @Setter
+  private String        codstat;
   @Getter
   private String        localCardIdent;
 
@@ -34,7 +48,7 @@ public class RigaBanca {
   }
 
   public RigaBanca(LocalDateTime p_dtmov, LocalDateTime p_dtval, double p_dare, double p_avere, String p_descr, String p_caus,
-      String p_cardid) {
+      String p_cardid, String p_codstat) {
     dtmov = p_dtmov;
     dtval = p_dtval;
     dare = p_dare;
@@ -43,6 +57,7 @@ public class RigaBanca {
     caus = p_caus;
     if (Utils.isValue(p_cardid))
       setCardid(p_cardid);
+    codstat = p_codstat;
   }
 
   @Override
@@ -50,6 +65,18 @@ public class RigaBanca {
     String sz1 = null == dtmov ? "*null*" : ParseData.formatDate(dtmov);
     String sz2 = null == dtval ? "*null*" : ParseData.formatDate(dtval);
     return sz1 + "\t" + sz2 + "\t" + dare + "\t" + avere + "\t" + descr + "\t" + caus + "\t" + cardid + "\\n";
+  }
+
+  public void setDtmov(LocalDateTime dt) {
+    dtmov = dt;
+    if (null != dt)
+      movstr = ParseData.s_fmtPY4M.format(dt);
+  }
+
+  public void setDtval(LocalDateTime dt) {
+    dtval = dt;
+    if (null != dt)
+      valstr = ParseData.s_fmtPY4M.format(dt);
   }
 
   public void setAvere(double vv) {
@@ -71,6 +98,7 @@ public class RigaBanca {
 
   public void azzera() {
     rigaid = null;
+    idfile = null;
     dtmov = null;
     dtval = null;
     dare = 0.;
@@ -78,6 +106,7 @@ public class RigaBanca {
     descr = null;
     caus = null;
     cardid = null;
+    codstat = null;
   }
 
   public boolean isValido() {
@@ -105,5 +134,68 @@ public class RigaBanca {
   public void suply(int i) {
     LocalDateTime ldt = dtmov.plusSeconds(i);
     dtmov = ldt;
+  }
+
+  public static RigaBanca parse(List<Object> elem) {
+    if (null == elem)
+      return null;
+    int k = 0;
+    RigaBanca rb = new RigaBanca();
+    for (Object col : elem) {
+      EColsTableView nome = EColsTableView.colName(k++);
+      if ( !Utils.isValue(col))
+        continue;
+      switch (nome) {
+        case id:
+          rb.setRigaid(Integer.decode(col.toString()));
+          break;
+        case tipo:
+          rb.setTiporec(col.toString());
+          break;
+        case idfile:
+          rb.setIdfile(Integer.decode(col.toString()));
+          break;
+        case dtmov:
+          rb.setDtmov(ParseData.parseData(col.toString()));
+          break;
+        case dtval:
+          rb.setDtval(ParseData.parseData(col.toString()));
+          break;
+        case movstr:
+          // settato da setDtmov()
+          break;
+        case valstr:
+          // settato da setDtval()
+          break;
+        case dare:
+          rb.setDare(Utils.parseDouble(col.toString()));
+          break;
+        case avere:
+          rb.setAvere(Utils.parseDouble(col.toString()));
+          break;
+        case cardid:
+          rb.setCardid(col.toString());
+          break;
+        case descr:
+          rb.setDescr(col.toString());
+          break;
+        case abicaus:
+          rb.setCaus(col.toString());
+          break;
+        case descrcaus:
+          rb.setDescrcaus(col.toString());
+          break;
+        case costo:
+          rb.setCosto(Integer.decode(col.toString()));
+          break;
+        case codstat:
+          rb.setCodstat(col.toString());
+          break;
+        default:
+          break;
+
+      }
+    }
+    return rb;
   }
 }

@@ -1,6 +1,8 @@
 package sm.clagenna.banca.javafx;
 
 import java.awt.Desktop;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -47,6 +49,7 @@ import lombok.Setter;
 import sm.clagenna.banca.dati.CsvFileContainer;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.ImpFile;
+import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
@@ -57,7 +60,7 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class ResultView implements Initializable, IStartApp {
+public class ResultView implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(ResultView.class);
 
   public static final String  CSZ_FXMLNAME          = "ResultView.fxml";
@@ -88,6 +91,10 @@ public class ResultView implements Initializable, IStartApp {
   @FXML
   private Button              btExportCsv;
   @FXML
+  private Button              btMostraCodStat;
+  @FXML
+  private Button              btAssignCodStat;
+  @FXML
   protected CheckBox          ckRegExp;
   @FXML
   private CheckBox            ckScartaImp;
@@ -116,6 +123,7 @@ public class ResultView implements Initializable, IStartApp {
   @Getter @Setter
   private boolean                fltrParolaRegEx;
   private String                 m_qry;
+  @Getter @Setter
   private GestResViewQueryParams m_gestQry;
 
   private TableViewFiller m_tbvf;
@@ -123,6 +131,7 @@ public class ResultView implements Initializable, IStartApp {
   private String          m_fltrTipoBanca;
   @Getter @Setter
   private boolean         csvBlankOnZero;
+  private String          m_codStatSel;
 
   public ResultView() {
     //
@@ -262,7 +271,7 @@ public class ResultView implements Initializable, IStartApp {
   @Override
   public void closeApp(AppProperties p_props) {
     m_appmain.removeResView(this);
-    if ( null != m_gestQry)
+    if (null != m_gestQry)
       m_gestQry.closeApp(p_props);
     if (myScene == null) {
       s_log.error("Il campo Scene risulta = **null**");
@@ -343,6 +352,7 @@ public class ResultView implements Initializable, IStartApp {
     boolean bv = Utils.isValue(m_qry);
     btCerca.setDisable( !bv);
     btExportCsv.setDisable( !bv);
+    btAssignCodStat.setDisable( !Utils.isValue(m_codStatSel));
     if (bv) {
       ObservableList<List<Object>> li = tblview.getItems();
       bv = li != null && li.size() > 2;
@@ -352,7 +362,7 @@ public class ResultView implements Initializable, IStartApp {
 
   @FXML
   void btCercaClick(ActionEvent event) {
-    System.out.println("ResultView.btCercaClick()");
+    // System.out.println("ResultView.btCercaClick()");
     String szQryFltr = creaQuery();
     // test validita query
     DBConn dbc = m_db.getDbconn();
@@ -365,10 +375,10 @@ public class ResultView implements Initializable, IStartApp {
   @FXML
   void btSaveQueryClick(ActionEvent event) {
     String szNam = cbSaveQuery.getSelectionModel().getSelectedItem();
-    if ( ! m_gestQry.saveQuery(szNam) )
+    if ( !m_gestQry.saveQuery(szNam))
       m_appmain.msgBox(m_gestQry.getErrorMesg(), AlertType.ERROR);
     else
-    m_gestQry.caricaCombo(cbSaveQuery);
+      m_gestQry.caricaCombo(cbSaveQuery);
   }
 
   @FXML
@@ -381,7 +391,47 @@ public class ResultView implements Initializable, IStartApp {
   void ckRegExpClick(ActionEvent event) {
     setFltrParolaRegEx(ckRegExp.isSelected());
   }
-  
+
+  @FXML
+  void btMostraCodStatClick(ActionEvent event) {
+    System.out.println("ResultView.btMostraCodStatClick()");
+    LoadBancaController cntr = (LoadBancaController) m_appmain.getController();
+    cntr.mnuConfMostraCodStatClick(event);
+  }
+
+  @FXML
+  void btAssignCodStatClick(ActionEvent event) {
+    if ( !Utils.isValue(m_codStatSel))
+      return;
+    ObservableList<List<Object>> li = tblview.getSelectionModel().getSelectedItems();
+    if (null == li || li.size() == 0) {
+      s_log.warn("Nessun record selezionato per l'assegnamento di {}", m_codStatSel);
+      return;
+    }
+    Platform.runLater(() -> {
+      lstage.getScene().setCursor(Cursor.WAIT);
+      btAssignCodStat.setDisable(true);
+    });
+    // System.out.printf("ResultView.btAssignCodStatClick(sel=%d)\n", li.size());
+    try {
+      m_db.beginTrans();
+      for (List<Object> elem : li) {
+        RigaBanca riga = RigaBanca.parse(elem);
+        riga.setCodstat(m_codStatSel);
+        m_db.updateCodStat(riga);
+        elem.set(EColsTableView.codstat.getColNo(), m_codStatSel);
+      }
+    } finally {
+      m_db.commitTrans();
+    }
+    s_log.info("Aggegnato cod. stat. {} a {} records", m_codStatSel, li.size());
+    btCercaClick(null);
+    Platform.runLater(() -> {
+      lstage.getScene().setCursor(Cursor.DEFAULT);
+      btAssignCodStat.setDisable(false);
+    });
+  }
+
   private String creaQuery() {
     String szQryFltr = null;
     if (m_qry == null) {
@@ -420,7 +470,7 @@ public class ResultView implements Initializable, IStartApp {
   private void creaTableResultThread(String szQryFltr) {
     TableViewFiller.setNullRetValue("");
     m_tbvf = new TableViewFiller(tblview);
-    if ( fltrParolaRegEx) {
+    if (fltrParolaRegEx) {
       m_tbvf.setFltrParolaRegEx(fltrParolaRegEx);
       m_tbvf.setFltrParola(m_fltrParola);
     }
@@ -481,6 +531,18 @@ public class ResultView implements Initializable, IStartApp {
       }
     });
     tblview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+  }
+
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    // System.out.printf("ResultView.propertyChange(\"%s=%s\")\n", evt.getPropertyName(), evt.getNewValue().toString());
+    if (evt.getPropertyName().equals(CodStatView.EVT_CODSTAT)) {
+      m_codStatSel = evt.getNewValue().toString();
+      Platform.runLater(() -> {
+        btAssignCodStat.setText(m_codStatSel);
+        abilitaBottoni();
+      });
+    }
   }
 
   protected void tableRow_dblclick(TableRow<List<Object>> row) {

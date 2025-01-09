@@ -1,11 +1,14 @@
 package sm.clagenna.banca.javafx;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.net.URL;
 import java.util.ResourceBundle;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -26,11 +29,13 @@ import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.utils.AppProperties;
+import sm.clagenna.stdcla.utils.Utils;
 
 public class CodStatView implements Initializable, IStartApp {
   private static final Logger s_log = LogManager.getLogger(CodStatView.class);
 
   public static final String  CSZ_FXMLNAME        = "CodStatView.fxml";
+  public static final String  EVT_CODSTAT         = "codstat";
   private static final String CSZ_PROP_POScdstt_X = "cdstt.x";
   private static final String CSZ_PROP_POScdstt_Y = "cdstt.y";
   private static final String CSZ_PROP_DIMcdstt_X = "cdstt.lx";
@@ -50,17 +55,21 @@ public class CodStatView implements Initializable, IStartApp {
   private TreeTableColumn<CodStat, String> colDescr;
 
   @Getter @Setter
-  private Scene            myScene;
-  private Stage            lstage;
-  private LoadBancaMainApp m_appmain;
-  private ISQLGest         m_db;
+  private Scene                 myScene;
+  private Stage                 lstage;
+  private LoadBancaMainApp      m_appmain;
+  private ISQLGest              m_db;
+  private PropertyChangeSupport m_prcsupp;
   @Getter
-  private AppProperties    mainProps;
+  private AppProperties         mainProps;
   @Getter @Setter
-  private String           styMatchDescr;
+  private String                styMatchDescr;
+  @Getter
+  private String                codStat;
 
   public CodStatView() {
     styMatchDescr = "gold";
+    m_prcsupp = new PropertyChangeSupport(this);
   }
 
   @Override
@@ -99,16 +108,30 @@ public class CodStatView implements Initializable, IStartApp {
     treeview.setRowFactory(row -> new TreeTableRow<CodStat>() {
       @Override
       protected void updateItem(CodStat item, boolean empty) {
+        // super.updateItem(item, empty);
         if (null == item || empty) {
           setStyle("");
           super.updateItem(item, empty);
           return;
         }
-        if (item.isMatched())
-          setStyle("-fx-background-color:" + styMatchDescr + ";");
-        else
+        if (item.isMatched()) {
+          System.out.println(getClass().getSimpleName());
+          if ( !isSelected())
+            setStyle("-fx-background-color:" + styMatchDescr + ";");
+          //          TreeItem<CodStat> tri = getTreeItem().getParent();
+          //          while ( null != tri) {
+          //            tri.setExpanded(true);
+          //            tri = tri.getParent();
+          //          }
+        } else
           setStyle("");
         super.updateItem(item, empty);
+      }
+    });
+    treeview.getSelectionModel().selectedItemProperty().addListener((obj, old, nv) -> {
+      if (null != nv && nv.getValue().getCod1() != 0) {
+        setCodStat(nv.getValue().getCodice());
+        // System.out.printf("CodStatView.impostaTreeView(\"%s\")\n", codStat);
       }
     });
 
@@ -147,9 +170,33 @@ public class CodStatView implements Initializable, IStartApp {
   }
 
   private Object txDescrSel(ObservableValue<? extends String> obj, String old, String nv) {
+    if ( !Utils.isValue(nv) || nv.length() <= 2)
+      return null;
+    System.out.printf("CodStatView.txDescrSel(\"%s\")\n", nv);
     searchTree(treeview.getRoot(), nv);
     treeview.refresh();
+    TreeItem<CodStat> ro = treeview.getRoot();
+    Platform.runLater(() -> expandMatched(ro));
     return null;
+  }
+
+  private Object expandMatched(TreeItem<CodStat> tri) {
+    CodStat cds = tri.getValue();
+    if (cds.isMatched())
+      retroExpand(tri.getParent());
+    for (TreeItem<CodStat> no : tri.getChildren())
+      expandMatched(no);
+    return null;
+  }
+
+  private void retroExpand(TreeItem<CodStat> tri) {
+    if (null == tri)
+      return;
+    if ( !tri.isLeaf()) {
+      tri.setExpanded(true);
+      // System.out.printf("CodStatView.retroExpand(%s)\n", tri.getValue().getCodice());
+    }
+    retroExpand(tri.getParent());
   }
 
   private void searchTree(TreeItem<CodStat> cdsi, String p_val) {
@@ -179,6 +226,8 @@ public class CodStatView implements Initializable, IStartApp {
 
   @Override
   public void closeApp(AppProperties p_props) {
+    for (PropertyChangeListener pl : m_prcsupp.getPropertyChangeListeners())
+      m_prcsupp.removePropertyChangeListener(pl);
     m_appmain.removeCodStatView(this);
     if (myScene == null) {
       s_log.error("Il campo Scene risulta = **null**");
@@ -200,6 +249,21 @@ public class CodStatView implements Initializable, IStartApp {
     vv = colDescr.getWidth();
     p_props.setProperty(CSZ_PROP_DIM_COL2, Integer.valueOf((int) vv));
 
+  }
+
+  public void addPropertyChangeListener(PropertyChangeListener pcl) {
+    m_prcsupp.addPropertyChangeListener(pcl);
+  }
+
+  public void removePropertyChangeListener(PropertyChangeListener pcl) {
+    m_prcsupp.removePropertyChangeListener(pcl);
+  }
+
+  public void setCodStat(String value) {
+    if (null == value || value.equals("00"))
+      return;
+    m_prcsupp.firePropertyChange(EVT_CODSTAT, codStat, value);
+    codStat = value;
   }
 
 }

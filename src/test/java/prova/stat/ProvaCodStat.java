@@ -1,5 +1,6 @@
 package prova.stat;
 
+import java.beans.PropertyChangeSupport;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -15,6 +16,9 @@ import sm.clagenna.stdcla.utils.AppProperties;
 public class ProvaCodStat {
   private static final String FILE_CODSTAT  = "dati/Ateco/AtecoProva.txt";
   private static final String FILE_CODSTAT2 = "AtecoValues.properties";
+  
+  @SuppressWarnings("unused")
+  private PropertyChangeSupport supp;
 
   CodStat radice;
 
@@ -25,6 +29,7 @@ public class ProvaCodStat {
   @Test
   public void doTheJob() throws AppPropsException {
     AppProperties codstats = new AppProperties();
+    supp = new PropertyChangeSupport(this);
     codstats.leggiPropertyFile(FILE_CODSTAT2, true, false);
 
     radice = new CodStat();

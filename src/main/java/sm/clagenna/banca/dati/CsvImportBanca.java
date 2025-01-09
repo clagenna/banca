@@ -37,12 +37,14 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class CsvImportBanca extends Task<String> implements Closeable {
 
-  public static final String COL_DTMOV = "dtmov";
-  public static final String COL_DTVAL = "dtval";
-  public static final String COL_DARE  = "dare";
-  public static final String COL_AVERE = "avere";
-  public static final String COL_DESCR = "descr";
-  public static final String COL_CAUS  = "caus";
+  public static final String COL_ID     = "id";
+  public static final String COL_IDFILE = "idfile";
+  public static final String COL_DTMOV  = "dtmov";
+  public static final String COL_DTVAL  = "dtval";
+  public static final String COL_DARE   = "dare";
+  public static final String COL_AVERE  = "avere";
+  public static final String COL_DESCR  = "descr";
+  public static final String COL_CAUS   = "caus";
 
   private static final Logger s_log = LogManager.getLogger(CsvImportBanca.class);
 
@@ -251,11 +253,21 @@ public class CsvImportBanca extends Task<String> implements Closeable {
           break;
       }
       dtc.setFiltriQuery(qryFiltrNow);
+      int nQtaTran = 0;
+      sqlg.beginTrans();
       for (RigaBanca ri : getRigheBanca()) {
         ri.setIdfile(impf.getId());
         sqlg.write(ri);
         firePropertyChange(EVT_SAVEDBROW, (double) nRow++);
+        if (nQtaTran++ > 100) {
+          sqlg.commitTrans();
+          sqlg.beginTrans();
+          nQtaTran = 0;
+        }
       }
+      sqlg.commitTrans();
+    } catch (Exception e) {
+      s_log.error("Error save DB : {}", e.getMessage());
     } finally {
       dtc.setFiltriQuery(qryFiltrBefore);
       firePropertyChange(EVT_ENDSAVEDB, dblQtaRows * 2.);
@@ -346,6 +358,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     String descr = null;
     String caus = null;
     String cardid = null;
+
     final String CAUS_POS = "43";
     final String CAUS_TRANSF = "Z7";
     final String CAUS_CASH = "18";
@@ -410,7 +423,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       descr = val.toString().replace("\"", "");
     }
 
-    RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid);
+    RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid, null);
     if (null != cardIdent)
       rigb.setCardid(cardIdent);
     righeBanca.add(rigb);
@@ -487,7 +500,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       return;
     }
 
-    RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid);
+    RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid, null);
     if (null != cardIdent)
       rigb.setCardid(cardIdent);
     righeBanca.add(rigb);
@@ -645,7 +658,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     val = getRowVal("caus", row);
     if (null != val)
       caus = val.toString();
-    RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid);
+    RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid, null);
     if (null != cardIdent)
       rigb.setCardid(cardIdent);
     righeBanca.add(rigb);

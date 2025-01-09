@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="1161.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.ResultView">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="1188.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.ResultView">
 	<children>
 		<HBox prefHeight="40.0" prefWidth="846.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<children>
@@ -96,6 +96,16 @@
                <tooltip>
                   <Tooltip text="Nel CSV di Export mette NULL al posto di 0.00 (Zero) cosi che nel foglio excel la cella risulta vuota" />
                </tooltip></CheckBox>
+            <Button fx:id="btMostraCodStat" layoutX="1055.0" layoutY="23.0" mnemonicParsing="false" onAction="#btMostraCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Mostra Cod.Stat" AnchorPane.rightAnchor="23.0" AnchorPane.topAnchor="23.0">
+               <tooltip>
+                  <Tooltip text="Mostra la finestra per la selezione dei codici statistici" />
+               </tooltip>
+            </Button>
+            <Button fx:id="btAssignCodStat" layoutX="1028.0" layoutY="50.0" mnemonicParsing="false" onAction="#btAssignCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Cod.Stat." AnchorPane.rightAnchor="23.0" AnchorPane.topAnchor="50.0">
+               <tooltip>
+                  <Tooltip text="Assegna il codice statistico evidenziato a tutte le righe selezionate " />
+               </tooltip>
+            </Button>
          </children>
       </AnchorPane>
 	  <TableView fx:id="tblview" layoutY="129.0" maxHeight="1.7976931348623157E308" prefHeight="375.0" prefWidth="962.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="129.0">

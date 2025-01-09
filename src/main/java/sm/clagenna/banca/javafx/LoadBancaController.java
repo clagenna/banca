@@ -535,7 +535,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   }
 
   @FXML
-  void mnuConfMostraCodStatClick(ActionEvent event) {
+  public void mnuConfMostraCodStatClick(ActionEvent event) {
     LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
     if ( mainApp.isCodeStatViewOpened()) {
       s_log.warn("La finestra dei codici statistici e' gia' aperta!");

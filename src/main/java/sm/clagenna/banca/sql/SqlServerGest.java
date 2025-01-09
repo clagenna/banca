@@ -24,8 +24,9 @@ public class SqlServerGest extends SqlGest {
           + "                 ,avere" //
           + "                 ,descr" //
           + "                 ,abicaus" //
-          + "                 ,cardid)" //
-          + "           VALUES (?,?,?,?,?,?,?,?)";
+          + "                 ,cardid" //
+          + "                 ,codstat)" //
+          + "           VALUES (?,?,?,?,?,?,?,?,?)";
 
   private static final String QRY_SEL_Mov = //
       "SELECT COUNT(*)" //
@@ -46,8 +47,14 @@ public class SqlServerGest extends SqlGest {
           + "     ,descr=?" //
           + "     ,abicaus=?" //
           + "     ,cardid=?" //
+          + "     ,codstat=?" //
           + "  WHERE 1=1";
-  
+
+  private static final String QRY_MOD_CodStat = //
+      "UPDATE movimenti%s" //
+          + "  SET codstat=?" //
+          + "  WHERE id=?";
+
   public SqlServerGest() {
     super();
   }
@@ -115,6 +122,11 @@ public class SqlServerGest extends SqlGest {
   @Override
   public String getQryMODMov() {
     return QRY_MOD_Mov;
+  }
+
+  @Override
+  public String getQryMODCodstat() {
+    return QRY_MOD_CodStat;
   }
 
 }

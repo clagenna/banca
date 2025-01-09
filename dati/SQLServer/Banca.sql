@@ -173,7 +173,8 @@ CREATE TABLE dbo.movimentiBSI(
 	avere money NULL,
 	descr nvarchar(512) NULL,
 	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL
+	cardid nvarchar(20) NULL,
+	codstat nvarchar(20) NULL
 ) 
 GO
 CREATE INDEX IXMovBSI ON dbo.movimentiBSI( dtmov, dtval )
@@ -192,7 +193,8 @@ CREATE TABLE dbo.movimentiBSICredit(
 	avere money NULL,
 	descr nvarchar(512) NULL,
 	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL
+	cardid nvarchar(20) NULL,
+	codstat nvarchar(20) NULL
 )
 GO
 CREATE INDEX IXMovBsiCredit ON dbo.movimentiBsiCredit( dtmov, dtval )
@@ -212,7 +214,8 @@ CREATE TABLE dbo.movimentiCarisp(
 	avere money NULL,
 	descr nvarchar(512) NULL,
 	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL
+	cardid nvarchar(20) NULL,
+	codstat nvarchar(20) NULL
 )
 GO
 CREATE INDEX IXMovCarisp ON dbo.movimentiCarisp( dtmov, dtval )
@@ -231,7 +234,8 @@ CREATE TABLE dbo.movimentiCarispCredit(
 	avere money NULL,
 	descr nvarchar(512) NULL,
 	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL
+	cardid nvarchar(20) NULL,
+	codstat nvarchar(20) NULL
 )
 GO
 CREATE INDEX IXMovCarispCredit ON dbo.movimentiCarispCredit( dtmov, dtval )
@@ -250,7 +254,8 @@ CREATE TABLE dbo.movimentiPaypal(
 	avere money NULL,
 	descr nvarchar(512) NULL,
 	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL
+	cardid nvarchar(20) NULL,
+	codstat nvarchar(20) NULL
 )
 GO
 CREATE INDEX IXMovPaypal ON dbo.movimentiPaypal( dtmov, dtval )
@@ -269,7 +274,8 @@ CREATE TABLE dbo.movimentiWise(
 	avere money NULL,
 	descr nvarchar(512) NULL,
 	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL
+	cardid nvarchar(20) NULL,
+	codstat nvarchar(20) NULL
 )
 GO
 CREATE INDEX IXMovWise ON dbo.movimentiWise( dtmov, dtval )
@@ -288,7 +294,8 @@ CREATE TABLE dbo.movimentiContanti(
 	avere money NULL,
 	descr nvarchar(512) NULL,
 	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL
+	cardid nvarchar(20) NULL,
+	codstat nvarchar(20) NULL
 )
 GO
 CREATE INDEX IXMovContanti ON dbo.movimentiContanti( dtmov, dtval )
@@ -307,7 +314,8 @@ CREATE TABLE dbo.movimentiSmac(
 	avere money NULL,
 	descr nvarchar(512) NULL,
 	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL
+	cardid nvarchar(20) NULL,
+	codstat nvarchar(20) NULL
 )
 GO
 CREATE INDEX IXMovSmac ON dbo.movimentiSmac( dtmov, dtval )
@@ -316,6 +324,7 @@ GO
 CREATE VIEW dbo.listaMovimentiBSI
 as 
 SELECT 'BSI' as tipo
+      ,id
       ,idfile
       ,dtmov
       ,dtval
@@ -328,6 +337,7 @@ SELECT 'BSI' as tipo
       ,mo.abicaus
       ,ca.descrcaus
       ,ca.costo
+      ,codstat
   FROM movimentiBSI mo
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
@@ -341,19 +351,21 @@ GO
 
 CREATE view dbo.listaMovimentiBSICredit
 as 
-SELECT 'BSICred' as tipo 
+SELECT 'BSICred' as tipo
+      ,id 
       ,idfile
       ,dtmov
       ,dtval
-	  , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
-	  , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
+      , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
+      , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
       ,dare
       ,avere
-	  ,cardid
+      ,cardid
       ,descr
       ,mo.abicaus
 	  ,ca.descrcaus
 	  ,ca.costo
+      ,codstat
   FROM movimentiBSICredit mo
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
@@ -367,7 +379,8 @@ GO
 
 CREATE view dbo.listaMovimentiPaypal
 as 
-SELECT 'Paypal' as tipo 
+SELECT 'Paypal' as tipo
+      ,id 
       ,idfile
       ,dtmov
       ,dtval
@@ -380,6 +393,7 @@ SELECT 'Paypal' as tipo
       ,mo.abicaus
 	  ,ca.descrcaus
 	  ,ca.costo
+      ,codstat
   FROM movimentiPaypal mo
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
@@ -392,7 +406,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE view dbo.listaMovimentiCarisp
 as 
-SELECT 'Carisp' as Tipo
+SELECT 'Carisp' as tipo
+      ,id
       ,idfile
       ,dtmov
       ,dtval
@@ -405,6 +420,7 @@ SELECT 'Carisp' as Tipo
       ,mo.abicaus
 	  ,ca.descrcaus
 	  ,ca.costo
+      ,codstat
   FROM movimentiCarisp mo
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
@@ -420,7 +436,8 @@ GO
 
 CREATE view dbo.listaMovimentiCarispCredit
 as 
-SELECT 'CarispCred' as tipo
+SELECT 'CarispCredit' as tipo
+      ,id
       ,idfile
       ,dtmov
       ,dtval
@@ -433,6 +450,7 @@ SELECT 'CarispCred' as tipo
       ,mo.abicaus
 	  ,ca.descrcaus
 	  ,ca.costo
+      ,codstat
   FROM movimentiCarispCredit mo
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
@@ -447,6 +465,7 @@ GO
 CREATE view dbo.listaMovimentiWise
 as 
 SELECT 'wise' as tipo
+      ,id
       ,idfile
       ,dtmov
       ,dtval
@@ -459,6 +478,7 @@ SELECT 'wise' as tipo
       ,mo.abicaus
 	  ,ca.descrcaus
 	  ,ca.costo
+      ,codstat
   FROM movimentiWise mo
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
@@ -476,6 +496,7 @@ GO
 CREATE view dbo.listaMovimentiContanti
 as 
 SELECT 'Cont' as tipo
+      ,id
       ,idfile
       ,dtmov
       ,dtval
@@ -488,6 +509,7 @@ SELECT 'Cont' as tipo
       ,mo.abicaus
 	  ,ca.descrcaus
 	  ,ca.costo
+      ,codstat
   FROM movimentiContanti mo
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
@@ -502,6 +524,7 @@ GO
 CREATE view dbo.listaMovimentiSmac
 as 
 SELECT 'Smac' as tipo
+      ,id
       ,idfile
       ,dtmov
       ,dtval
@@ -519,6 +542,7 @@ SELECT 'Smac' as tipo
       ,mo.abicaus
       ,ca.descrcaus
       ,ca.costo
+      ,codstat
   FROM movimentiSmac mo
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
@@ -533,7 +557,8 @@ GO
 
 CREATE     view dbo.ListaMovimentiUNION
 as
-SELECT tipo 
+SELECT id
+      ,tipo 
       ,idfile
       ,dtmov
       ,dtval
@@ -541,14 +566,16 @@ SELECT tipo
       ,valstr
       ,dare
       ,avere
-	  ,cardid
+      ,cardid
       ,descr
       ,abicaus
       ,descrcaus
       ,costo
+      ,codstat
   FROM dbo.listaMovimentiCarisp
 UNION
-SELECT tipo
+SELECT id
+      ,tipo
       ,idfile
       ,dtmov
       ,dtval
@@ -556,14 +583,16 @@ SELECT tipo
       ,valstr
       ,dare
       ,avere
-	  ,cardid
+      ,cardid
       ,descr
       ,abicaus
       ,descrcaus
       ,costo
+      ,codstat
   FROM dbo.listaMovimentiBSI
 UNION 
-SELECT tipo
+SELECT id
+      ,tipo
       ,idfile
       ,dtmov
       ,dtval
@@ -571,14 +600,16 @@ SELECT tipo
       ,valstr
       ,dare
       ,avere
-	  ,cardid
+      ,cardid
       ,descr
       ,abicaus
       ,descrcaus
       ,costo
+      ,codstat
   FROM dbo.listaMovimentiBSICredit
 UNION 
-SELECT tipo
+SELECT id
+      ,tipo
       ,idfile
       ,dtmov
       ,dtval
@@ -586,14 +617,16 @@ SELECT tipo
       ,valstr
       ,dare
       ,avere
-	  ,cardid
+      ,cardid
       ,descr
       ,abicaus
       ,descrcaus
       ,costo
+      ,codstat
   FROM dbo.listaMovimentiCarispCredit
 UNION 
-SELECT tipo
+SELECT id
+      ,tipo
       ,idfile
       ,dtmov
       ,dtval
@@ -601,14 +634,16 @@ SELECT tipo
       ,valstr
       ,dare
       ,avere
-	  ,cardid
+      ,cardid
       ,descr
       ,abicaus
       ,descrcaus
       ,costo
+      ,codstat
   FROM dbo.listaMovimentiWise
 UNION 
-SELECT tipo
+SELECT id
+      ,tipo
       ,idfile
       ,dtmov
       ,dtval
@@ -616,14 +651,16 @@ SELECT tipo
       ,valstr
       ,dare
       ,avere
-	  ,cardid
+      ,cardid
       ,descr
       ,abicaus
       ,descrcaus
       ,costo
+      ,codstat
   FROM dbo.listaMovimentiSmac
 UNION 
-SELECT tipo
+SELECT id
+      ,tipo
       ,idfile
       ,dtmov
       ,dtval
@@ -631,14 +668,16 @@ SELECT tipo
       ,valstr
       ,dare
       ,avere
-	  ,cardid
+      ,cardid
       ,descr
       ,abicaus
       ,descrcaus
       ,costo
+      ,codstat
   FROM dbo.listaMovimentiPaypal
 UNION 
-SELECT tipo
+SELECT id
+      ,tipo
       ,idfile
       ,dtmov
       ,dtval
@@ -646,11 +685,12 @@ SELECT tipo
       ,valstr
       ,dare
       ,avere
-	  ,cardid
+      ,cardid
       ,descr
       ,abicaus
       ,descrcaus
       ,costo
+      ,codstat
   FROM dbo.listaMovimentiContanti
 GO
 

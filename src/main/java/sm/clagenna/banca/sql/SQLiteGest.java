@@ -24,8 +24,9 @@ public class SQLiteGest extends SqlGest {
           + "                 ,avere" //
           + "                 ,descr" //
           + "                 ,abicaus" //
-          + "                 ,cardid)" //
-          + "           VALUES (?,?,?,?,?,?,?,?)";
+          + "                 ,cardid" //
+          + "                 ,codstat)" //
+          + "           VALUES (?,?,?,?,?,?,?,?,?)";
 
   private static final String QRY_SEL_Mov = //
       "SELECT COUNT(*)" //
@@ -46,7 +47,13 @@ public class SQLiteGest extends SqlGest {
           + "     ,descr=?" //
           + "     ,abicaus=?" //
           + "     ,cardid=?" //
+          + "     ,codstat=?" //
           + "  WHERE 1=1";
+
+  private static final String QRY_MOD_CodStat = //
+      "UPDATE movimenti%s" //
+          + "  SET codstat=?" //
+          + "  WHERE id=?";
 
   public SQLiteGest() {
     super();
@@ -116,5 +123,11 @@ public class SQLiteGest extends SqlGest {
   public String getQryMODMov() {
     return QRY_MOD_Mov;
   }
+
+  @Override
+  public String getQryMODCodstat() {
+    return QRY_MOD_CodStat;
+  }
+
 
 }

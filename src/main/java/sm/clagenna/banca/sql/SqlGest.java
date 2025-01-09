@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,9 +47,19 @@ public abstract class SqlGest implements ISQLGest {
 
   private HashMap<String, String> m_mapCausABI;
 
+  private Savepoint m_savePoint;
+
   static {
-    allTables = Arrays.asList(new String[] { "impFiles", "movimentiBSI", "movimentiBSICredit", "movimentiCarisp",
-        "movimentiCarispCredit", "movimentiPaypal", "movimentiWise", "movimentiContanti", "movimentiSmac" });
+    allTables = Arrays.asList(new String[] { //
+        "impFiles", //
+        "movimentiBSI", //
+        "movimentiBSICredit", //
+        "movimentiCarisp", //
+        "movimentiCarispCredit", //
+        "movimentiPaypal", //
+        "movimentiWise", //
+        "movimentiContanti", //
+        "movimentiSmac" });
   }
 
   public SqlGest() {
@@ -91,6 +102,8 @@ public abstract class SqlGest implements ISQLGest {
   public abstract String getQryDELMov();
 
   public abstract String getQryMODMov();
+
+  public abstract String getQryMODCodstat();
 
   @Override
   public void write(RigaBanca ri) {
@@ -203,6 +216,7 @@ public abstract class SqlGest implements ISQLGest {
       dbconn.setStmtString(stmtMod, k++, p_rig.getDescr());
       dbconn.setStmtString(stmtMod, k++, szCaus);
       dbconn.setStmtString(stmtMod, k++, p_rig.getCardid());
+      dbconn.setStmtString(stmtMod, k++, p_rig.getCodstat());
 
       dbconn.setStmtInt(stmtMod, k++, p_rig.getRigaid());
 
@@ -213,6 +227,25 @@ public abstract class SqlGest implements ISQLGest {
     }
     // System.out.println(tm.stop());
     return bRet;
+  }
+
+  @Override
+  public boolean updateCodStat(RigaBanca rig) {
+    String qry1 = getQryMODCodstat();
+    String qry2 = String.format(qry1, rig.getTiporec());
+
+    Connection conn = dbconn.getConn();
+    try (PreparedStatement stmtModCod = conn.prepareStatement(qry2)) {
+      int k = 1;
+      dbconn.setStmtString(stmtModCod, k++, rig.getCodstat());
+      dbconn.setStmtInt(stmtModCod, k++, rig.getRigaid());
+
+      stmtModCod.executeUpdate();
+    } catch (SQLException e) {
+      getLog().error("Errore MODIF codstat on {} with err={}", rig.getTiporec(), e.getMessage());
+      return false;
+    }
+    return true;
   }
 
   @Override
@@ -245,6 +278,7 @@ public abstract class SqlGest implements ISQLGest {
       dbconn.setStmtString(stmtIns, k++, p_rig.getDescr());
       dbconn.setStmtString(stmtIns, k++, szCaus);
       dbconn.setStmtString(stmtIns, k++, p_rig.getCardid());
+      dbconn.setStmtString(stmtIns, k++, p_rig.getCodstat());
 
       stmtIns.executeUpdate();
       lastRowid = trovaLastRowid();
@@ -253,6 +287,38 @@ public abstract class SqlGest implements ISQLGest {
     }
     // System.out.println(tm.stop());
     return bRet;
+  }
+
+  @Override
+  public void beginTrans() {
+    try {
+      Connection conn = getDbconn().getConn();
+      conn.setAutoCommit(false);
+      m_savePoint = conn.setSavepoint();
+    } catch (SQLException e) {
+      getLog().error("BEGIN TRAN Error {}", e.getMessage());
+    }
+  }
+
+  @Override
+  public void commitTrans() {
+    try {
+      getDbconn().getConn().setAutoCommit(true);
+      m_savePoint = null;
+    } catch (SQLException e) {
+      getLog().error("COMMIT TRAN Error {}", e.getMessage());
+    }
+  }
+
+  @Override
+  public void rollBackTrans() {
+    try {
+      Connection conn = getDbconn().getConn();
+      conn.rollback(m_savePoint);
+      m_savePoint = null;
+    } catch (SQLException e) {
+      getLog().error("BEGIN TRAN Error {}", e.getMessage());
+    }
   }
 
   private int trovaLastRowid() {

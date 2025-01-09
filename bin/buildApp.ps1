@@ -25,10 +25,13 @@ $arr += "target\${AppName}.jar"
 $arr += "${AppName}.properties"
 $arr += ".\bin\${AppName}.cmd"
 $arr += ".\bin\installApp.cmd"
+$arr += ".\Codstat.properties"
 $arr += ".\bin\installApp.ps1"
 $arr += ".\dati\Banca_SQLite.properties"
 $arr += ".\dati\Banca_SQLserver.properties"
 $arr += ".\dati\SQLite\BancaNuovo.db" 
+$arr += ".\dati\Manuale Utente.docx" 
+
 # Get-ChildItem -path ".\bin\${AppName}.cmd", "${AppName}.properties", "target\${AppName}.jar", ".\bin\installApp.cmd", ".\bin\installApp.ps1", ".\dati\Estrattoconto_Contanti.xlsx", ".\dati\SQLite\BancaNuovo.db"   |
 Get-ChildItem -path $arr |
     Compress-Archive  -CompressionLevel Fastest -DestinationPath $zipFile

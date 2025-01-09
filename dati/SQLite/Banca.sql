@@ -98,7 +98,8 @@ CREATE TABLE IF NOT EXISTS movimentiBSI (
     avere   FLOAT (19, 4)  DEFAULT NULL,
     descr   NVARCHAR (512) DEFAULT NULL,
     abicaus VARCHAR (20)   DEFAULT NULL,
-    cardid  NVARCHAR (20)  DEFAULT NULL
+    cardid  NVARCHAR (20)  DEFAULT NULL,
+    codstat VARCHAR (20)   DEFAULT NULL
 );
 CREATE  INDEX IF NOT EXISTS IX_MovBSI_dtMov ON movimentiBSI ( dtmov ASC );
 
@@ -112,7 +113,8 @@ CREATE TABLE IF NOT EXISTS movimentiBSICredit (
     avere   FLOAT (19, 4)  DEFAULT NULL,
     descr   NVARCHAR (512) DEFAULT NULL,
     abicaus VARCHAR (20)   DEFAULT NULL,
-    cardid  NVARCHAR (20)  DEFAULT NULL
+    cardid  NVARCHAR (20)  DEFAULT NULL,
+    codstat VARCHAR (20)   DEFAULT NULL
 );
 CREATE  INDEX IF NOT EXISTS IX_MovBSICredit_dtMov ON movimentiBSICredit ( dtmov ASC );
 
@@ -126,7 +128,8 @@ CREATE TABLE IF NOT EXISTS movimentiCarisp (
     avere   FLOAT (19, 4)  DEFAULT NULL,
     descr   NVARCHAR (512) DEFAULT NULL,
     abicaus VARCHAR (20)   DEFAULT NULL,
-    cardid  NVARCHAR (20)  DEFAULT NULL
+    cardid  NVARCHAR (20)  DEFAULT NULL,
+    codstat VARCHAR (20)   DEFAULT NULL
 );
 CREATE  INDEX IF NOT EXISTS IX_MovCarisp_dtMov ON movimentiCarisp ( dtmov ASC );
 
@@ -140,7 +143,8 @@ CREATE TABLE IF NOT EXISTS movimentiCarispCredit (
     avere   FLOAT (19, 4)  DEFAULT NULL,
     descr   NVARCHAR (512) DEFAULT NULL,
     abicaus NVARCHAR (20)  DEFAULT NULL,
-    cardid  NVARCHAR (20)  DEFAULT NULL
+    cardid  NVARCHAR (20)  DEFAULT NULL,
+    codstat VARCHAR (20)   DEFAULT NULL
 );
 CREATE  INDEX IF NOT EXISTS IX_MovCarispCredit_dtMov ON movimentiCarispCredit ( dtmov ASC );
 
@@ -154,7 +158,8 @@ CREATE TABLE IF NOT EXISTS movimentiPaypal (
     avere   FLOAT (19, 4)  DEFAULT NULL,
     descr   NVARCHAR (512) DEFAULT NULL,
     abicaus VARCHAR (20)   DEFAULT NULL,
-    cardid  NVARCHAR (20)  DEFAULT NULL
+    cardid  NVARCHAR (20)  DEFAULT NULL,
+    codstat VARCHAR (20)   DEFAULT NULL
 );								   
 CREATE  INDEX IF NOT EXISTS IX_MovPaypal_dtMov ON movimentiPaypal ( dtmov ASC );
 
@@ -168,7 +173,8 @@ CREATE TABLE IF NOT EXISTS movimentiWise (
     avere   FLOAT (19, 4)  DEFAULT NULL,
     descr   NVARCHAR (512) DEFAULT NULL,
     abicaus NVARCHAR (20)  DEFAULT NULL,
-    cardid  NVARCHAR (20)  DEFAULT NULL
+    cardid  NVARCHAR (20)  DEFAULT NULL,
+    codstat VARCHAR (20)   DEFAULT NULL
 );
 CREATE  INDEX IF NOT EXISTS IX_MovWise_dtMov ON movimentiWise ( dtmov ASC );
 
@@ -182,7 +188,8 @@ CREATE TABLE IF NOT EXISTS movimentiContanti (
     avere   FLOAT (19, 4)  DEFAULT NULL,
     descr   NVARCHAR (512) DEFAULT NULL,
     abicaus VARCHAR (20)   DEFAULT NULL,
-    cardid  NVARCHAR (20)  DEFAULT NULL
+    cardid  NVARCHAR (20)  DEFAULT NULL,
+    codstat VARCHAR (20)   DEFAULT NULL
 );
 CREATE  INDEX IF NOT EXISTS IX_MovContanti_dtMov ON movimentiContanti ( dtmov ASC );
 
@@ -196,7 +203,8 @@ CREATE TABLE IF NOT EXISTS movimentiSmac (
     avere   FLOAT (19, 4)  DEFAULT NULL,
     descr   NVARCHAR (512) DEFAULT NULL,
     abicaus VARCHAR (20)   DEFAULT NULL,
-    cardid  NVARCHAR (20)  DEFAULT NULL
+    cardid  NVARCHAR (20)  DEFAULT NULL,
+    codstat VARCHAR (20)   DEFAULT NULL
 );
 CREATE  INDEX IF NOT EXISTS IX_MovSmac_dtMov ON movimentiSmac ( dtmov ASC );
 
@@ -210,7 +218,8 @@ CREATE INDEX IF NOT EXISTS indxMovCarCred ON movimentiCarispCredit (
 
 -- Vista: listaMovimentiBSI
 CREATE VIEW IF NOT EXISTS listaMovimentiBSI AS
-    SELECT 'BSI' AS tipo,
+    SELECT id,
+           'BSI' AS tipo,
            idfile,
            dtmov,
            dtval,
@@ -222,14 +231,16 @@ CREATE VIEW IF NOT EXISTS listaMovimentiBSI AS
            descr,
            mo.abicaus,
            ca.descrcaus,
-           ca.costo
+           ca.costo,
+	   codstat
       FROM movimentiBSI mo
            LEFT OUTER JOIN
            causali ca ON mo.abicaus = ca.abicaus;
 
 -- Vista: listaMovimentiBSICredit
 CREATE VIEW IF NOT EXISTS listaMovimentiBSICredit AS
-    SELECT 'BSIcred' AS tipo,
+    SELECT id,
+           'BSIcred' AS tipo,
            idfile,
            dtmov,
            dtval,
@@ -241,14 +252,16 @@ CREATE VIEW IF NOT EXISTS listaMovimentiBSICredit AS
            descr,
            mo.abicaus,
            ca.descrcaus,
-           ca.costo
+           ca.costo,
+	   codstat
       FROM movimentiBSICredit mo
            LEFT OUTER JOIN
            causali ca ON mo.abicaus = ca.abicaus;
 
 -- Vista: listaMovimentiPaypal
 CREATE VIEW IF NOT EXISTS listaMovimentiPaypal AS
-    SELECT 'paypal' AS tipo,
+    SELECT id,
+           'paypal' AS tipo,
            idfile,
            dtmov,
            dtval,
@@ -260,14 +273,16 @@ CREATE VIEW IF NOT EXISTS listaMovimentiPaypal AS
            descr,
            mo.abicaus,
            ca.descrcaus,
-           ca.costo
+           ca.costo,
+	   codstat
       FROM movimentiPaypal mo
            LEFT OUTER JOIN
            causali ca ON mo.abicaus = ca.abicaus;
 
 -- Vista: listaMovimentiCARISP
 CREATE VIEW IF NOT EXISTS listaMovimentiCARISP AS
-    SELECT 'CARISP' AS tipo,
+    SELECT id,
+           'CARISP' AS tipo,
            idfile,
            dtmov,
            dtval,
@@ -279,7 +294,8 @@ CREATE VIEW IF NOT EXISTS listaMovimentiCARISP AS
            descr,
            mo.abicaus,
            ca.descrcaus,
-           ca.costo
+           ca.costo,
+	   codstat
       FROM movimentiCarisp mo
            LEFT OUTER JOIN
            causali ca ON mo.abicaus = ca.abicaus;
@@ -287,7 +303,8 @@ CREATE VIEW IF NOT EXISTS listaMovimentiCARISP AS
 
 -- Vista: listaMovimentiCARISPCredit
 CREATE VIEW IF NOT EXISTS listaMovimentiCARISPCredit AS
-    SELECT 'CARISPcrd' AS tipo,
+    SELECT id,
+           'CarispCredit' AS tipo,
            idfile,
            dtmov,
            dtval,
@@ -299,14 +316,16 @@ CREATE VIEW IF NOT EXISTS listaMovimentiCARISPCredit AS
            descr,
            mo.abicaus,
            ca.descrcaus,
-           ca.costo
+           ca.costo,
+	   codstat
       FROM movimentiCarispCredit mo
            LEFT OUTER JOIN
            causali ca ON mo.abicaus = ca.abicaus;
 												
 -- Vista: listaMovimentiWise
 CREATE VIEW IF NOT EXISTS listaMovimentiWise AS
-    SELECT 'wise' AS tipo,
+    SELECT id,
+           'wise' AS tipo,
            idfile,
            dtmov,
            dtval,
@@ -318,7 +337,8 @@ CREATE VIEW IF NOT EXISTS listaMovimentiWise AS
            descr,
            mo.abicaus,
            ca.descrcaus,
-           ca.costo
+           ca.costo,
+	   codstat
       FROM movimentiWise mo
            LEFT OUTER JOIN
            causali ca ON mo.abicaus = ca.abicaus;
@@ -326,7 +346,8 @@ CREATE VIEW IF NOT EXISTS listaMovimentiWise AS
 
 -- Vista: ListaMovimentiContanti
 CREATE VIEW IF NOT EXISTS ListaMovimentiContanti AS
-    SELECT 'Cont' AS tipo,
+    SELECT id,
+           'Cont' AS tipo,
            idfile,
            dtmov,
            dtval,
@@ -338,7 +359,8 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiContanti AS
            descr,
            mo.abicaus,
            ca.descrcaus,
-           ca.costo
+           ca.costo,
+	   codstat
       FROM movimentiContanti mo
            LEFT OUTER JOIN
            causali ca ON mo.abicaus = ca.abicaus;
@@ -346,7 +368,8 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiContanti AS
 
 -- Vista: ListaMovimentiSmac
 CREATE VIEW IF NOT EXISTS ListaMovimentiSmac AS
-    SELECT 'SMAC' AS tipo,
+    SELECT id,
+           'SMAC' AS tipo,
            idfile,
            dtmov,
            dtval,
@@ -363,7 +386,8 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiSmac AS
            descr,
            mo.abicaus,
            ca.descrcaus,
-           ca.costo
+           ca.costo,
+	   codstat
       FROM movimentiSmac mo
            LEFT OUTER JOIN
            causali ca ON mo.abicaus = ca.abicaus;
@@ -371,7 +395,8 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiSmac AS
 
 -- Vista: ListaMovimentiUNION
 CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
-    SELECT tipo,
+    SELECT id,
+           tipo,
            idfile,
            dtmov,
            dtval,
@@ -383,10 +408,12 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
            descr,
            abicaus,
            descrcaus,
-           costo
+           costo,
+	   codstat
       FROM listaMovimentiCarisp
     UNION
-    SELECT tipo,
+    SELECT id,
+           tipo,
            idfile,
            dtmov,
            dtval,
@@ -398,10 +425,12 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
            descr,
            abicaus,
            descrcaus,
-           costo
+           costo,
+	   codstat
       FROM listaMovimentiBSI
     UNION
-    SELECT tipo,
+    SELECT id,
+           tipo,
            idfile,
            dtmov,
            dtval,
@@ -413,10 +442,12 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
            descr,
            abicaus,
            descrcaus,
-           costo
+           costo,
+	   codstat
       FROM listaMovimentiBSICredit
     UNION
-    SELECT tipo,
+    SELECT id,
+           tipo,
            idfile,
            dtmov,
            dtval,
@@ -428,10 +459,12 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
            descr,
            abicaus,
            descrcaus,
-           costo
+           costo,
+	   codstat
       FROM listaMovimentiCarispCredit
     UNION
-    SELECT tipo,
+    SELECT id,
+           tipo,
            idfile,
            dtmov,
            dtval,
@@ -443,10 +476,12 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
            descr,
            abicaus,
            descrcaus,
-           costo
+           costo,
+	   codstat
       FROM listaMovimentiWise
   UNION
-  SELECT tipo,
+  SELECT id,
+         tipo,
          idfile,
 	 dtmov,
 	 dtval,
@@ -458,10 +493,12 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
 	 descr,
 	 abicaus,
 	 descrcaus,
-	 costo
+	 costo,
+	 codstat
     FROM listaMovimentiSmac
     UNION
-    SELECT tipo,
+    SELECT id,
+           tipo,
            idfile,
            dtmov,
            dtval,
@@ -473,10 +510,12 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
            descr,
            abicaus,
            descrcaus,
-           costo
+           costo,
+	   codstat
       FROM listaMovimentiPaypal
     UNION
-    SELECT tipo,
+    SELECT id,
+           tipo,
            idfile,
            dtmov,
            dtval,
@@ -488,7 +527,8 @@ CREATE VIEW IF NOT EXISTS ListaMovimentiUNION AS
            descr,
            abicaus,
            descrcaus,
-           costo
+           costo,
+	   codstat
       FROM listaMovimentiContanti;
 
 
