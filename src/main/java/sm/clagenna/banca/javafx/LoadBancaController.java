@@ -961,6 +961,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       cntrViewContanti.changeSkin();
     if (null != cntrlConfOpz)
       cntrlConfOpz.changeSkin();
+    if (null != cntrCodStatView)
+      cntrCodStatView.changeSkin();
   }
 
   @Override

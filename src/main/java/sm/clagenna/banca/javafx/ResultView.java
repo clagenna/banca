@@ -470,6 +470,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private void creaTableResultThread(String szQryFltr) {
     TableViewFiller.setNullRetValue("");
     m_tbvf = new TableViewFiller(tblview);
+    m_tbvf.setResView(this);
     if (fltrParolaRegEx) {
       m_tbvf.setFltrParolaRegEx(fltrParolaRegEx);
       m_tbvf.setFltrParola(m_fltrParola);
@@ -536,13 +537,15 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
     // System.out.printf("ResultView.propertyChange(\"%s=%s\")\n", evt.getPropertyName(), evt.getNewValue().toString());
-    if (evt.getPropertyName().equals(CodStatView.EVT_CODSTAT)) {
-      m_codStatSel = evt.getNewValue().toString();
-      Platform.runLater(() -> {
-        btAssignCodStat.setText(m_codStatSel);
-        abilitaBottoni();
-      });
-    }
+    if ( !evt.getPropertyName().equals(DataController.EVT_CODSTAT))
+      return;
+
+    m_codStatSel = evt.getNewValue().toString();
+    Platform.runLater(() -> {
+      btAssignCodStat.setText(m_codStatSel);
+      abilitaBottoni();
+    });
+
   }
 
   protected void tableRow_dblclick(TableRow<List<Object>> row) {

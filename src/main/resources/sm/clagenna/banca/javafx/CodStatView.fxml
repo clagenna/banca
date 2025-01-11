@@ -29,6 +29,8 @@
          <columns>
             <TreeTableColumn fx:id="colCodStat" prefWidth="75.0" text="Cod. Stat." />
             <TreeTableColumn fx:id="colDescr" prefWidth="75.0" text="Descrizione" />
+            <TreeTableColumn fx:id="colTotDare" prefWidth="75.0" text="Dare" />
+            <TreeTableColumn fx:id="colTotAvere" prefWidth="75.0" text="Avere" />
          </columns>
 		</TreeTableView>
 	</children>

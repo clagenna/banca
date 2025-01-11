@@ -1,14 +1,18 @@
 package sm.clagenna.banca.javafx;
 
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -25,23 +29,25 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat;
+import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class CodStatView implements Initializable, IStartApp {
+public class CodStatView implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(CodStatView.class);
 
   public static final String  CSZ_FXMLNAME        = "CodStatView.fxml";
-  public static final String  EVT_CODSTAT         = "codstat";
   private static final String CSZ_PROP_POScdstt_X = "cdstt.x";
   private static final String CSZ_PROP_POScdstt_Y = "cdstt.y";
   private static final String CSZ_PROP_DIMcdstt_X = "cdstt.lx";
   private static final String CSZ_PROP_DIMcdstt_Y = "cdstt.ly";
   private static final String CSZ_PROP_DIM_COL1   = "cdstt.col1";
   private static final String CSZ_PROP_DIM_COL2   = "cdstt.col2";
+  private static final String CSZ_PROP_DIM_DARE   = "cdstt.dare";
+  private static final String CSZ_PROP_DIM_AVERE  = "cdstt.avere";
 
   @FXML
   private TextField                        txDescr;
@@ -53,23 +59,25 @@ public class CodStatView implements Initializable, IStartApp {
   private TreeTableColumn<CodStat, String> colCodStat;
   @FXML
   private TreeTableColumn<CodStat, String> colDescr;
+  @FXML
+  private TreeTableColumn<CodStat, String> colTotDare;
+  @FXML
+  private TreeTableColumn<CodStat, String> colTotAvere;
 
   @Getter @Setter
-  private Scene                 myScene;
-  private Stage                 lstage;
-  private LoadBancaMainApp      m_appmain;
-  private ISQLGest              m_db;
-  private PropertyChangeSupport m_prcsupp;
+  private Scene            myScene;
+  private Stage            lstage;
+  private LoadBancaMainApp m_appmain;
+  private DataController   datacntrlr;
+  private ISQLGest         m_db;
   @Getter
-  private AppProperties         mainProps;
+  private AppProperties    mainProps;
   @Getter @Setter
-  private String                styMatchDescr;
-  @Getter
-  private String                codStat;
+  private String           styMatchDescr;
 
   public CodStatView() {
     styMatchDescr = "gold";
-    m_prcsupp = new PropertyChangeSupport(this);
+    // m_prcsupp = new PropertyChangeSupport(this);
   }
 
   @Override
@@ -79,10 +87,11 @@ public class CodStatView implements Initializable, IStartApp {
 
   @Override
   public void initApp(AppProperties p_props) {
-    TableViewFiller.setNullRetValue("");
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addCodeStatView(this);
     mainProps = m_appmain.getProps();
+    datacntrlr = m_appmain.getData();
+    datacntrlr.addPropertyChangeListener(this);
     String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
     m_db = SqlGestFactory.get(szSQLType);
     m_db.setDbconn(LoadBancaMainApp.getInst().getConnSQL());
@@ -105,6 +114,21 @@ public class CodStatView implements Initializable, IStartApp {
     vv = p_props.getDoubleProperty(CSZ_PROP_DIM_COL2);
     if (vv > 0)
       colDescr.setPrefWidth(vv);
+
+    colTotDare.setCellValueFactory(new TreeItemPropertyValueFactory<>("totdare"));
+    vv = p_props.getDoubleProperty(CSZ_PROP_DIM_DARE);
+    if (vv > 0)
+      colTotDare.setPrefWidth(vv);
+    colTotDare.setStyle("-fx-alignment: center-right;");
+    colTotDare.setCellValueFactory(param -> new SimpleObjectProperty<String>(formattaCella("dare", param.getValue())));
+
+    colTotAvere.setCellValueFactory(new TreeItemPropertyValueFactory<>("totavere"));
+    vv = p_props.getDoubleProperty(CSZ_PROP_DIM_AVERE);
+    if (vv > 0)
+      colTotAvere.setPrefWidth(vv);
+    colTotAvere.setStyle("-fx-alignment: center-right;");
+    colTotAvere.setCellValueFactory(param -> new SimpleObjectProperty<String>(formattaCella("avere", param.getValue())));
+
     treeview.setRowFactory(row -> new TreeTableRow<CodStat>() {
       @Override
       protected void updateItem(CodStat item, boolean empty) {
@@ -130,7 +154,8 @@ public class CodStatView implements Initializable, IStartApp {
     });
     treeview.getSelectionModel().selectedItemProperty().addListener((obj, old, nv) -> {
       if (null != nv && nv.getValue().getCod1() != 0) {
-        setCodStat(nv.getValue().getCodice());
+        //  setCodStat(nv.getValue().getCodice());
+        datacntrlr.setCodStat(nv.getValue().getCodice());
         // System.out.printf("CodStatView.impostaTreeView(\"%s\")\n", codStat);
       }
     });
@@ -140,6 +165,23 @@ public class CodStatView implements Initializable, IStartApp {
     TreeItem<CodStat> root = cdst.getTree(radice);
 
     treeview.setRoot(root);
+  }
+
+  private String formattaCella(String colNam, TreeItem<CodStat> value) {
+    Double dbl = 0.;
+    switch (colNam) {
+      case "dare":
+        dbl = value.getValue().getTotdare();
+        break;
+      case "avere":
+        dbl = value.getValue().getTotavere();
+        break;
+    }
+    if (dbl == 0)
+      return "";
+    DecimalFormat fmt = (DecimalFormat) NumberFormat.getInstance(Locale.getDefault()); // ("#,##0.00", Locale.getDefault())
+    fmt.applyPattern("#,##0.00");
+    return fmt.format(dbl);
   }
 
   private void impostaForma(AppProperties p_props) {
@@ -226,8 +268,9 @@ public class CodStatView implements Initializable, IStartApp {
 
   @Override
   public void closeApp(AppProperties p_props) {
-    for (PropertyChangeListener pl : m_prcsupp.getPropertyChangeListeners())
-      m_prcsupp.removePropertyChangeListener(pl);
+    //    for (PropertyChangeListener pl : m_prcsupp.getPropertyChangeListeners())
+    //      m_prcsupp.removePropertyChangeListener(pl);
+    datacntrlr.removePropertyChangeListener(this);
     m_appmain.removeCodStatView(this);
     if (myScene == null) {
       s_log.error("Il campo Scene risulta = **null**");
@@ -248,22 +291,44 @@ public class CodStatView implements Initializable, IStartApp {
     p_props.setProperty(CSZ_PROP_DIM_COL1, Integer.valueOf((int) vv));
     vv = colDescr.getWidth();
     p_props.setProperty(CSZ_PROP_DIM_COL2, Integer.valueOf((int) vv));
+    vv = colTotDare.getWidth();
+    p_props.setProperty(CSZ_PROP_DIM_DARE, Integer.valueOf((int) vv));
+    vv = colTotAvere.getWidth();
+    p_props.setProperty(CSZ_PROP_DIM_AVERE, Integer.valueOf((int) vv));
 
   }
 
-  public void addPropertyChangeListener(PropertyChangeListener pcl) {
-    m_prcsupp.addPropertyChangeListener(pcl);
-  }
+  //  public void addPropertyChangeListener(PropertyChangeListener pcl) {
+  //    m_prcsupp.addPropertyChangeListener(pcl);
+  //  }
+  //
+  //  public void removePropertyChangeListener(PropertyChangeListener pcl) {
+  //    m_prcsupp.removePropertyChangeListener(pcl);
+  //  }
 
-  public void removePropertyChangeListener(PropertyChangeListener pcl) {
-    m_prcsupp.removePropertyChangeListener(pcl);
-  }
+  //  public void setCodStat(String value) {
+  //    if (null == value || value.equals("00"))
+  //      return;
+  //    DataController cntrl = DataController.getInst();
+  //    //    m_prcsupp.firePropertyChange(DataController.EVT_CODSTAT, codStat, value);
+  //    cntrl.firePropertyChange(DataController.EVT_CODSTAT, codStat, value);
+  //    codStat = value;
+  //  }
 
-  public void setCodStat(String value) {
-    if (null == value || value.equals("00"))
-      return;
-    m_prcsupp.firePropertyChange(EVT_CODSTAT, codStat, value);
-    codStat = value;
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    String szEvtId = evt.getPropertyName();
+    switch (szEvtId) {
+      case DataController.EVT_RESULTVIEW:
+        // m_szQryResulView = evt.getNewValue().toString();
+        datacntrlr.setQryResulView(evt.getNewValue().toString());
+        Platform.runLater(() -> datacntrlr.aggiornaTotaliCodStat());
+        break;
+
+      case DataController.EVT_TOTCODSTAT:
+        treeview.refresh();
+        break;
+    }
   }
 
 }

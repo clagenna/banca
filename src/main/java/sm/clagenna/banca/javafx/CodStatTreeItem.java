@@ -2,6 +2,9 @@ package sm.clagenna.banca.javafx;
 
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javafx.scene.control.TreeItem;
 import lombok.Getter;
 import sm.clagenna.banca.dati.CodStat;
@@ -9,9 +12,10 @@ import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class CodStatTreeItem {
-  private TreeItem<CodStat> trit;
+  private static final Logger s_log = LogManager.getLogger(CodStatTreeItem.class);
+  private TreeItem<CodStat>   trit;
   @Getter
-  private CodStat           root;
+  private CodStat             root;
 
   public CodStatTreeItem() {
     //
@@ -27,6 +31,7 @@ public class CodStatTreeItem {
       CodStat nuovo = CodStat.parse(szKey.toString());
       nuovo.setDescr(szVal);
       root.add(nuovo);
+      cntrlr.setCodStatTree(root);
     }
     return root;
   }
@@ -48,6 +53,25 @@ public class CodStatTreeItem {
       trit.getChildren().add(it);
     }
     return trit;
+  }
+
+  public void clear() {
+    if (null == trit)
+      return;
+    trit.getValue().clear();
+  }
+
+  public void addTot(String pCdsCodice, Double dare, Double avere) {
+    if (null == root) {
+      s_log.error("Nessun CodStat Tree per settare il totali a {}", pCdsCodice);
+      return;
+    }
+    CodStat no = root.find(pCdsCodice);
+    if (null == no) {
+      s_log.error("Nessun CodStat trovato con codice {}", pCdsCodice);
+      return;
+    }
+    no.somma(dare, avere);
   }
 
 }

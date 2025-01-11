@@ -317,15 +317,21 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     if (m_liResViews == null)
       m_liResViews = new ArrayList<>();
     m_liResViews.add(resultView);
-    if (null != m_viewCodStat)
-      m_viewCodStat.addPropertyChangeListener(resultView);
+    DataController cntrl = DataController.getInst();
+    if (null != m_viewCodStat) {
+      //   m_viewCodStat.addPropertyChangeListener(resultView);
+      cntrl.addPropertyChangeListener(resultView);
+    }
   }
 
   public void removeResView(ResultView resultView) {
     if (m_liResViews == null || m_liResViews.size() == 0)
       return;
-    if (null != m_viewCodStat)
-      m_viewCodStat.removePropertyChangeListener(resultView);
+    DataController cntrl = DataController.getInst();
+    if (null != m_viewCodStat) {
+      //      m_viewCodStat.removePropertyChangeListener(resultView);
+      cntrl.removePropertyChangeListener(resultView);
+    }
     if (m_liResViews.contains(resultView))
       m_liResViews.remove(resultView);
   }
@@ -333,7 +339,9 @@ public class LoadBancaMainApp extends Application implements IStartApp {
   public void addCodeStatView(CodStatView codStatView) {
     m_viewCodStat = codStatView;
     if (null != m_liResViews) {
-      m_liResViews.stream().forEach(s -> m_viewCodStat.addPropertyChangeListener(s));
+      DataController cntrl = DataController.getInst();
+      // m_liResViews.stream().forEach(s -> m_viewCodStat.addPropertyChangeListener(s));
+      m_liResViews.stream().forEach(s -> cntrl.addPropertyChangeListener(s));
     }
   }
 
@@ -344,4 +352,10 @@ public class LoadBancaMainApp extends Application implements IStartApp {
   public boolean isCodeStatViewOpened() {
     return null != m_viewCodStat;
   }
+
+//  public void aggiornaTotaliCodStat(String szQry) {
+//    if (isCodeStatViewOpened()) {
+//      m_viewCodStat.aggiornaTotaliCodStat(szQry);
+//    }
+//  }
 }

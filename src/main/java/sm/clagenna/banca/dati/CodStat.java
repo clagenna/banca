@@ -19,18 +19,24 @@ public class CodStat implements Comparable<CodStat> {
   private int    cod3;
   private String codice;
   private String descr;
+  private Double totdare;
+  private Double totavere;
 
+  private CodStat       padre;
   private List<CodStat> figli;
   private boolean       bSorted;
   private int           livello;
   private boolean       matched;
 
   public CodStat() {
+    setPadre(null);
     setCod1(0);
     setCod2(0);
     setCod3(0);
     calcLivello();
     setMatched(false);
+    totdare = 0d;
+    totavere = 0d;
   }
 
   private void calcLivello() {
@@ -64,9 +70,18 @@ public class CodStat implements Comparable<CodStat> {
     return cds;
   }
 
+  public void clear() {
+    setTotavere(0.);
+    setTotdare(0.);
+    if (null == figli || figli.size() == 0)
+      return;
+    for (CodStat no : figli)
+      no.clear();
+  }
+
   private void calcKey() {
-    if ( cod1 == 0) {
-      codice="Codici stat.";
+    if (cod1 == 0) {
+      codice = "Codici stat.";
       return;
     }
     StringBuilder sb = new StringBuilder();
@@ -96,21 +111,23 @@ public class CodStat implements Comparable<CodStat> {
     return CodStat.parse(sb.toString());
   }
 
-  public void add(CodStat cds) {
+  public CodStat add(CodStat cds) {
     if (cds.livello <= livello) {
       s_log.error("Add su elemento paritario, this={}, add={}", getCodice(), cds.getCodice());
-      return;
+      return this;
     }
     if (null == figli)
       figli = new ArrayList<CodStat>();
     bSorted = false;
     int diff = cds.getLivello() - getLivello();
     if (diff == 1) {
+      // allora figlio diretto
+      cds.setPadre(this);
       if ( !figli.contains(cds))
         figli.add(cds);
       else
         figli.get(figli.indexOf(cds)).update(cds);
-      return;
+      return this;
     }
     int livdiscend = livello + 1;
     String arr[] = cds.getCodice().split("\\.");
@@ -125,15 +142,46 @@ public class CodStat implements Comparable<CodStat> {
     }
     CodStat discend = CodStat.parse(sb.toString());
     int ndiscend = figli.indexOf(discend);
-    if (ndiscend < 0)
+    if (ndiscend < 0) {
+      discend.setPadre(this);
       figli.add(discend);
-    else
+    } else
       discend = figli.get(ndiscend);
     discend.add(cds);
+    return this;
   }
 
   private void update(CodStat cds) {
     setDescr(cds.getDescr());
+  }
+
+  public void somma(String pCdsCodice, Double dare, Double avere) {
+    CodStat nodo = find(pCdsCodice);
+    nodo.somma(dare, avere);
+  }
+
+  public void somma(Double dare, Double avere) {
+    setTotavere(getTotavere() + avere);
+    setTotdare(getTotdare() + dare);
+    CodStat father = getPadre();
+    if (null != father)
+      father.somma(dare, avere);
+  }
+
+  public CodStat find(String pCdsCodice) {
+    CodStat ret = null;
+    if (null == pCdsCodice || null == getCodice())
+      return ret;
+    if (getCodice().equals(pCdsCodice))
+      return this;
+    if (null == figli)
+      return ret;
+    for (CodStat no : figli) {
+      ret = no.find(pCdsCodice);
+      if (null != ret)
+        break;
+    }
+    return ret;
   }
 
   public boolean matchDescr(String p_sz) {
@@ -158,7 +206,9 @@ public class CodStat implements Comparable<CodStat> {
 
   public StringBuilder printAll(StringBuilder p_sb, int nesting) {
     String ident = "  ".repeat(nesting);
-    p_sb.append(String.format("%-20s%s", ident + getCodice(), getDescr()));
+    p_sb.append(String.format("%-20s %16s %16s %s" //
+        , ident + getCodice() //
+        , Utils.formatDouble(totdare), Utils.formatDouble(totavere), getDescr()));
     p_sb.append("\n");
     if (null != figli) {
       for (CodStat fi : getFigli())
@@ -169,7 +219,11 @@ public class CodStat implements Comparable<CodStat> {
 
   @Override
   public String toString() {
-    return String.format("%s : %s", getCodice(), descr);
+    return String.format("%-12s %12s %12s %s" //
+        , getCodice() //
+        , Utils.formatDouble(totdare) //
+        , Utils.formatDouble(totavere) //
+        , descr);
   }
 
   @Override
@@ -205,4 +259,5 @@ public class CodStat implements Comparable<CodStat> {
   public int hashCode() {
     return super.hashCode();
   }
+
 }

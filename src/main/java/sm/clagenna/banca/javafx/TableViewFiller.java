@@ -1,6 +1,7 @@
 package sm.clagenna.banca.javafx;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.regex.Pattern;
@@ -18,11 +19,13 @@ import javafx.scene.control.TableView;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CsvImportBanca;
+import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsCol;
 import sm.clagenna.stdcla.sql.DtsCols;
 import sm.clagenna.stdcla.sql.DtsRow;
+import sm.clagenna.stdcla.sys.ex.DatasetException;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class TableViewFiller extends Task<String> {
@@ -30,6 +33,8 @@ public class TableViewFiller extends Task<String> {
   private static String       CSZ_NULLVAL     = "**null**";
   private static String       QRY_WHE_NOTRASF = "AND abicaus not in ('45','S3','S4') AND descr NOT LIKE '%wise%'";
 
+  @Getter @Setter
+  private ResultView              resView;
   @Getter @Setter
   private String                  szQry;
   @Getter @Setter
@@ -41,9 +46,12 @@ public class TableViewFiller extends Task<String> {
   private DBConn                  m_db;
   private Dataset                 m_dts;
   private boolean                 m_bScartaImpTrasf;
+  @Getter @Setter
+  private boolean                 conRecTotali;
 
   public TableViewFiller(TableView<List<Object>> tblview) {
     setTableview(tblview);
+    conRecTotali = false;
     m_db = LoadBancaMainApp.getInst().getConnSQL();
   }
 
@@ -100,13 +108,26 @@ public class TableViewFiller extends Task<String> {
 
     try (Dataset dtset = new Dataset(m_db)) {
       if ( !dtset.executeQuery(szQry)) {
-        s_log.error("Lettura andata male !");
-      } else
+        s_log.error("errore lettura query {}", szQry);
+      } else {
         m_dts = dtset;
+        // cambiare questo in datacontroller.firePropertyChange "resultview", szQry,szQry
+        // LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
+        // mainApp.aggiornaTotaliCodStat(szQry);
+        DataController cntrl = DataController.getInst();
+        cntrl.firePropertyChange(DataController.EVT_RESULTVIEW, null, szQry);
+      }
     } catch (IOException e) {
-      e.printStackTrace();
+      s_log.error("errore creazione DataSet con query {}, err= {}", szQry, e.getMessage());
     }
     return m_dts;
+  }
+
+  @SuppressWarnings("unused")
+  private void creaRecTotali() throws DatasetException {
+    List<String> liCols = Arrays.asList(new String[] { "dare", "avere" });
+    // Dataset dts = m_dts.sum(liCols);
+    // FIXME mi fermo qui altrimenti il dataset e Table view non è esportabile
   }
 
   private void creaTableView(Dataset p_dts) {
@@ -165,11 +186,10 @@ public class TableViewFiller extends Task<String> {
     for (DtsRow riga : m_dts.getRighe()) {
       if (fltrParolaRegEx) {
         String desc = (String) riga.get(CsvImportBanca.COL_DESCR);
-        if (Utils.isValue(desc)) {
-          var lo = desc.toLowerCase();
-          if ( !patt.matcher(lo).find())
-            continue;
-        } else
+        if ( !Utils.isValue(desc))
+          continue;
+        var lo = desc.toLowerCase();
+        if ( !patt.matcher(lo).find())
           continue;
       }
       ObservableList<Object> tbRiga = FXCollections.observableArrayList();

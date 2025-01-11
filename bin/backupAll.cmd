@@ -1,4 +1,7 @@
 @echo off
+
+for /F %%a in ('echo prompt $E ^| cmd') do @set "ESC=%%a["
+
 @echo.
 call :mioecho backup di tutto
 

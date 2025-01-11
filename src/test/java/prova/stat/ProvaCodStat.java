@@ -14,9 +14,10 @@ import sm.clagenna.stdcla.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class ProvaCodStat {
-  private static final String FILE_CODSTAT  = "dati/Ateco/AtecoProva.txt";
+  private static final String FILE_CODSTAT  = "dati/Ateco/AtecoProva2.properties";
+  @SuppressWarnings("unused")
   private static final String FILE_CODSTAT2 = "AtecoValues.properties";
-  
+
   @SuppressWarnings("unused")
   private PropertyChangeSupport supp;
 
@@ -30,18 +31,40 @@ public class ProvaCodStat {
   public void doTheJob() throws AppPropsException {
     AppProperties codstats = new AppProperties();
     supp = new PropertyChangeSupport(this);
-    codstats.leggiPropertyFile(FILE_CODSTAT2, true, false);
+    codstats.leggiPropertyFile(FILE_CODSTAT, true, false);
 
     radice = new CodStat();
     StringBuilder sb = new StringBuilder();
 
     for (Object szKey : codstats.getProperties().keySet()) {
       String szVal = codstats.getProperty(szKey.toString());
-      System.out.println("Add:" + szKey);
+      System.out.println("Add:\t" + szKey);
       CodStat nuovo = CodStat.parse(szKey.toString());
       nuovo.setDescr(szVal);
       radice.add(nuovo);
+      CodStat su = nuovo;
+
+      while (null != su) {
+        if (sb.length() > 1)
+          sb.insert(0, " <- ");
+        sb.insert(0, su.getCodice());
+        su = su.getPadre();
+      }
+      System.out.println(sb.toString());
+      sb = new StringBuilder();
     }
+    
+    radice.clear();
+    System.out.println();
+    radice.printAll(sb);
+    System.out.println(sb.toString());
+    
+    String cod="46.44.40";
+    CodStat no = radice.find(cod);
+    no.somma( 127.7d, 0.);
+    cod="10.41.20";
+    radice.somma(cod, 0d, 511.7d);
+    System.out.println("-------------- somma -----------------");
     radice.printAll(sb);
     System.out.println(sb.toString());
   }
