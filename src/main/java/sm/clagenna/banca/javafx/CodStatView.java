@@ -3,6 +3,10 @@ package sm.clagenna.banca.javafx;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -18,6 +22,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
@@ -25,6 +30,8 @@ import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableRow;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,6 +44,8 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class CodStatView implements Initializable, IStartApp, PropertyChangeListener {
+  // FIXME aggiungere bottone refresh da file di properties
+  // FIXME aggiungere tabella del codici statistici alimentati da CodStat.properties
   private static final Logger s_log = LogManager.getLogger(CodStatView.class);
 
   public static final String  CSZ_FXMLNAME        = "CodStatView.fxml";
@@ -49,10 +58,18 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private static final String CSZ_PROP_DIM_DARE   = "cdstt.dare";
   private static final String CSZ_PROP_DIM_AVERE  = "cdstt.avere";
 
+  private static final AlertType AlertType = null;
+
+  @FXML
+  private TextField                        txFileCodStat;
+  @FXML
+  private Button                           btCercaFile;
+  @FXML
+  private Button                           btImportFile;
+  @FXML
+  private Button                           btSaveDB;
   @FXML
   private TextField                        txDescr;
-  @FXML
-  private Button                           btCerca;
   @FXML
   private TreeTableView<CodStat>           treeview;
   @FXML
@@ -64,16 +81,17 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   @FXML
   private TreeTableColumn<CodStat, String> colTotAvere;
 
+  @Getter
+  private AppProperties    mainProps;
   @Getter @Setter
   private Scene            myScene;
   private Stage            lstage;
   private LoadBancaMainApp m_appmain;
   private DataController   datacntrlr;
   private ISQLGest         m_db;
-  @Getter
-  private AppProperties    mainProps;
   @Getter @Setter
   private String           styMatchDescr;
+  private boolean          bInEventEnterFile;
 
   public CodStatView() {
     styMatchDescr = "gold";
@@ -139,7 +157,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
           return;
         }
         if (item.isMatched()) {
-          System.out.println(getClass().getSimpleName());
+          // System.out.println(getClass().getSimpleName());
           if ( !isSelected())
             setStyle("-fx-background-color:" + styMatchDescr + ";");
           //          TreeItem<CodStat> tri = getTreeItem().getParent();
@@ -154,16 +172,16 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     });
     treeview.getSelectionModel().selectedItemProperty().addListener((obj, old, nv) -> {
       if (null != nv && nv.getValue().getCod1() != 0) {
-        //  setCodStat(nv.getValue().getCodice());
-        datacntrlr.setCodStat(nv.getValue().getCodice());
+        String sel = nv.getValue().getCodice();
+        datacntrlr.setCodStat(sel);
         // System.out.printf("CodStatView.impostaTreeView(\"%s\")\n", codStat);
       }
     });
 
-    CodStatTreeItem cdst = new CodStatTreeItem();
-    CodStat radice = cdst.readTree();
-    TreeItem<CodStat> root = cdst.getTree(radice);
-
+    //    CodStatTreeData cdst = new CodStatTreeData();
+    //    CodStat radice = cdst.readTree();
+    CodStatTreeData treeData = datacntrlr.getCodStatData();
+    TreeItem<CodStat> root = treeData.getTreeItemRoot();
     treeview.setRoot(root);
   }
 
@@ -214,7 +232,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private Object txDescrSel(ObservableValue<? extends String> obj, String old, String nv) {
     if ( !Utils.isValue(nv) || nv.length() <= 2)
       return null;
-    System.out.printf("CodStatView.txDescrSel(\"%s\")\n", nv);
+    // System.out.printf("CodStatView.txDescrSel(\"%s\")\n", nv);
     searchTree(treeview.getRoot(), nv);
     treeview.refresh();
     TreeItem<CodStat> ro = treeview.getRoot();
@@ -253,8 +271,51 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   }
 
   @FXML
-  void btCercaClick(ActionEvent event) {
-    System.out.println("CodStatView.btCercaClick()");
+  void onEnterFileCodStat(ActionEvent event) {
+    if (bInEventEnterFile)
+      return;
+    bInEventEnterFile = true;
+    // System.out.println("CodStatView.onEnterFileCodStat()");
+    btCercaFileClick(event);
+    bInEventEnterFile = false;
+  }
+
+  @FXML
+  Object premutoTasto(KeyEvent p_e) {
+    // System.out.printf("LoadAassController.premutoTasto(%s)\n", p_e.toString());
+    KeyCode key = p_e.getCode();
+    switch (key) {
+      case ENTER:
+      case F5:
+        btCercaFileClick(null);
+        break;
+      default:
+        break;
+    }
+    return null;
+  }
+
+  @FXML
+  void btCercaFileClick(ActionEvent event) {
+    System.out.println("CodStatView.btCercaFileClick()");
+    Path pth = Paths.get(txFileCodStat.getText());
+    if (Files.exists(pth, LinkOption.NOFOLLOW_LINKS))
+      datacntrlr.getCodStatData().setFileCodStats(pth);
+    else {
+      String szMsg = String.format("Il file %s  Non esiste!", pth.toAbsolutePath().toString());
+      s_log.warn(szMsg);
+      m_appmain.messageDialog(AlertType, szMsg);
+    }
+  }
+
+  @FXML
+  void btImportFileClick(ActionEvent event) {
+    System.out.println("CodStatView.btImportFileClick()");
+  }
+
+  @FXML
+  void btSaveCodStatSuDBClick(ActionEvent event) {
+    System.out.println("CodStatView.btSaveCodStatSuDBClick()");
   }
 
   @Override

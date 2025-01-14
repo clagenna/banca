@@ -394,7 +394,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @FXML
   void btMostraCodStatClick(ActionEvent event) {
-    System.out.println("ResultView.btMostraCodStatClick()");
+    // System.out.println("ResultView.btMostraCodStatClick()");
     LoadBancaController cntr = (LoadBancaController) m_appmain.getController();
     cntr.mnuConfMostraCodStatClick(event);
   }

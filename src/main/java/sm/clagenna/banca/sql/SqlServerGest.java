@@ -12,7 +12,7 @@ public class SqlServerGest extends SqlGest {
   private static final String QRY_LIST_CAUSABI  = "SELECT abicaus, concat(descrcaus,' (',abicaus ,')') as descr FROM causali ORDER BY descr";
   private static final String QRY_LIST_CARDHOLD = "SELECT DISTINCT cardid FROM ListaMovimentiUNION WHERE cardid IS NOT NULL AND LEN(RTRIM(cardid)) > 0  ORDER BY cardid";
   private static final String QRY_LIST_VIEWS    = "SELECT name FROM sys.views ORDER BY name";
-  private static final String QRY_VIEW_PATT     = "SELECT * from %s WHERE 1=1 ORDER BY dtMov,dtval";
+  private static final String QRY_VIEW_PATT     = "SELECT %s from %s WHERE 1=1 ORDER BY dtMov,dtval";
   private static final String QRY_LAST_ROWID    = "Select @@IDENTITY  as LastId";
 
   private static final String QRY_INS_Mov = //

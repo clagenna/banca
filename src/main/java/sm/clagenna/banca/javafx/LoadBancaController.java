@@ -271,7 +271,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     colDtmin = new TableColumn<>("Data min.");
     colDtmin.setCellValueFactory(cell -> cell.getValue().getODtmin());
 
-    colDtmax = new TableColumn<>("Data Reg.");
+    colDtmax = new TableColumn<>("Data max.");
     colDtmax.setCellValueFactory(cell -> cell.getValue().getODtmax());
 
     colUltagg = new TableColumn<>("Data Reg.");

@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.RigaBanca;
+import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.stdcla.sql.DBConn;
 
 public abstract class SqlGest implements ISQLGest {
@@ -91,6 +92,7 @@ public abstract class SqlGest implements ISQLGest {
 
   public abstract String getQryListVIEWS();
 
+  /** Deve tornare la SELECT %s con elenco colonne libero */
   public abstract String getQryListVIEW_PATT();
 
   public abstract String getQryLASTROWID();
@@ -452,7 +454,7 @@ public abstract class SqlGest implements ISQLGest {
     try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(getQryListVIEWS())) {
       while (rs.next()) {
         String view = rs.getString(1);
-        liViews.put(view, String.format(getQryListVIEW_PATT(), view));
+        liViews.put(view, String.format(getQryListVIEW_PATT(), EColsTableView.allColumns(), view));
       }
     } catch (SQLException e) {
       getLog().error("Query {}; err={}", getQryListVIEWS(), e.getMessage(), e);

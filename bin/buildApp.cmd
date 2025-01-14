@@ -77,13 +77,14 @@ pwsh -f "%BaseDir%\bin\buildApp.ps1"
 call :mioecho "Fine Build" Banca
 rem @echo %CD%
 
+:: --------------------------------------------------------
 :: (4) Copia del Banca_Inst.zip su Google Drive
-:: echo on
+echo on
+set DSTDRV=%GOODRV%\zips\photon2
 if exist Banca_inst.zip (
   if "%GOODRV%" neq "" (
-    set DSTDRV=%GOODRV%\zips\photon2
     call :mioecho "Copio Banca_inst.zip" "%DSTDRV%"
-    copy /Y Banca_inst.zip "%DSTDRV%"
+    copy /Y Banca_inst.zip "!DSTDRV!"
     call :mioecho Copiato Banca_inst.zip
   )
 )

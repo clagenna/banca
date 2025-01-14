@@ -3,6 +3,7 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
 CREATE TABLE dbo.causali(
 	abicaus varchar(32) NOT NULL,
 	descrcaus nvarchar(256) NULL,
@@ -16,6 +17,20 @@ CREATE TABLE dbo.causali(
 			 OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
 ) 
 GO
+
+CREATE TABLE CodiciStat (
+    codstat   VARCHAR (12)   NOT NULL,
+    descrstat VARCHAR (256)  NOT NULL,
+CONSTRAINT PK_CodiciStat PRIMARY KEY CLUSTERED ( codstat ASC )
+       WITH (PAD_INDEX = OFF, 
+	         STATISTICS_NORECOMPUTE = OFF, 
+			 IGNORE_DUP_KEY = OFF, 
+			 ALLOW_ROW_LOCKS = ON, 
+			 ALLOW_PAGE_LOCKS = ON, 
+			 OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
+)
+GO
+
 
 /****** Object:  Table dbo.impFiles    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON

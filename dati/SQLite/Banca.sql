@@ -13,6 +13,12 @@ CREATE TABLE IF NOT EXISTS causali (
     costo     INT            DEFAULT NULL
 );
 
+-- Tabella: CodStat
+CREATE TABLE IF NOT EXISTS CodiciStat (
+    codstat   VARCHAR (12)   PRIMARY KEY  NOT NULL,
+    descrstat VARCHAR (256)  DEFAULT NOT NULL,
+);
+
 -- Tabella: impfiles
 CREATE TABLE impFiles (
 	id      INTEGER PRIMARY KEY ASC,

@@ -12,7 +12,7 @@ public class SQLiteGest extends SqlGest {
   private static final String QRY_LIST_CAUSABI  = "SELECT abicaus, descrcaus || ' (' || abicaus || ')' as descr FROM causali ORDER BY descr";
   private static final String QRY_LIST_CARDHOLD = "SELECT DISTINCT cardid FROM ListaMovimentiUNION WHERE cardid IS NOT NULL ORDER BY cardid";
   private static final String QRY_LIST_VIEWS    = "SELECT name FROM sqlite_master WHERE type = 'view'";
-  private static final String QRY_VIEW_PATT     = "SELECT * from %s WHERE 1=1 ORDER BY dtMov,dtval;";
+  private static final String QRY_VIEW_PATT     = "SELECT %s from %s WHERE 1=1 ORDER BY dtMov,dtval;";
   private static final String QRY_LAST_ROWID    = "SELECT last_insert_rowid()";
 
   private static final String QRY_INS_Mov = //

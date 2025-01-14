@@ -1,7 +1,7 @@
 package sm.clagenna.banca.javafx;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public enum EColsTableView {
   id(0), // 211
@@ -20,12 +20,19 @@ public enum EColsTableView {
   costo(13), // Integer  (id=168)
   codstat(14); //  null
 
-  private int                                colNo;
+  private int                                 colNo;
+  private static final String                 s_elencoCols;
   private static Map<Integer, EColsTableView> s_map;
   static {
-    s_map = new HashMap<Integer, EColsTableView>();
+    s_map = new TreeMap<Integer, EColsTableView>();
     for (EColsTableView cc : EColsTableView.values())
       s_map.put(cc.getColNo(), cc);
+    StringBuilder sb = new StringBuilder();
+    for (Integer key : s_map.keySet()) {
+      sb.append(sb.length() > 0 ? "," : "");
+      sb.append(s_map.get(key));
+    }
+    s_elencoCols = sb.toString();
   }
 
   private EColsTableView(int pCol) {
@@ -38,6 +45,10 @@ public enum EColsTableView {
 
   public static EColsTableView colName(int vv) {
     return s_map.get(vv);
+  }
+
+  public static String allColumns() {
+    return s_elencoCols;
   }
 
 }

@@ -19,13 +19,13 @@ import org.apache.logging.log4j.Logger;
 import javafx.collections.ObservableList;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.javafx.CodStatTreeData;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsRow;
-import sm.clagenna.stdcla.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class DataController implements IStartApp {
@@ -39,12 +39,12 @@ public class DataController implements IStartApp {
   public static final String EVT_RESULTVIEW = "dtsresult";
   public static final String EVT_TOTCODSTAT = "totcodstats";
 
-  public static final String  FILE_CODSTAT    = "CodStat.properties";
-  private static final String QRY_TOT_CODSTAT =                                                     //
-      "SELECT coalesce(Codstat, '99') as codstat, SUM(dare) as totDare, SUM(avere) as totAvere" +   //
-          "  FROM listaMovimentiUNION" +                                                            //
-          "  %s" +                                                                                  //
-          "  GROUP BY codstat" +                                                                    //
+  //  public static final String  FILE_CODSTAT    = "CodStat.properties";
+  private static final String QRY_TOT_CODSTAT = //
+      "SELECT coalesce(Codstat, '99') as codstat, SUM(dare) as totDare, SUM(avere) as totAvere" + //
+          "  FROM listaMovimentiUNION" + //
+          "  %s" + //
+          "  GROUP BY codstat" + //
           "  ORDER BY codstat";
 
   private static DataController s_inst;
@@ -65,16 +65,20 @@ public class DataController implements IStartApp {
   private AppProperties         props;
   private List<String>          scartaVoci;
   /** il file properties con tutti i Codstat gestiti */
-  @Getter
-  private AppProperties         codstats;
-  @Getter 
-  private String                codStat;
+  //  @Getter @Setter
+  //  private Path                  fileCodStats;
+  //  @Getter
+  //  private AppProperties         codstats;
+  //  @Getter
+  //  private String                codStat;
+  //  @Getter @Setter
+  //  private CodStat               codStatTree;
+  @Getter @Setter
+  private CodStatTreeData       codStatData;
   @Getter @Setter
   private String                qryResulView;
   @SuppressWarnings("unused")
   private String                qryResulViewOld;
-  @Getter @Setter
-  private CodStat               codStatTree;
   @Getter @Setter
   private PropertyChangeSupport propsChange;
 
@@ -86,6 +90,8 @@ public class DataController implements IStartApp {
     s_inst = this;
     propsChange = new PropertyChangeSupport(this);
     filtriQuery = ESqlFiltri.AllSets.getFlag();
+    codStatData = new CodStatTreeData();
+    codStatData.readTree();
   }
 
   public Path assegnaLastDir(Path p_ld, boolean bForce) {
@@ -182,13 +188,13 @@ public class DataController implements IStartApp {
     }
     associd = new CardidAssoc();
     associd.load(p_props);
-    try {
-      codstats = new AppProperties();
-      codstats.leggiPropertyFile(FILE_CODSTAT, true, false);
-    } catch (AppPropsException e) {
-      e.printStackTrace();
-      return;
-    }
+    //    try {
+    //      codstats = new AppProperties();
+    //      codstats.leggiPropertyFile(FILE_CODSTAT, true, false);
+    //    } catch (AppPropsException e) {
+    //      e.printStackTrace();
+    //      return;
+    //    }
 
   }
 
@@ -243,13 +249,13 @@ public class DataController implements IStartApp {
   public void setCodStat(String value) {
     if (null == value || value.equals("00"))
       return;
-    firePropertyChange(DataController.EVT_CODSTAT, codStat, value);
-    codStat = value;
+    firePropertyChange(DataController.EVT_CODSTAT, codStatData.getCodStat(), value);
+    codStatData.setCodStat(value);
   }
 
   public void aggiornaTotaliCodStat() {
     // parse : SELECT * from ListaMovimentiUNION WHERE 1=1  AND movStr like '2024%'  ORDER BY dtMov,dtval
-    if ( null == qryResulView)
+    if (null == qryResulView)
       return;
     qryResulViewOld = qryResulView;
     int n = qryResulView.toLowerCase().indexOf("where");
@@ -270,17 +276,17 @@ public class DataController implements IStartApp {
       s_log.error("Errore open dataset con query {}, err={}", szQry2, e.getMessage());
     }
     qryResulView = null;
-    codStatTree.clear();
+    codStatData.clear();
     if (null == dts || dts.size() == 0)
       return;
     for (DtsRow riga : dts.getRighe()) {
       String szCodice = (String) riga.get("codstat");
       Double dare = (Double) riga.get("totDare");
       Double avere = (Double) riga.get("totAvere");
-      codStatTree.somma(szCodice, dare, avere);
+      codStatData.getRoot().somma(szCodice, dare, avere);
     }
-    s_log.debug("Calcolato totali X CodStat con {} risultati",dts.size());
-    firePropertyChange(EVT_TOTCODSTAT, "-1", codStatTree.getDescr());
+    s_log.debug("Calcolato totali X CodStat con {} risultati", dts.size());
+    firePropertyChange(EVT_TOTCODSTAT, "-1", codStatData.getCodStat());
   }
 
 }
