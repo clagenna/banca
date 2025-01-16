@@ -31,6 +31,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.IRigaBanca;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.stdcla.enums.EServerId;
 import sm.clagenna.stdcla.javafx.IStartApp;
@@ -72,6 +73,35 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   private CheckBox ckCausABI;
   @FXML
   private CheckBox ckcredhold;
+
+  @FXML
+  private CheckBox ckExclId;
+  @FXML
+  private CheckBox ckExclIdfile;
+  @FXML
+  private CheckBox ckExclDtmov;
+  @FXML
+  private CheckBox ckExclDtval;
+  @FXML
+  private CheckBox ckExclDtmovstr;
+  @FXML
+  private CheckBox ckExclDtvalstr;
+  @FXML
+  private CheckBox ckExclDare;
+  @FXML
+  private CheckBox ckExclAvere;
+  @FXML
+  private CheckBox ckExclCardid;
+  @FXML
+  private CheckBox ckExclDescr;
+  @FXML
+  private CheckBox ckExclAbicaus;
+  @FXML
+  private CheckBox ckExclDescrcaus;
+  @FXML
+  private CheckBox ckExclCosto;
+  @FXML
+  private CheckBox ckExclCodstat;
 
   @FXML
   private ComboBox<EServerId> cbServerId;
@@ -131,6 +161,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
 
     prepareFiltro();
     prepareDbVal(p_props);
+    preparaExcludeCols();
 
     impostaForma(m_mainProps);
   }
@@ -207,6 +238,123 @@ public class ConfOpzioniController implements Initializable, IStartApp {
       }
     });
 
+  }
+
+  private void preparaExcludeCols() {
+    ckExclId.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.ID, n);
+    });
+    ckExclIdfile.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.IDFILE, n);
+    });
+    ckExclDtmov.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.DTMOV, n);
+    });
+    ckExclDtval.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.DTVAL, n);
+    });
+    ckExclDtmovstr.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.DTMOVSTR, n);
+    });
+    ckExclDtvalstr.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.DTVALSTR, n);
+    });
+    ckExclDare.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.DARE, n);
+    });
+    ckExclAvere.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.AVERE, n);
+    });
+    ckExclCardid.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.CARDID, n);
+    });
+    ckExclDescr.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.DESCR, n);
+    });
+    ckExclAbicaus.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.CAUS, n);
+    });
+    ckExclDescrcaus.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.DESCRCAUS, n);
+    });
+    ckExclCosto.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.COSTO, n);
+    });
+    ckExclCodstat.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(IRigaBanca.CODSTAT, n);
+    });
+
+    List<IRigaBanca> excl = dataCntr.getExcludeCols();
+    try {
+      if (null != excl) {
+        bSema = true;
+
+        for (IRigaBanca ir : excl) {
+          switch (ir) {
+            case AVERE:
+              ckExclAvere.setSelected(true);
+              break;
+            case CARDID:
+              ckExclCardid.setSelected(true);
+              break;
+            case CAUS:
+              ckExclAbicaus.setSelected(true);
+              break;
+            case CODSTAT:
+              ckExclCodstat.setSelected(true);
+              break;
+            case COSTO:
+              ckExclCosto.setSelected(true);
+              break;
+            case DARE:
+              ckExclDare.setSelected(true);
+              break;
+            case DESCR:
+              ckExclDescr.setSelected(true);
+              break;
+            case DESCRCAUS:
+              ckExclDescrcaus.setSelected(true);
+              break;
+            case DTMOV:
+              ckExclDtmov.setSelected(true);
+              break;
+            case DTMOVSTR:
+              ckExclDtmovstr.setSelected(true);
+              break;
+            case DTVAL:
+              ckExclDtval.setSelected(true);
+              break;
+            case DTVALSTR:
+              ckExclDtvalstr.setSelected(true);
+              break;
+            case ID:
+              ckExclId.setSelected(true);
+              break;
+            case IDFILE:
+              ckExclId.setSelected(true);
+              break;
+            default:
+              break;
+          }
+        }
+      }
+    } finally {
+      bSema = false;
+    }
   }
 
   @FXML

@@ -37,7 +37,7 @@ public class CodStatTreeData {
   public CodStat readTree() {
     //    DataController cntrlr = DataController.getInst();
     //    AppProperties codprops = cntrlr.getCodstats();
-    if ( null != root)
+    if (null != root)
       root.clear();
     root = null;
     try {
@@ -58,8 +58,44 @@ public class CodStatTreeData {
       nuovo.setDescr(szVal);
       root.add(nuovo);
     }
-    treeItemRoot = getTree(root);
+    refreshTreeItems();
     return root;
+  }
+
+  public void addNode(CodStat cds) {
+    if (null == root)
+      root = new CodStat();
+    root.add(cds);
+  }
+
+  public void refreshTreeItems() {
+    refreshTreeItems(null);
+  }
+
+  public void refreshTreeItems(CodStat cdsCurr) {
+    treeItemRoot = getTree(root);
+    if (null == cdsCurr)
+      return;
+    expandNodes(treeItemRoot, cdsCurr);
+  }
+
+  private boolean expandNodes(TreeItem<CodStat> treeItem, CodStat cdsCurr) {
+    CodStat lCds = treeItem.getValue();
+    if (lCds.equals(cdsCurr)) {
+      if ( !treeItem.isLeaf())
+        treeItem.setExpanded(true);
+      return true;
+    }
+    if (treeItem.isLeaf())
+      return false;
+    for (TreeItem<CodStat> treecds : treeItem.getChildren()) {
+      boolean bRet = expandNodes(treecds, cdsCurr);
+      if (bRet) {
+        treecds.setExpanded(true);
+        return bRet;
+      }
+    }
+    return false;
   }
 
   public TreeItem<CodStat> getTree(CodStat p_cds) {
@@ -98,6 +134,17 @@ public class CodStatTreeData {
       return;
     }
     no.somma(dare, avere);
+  }
+
+  public void updateCodStat(CodStat cdsCurr) {
+    if (null == cdsCurr)
+      return;
+    codstats.setProperty(cdsCurr.getCodice(), cdsCurr.getDescr());
+  }
+
+  public void saveAll() {
+    codstats.salvaSuProperties();
+    s_log.info("Salvato il file Codici Statistici {}", codstats.getPropertyFile().toString());
   }
 
 }

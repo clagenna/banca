@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,15 +30,17 @@ import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class DataController implements IStartApp {
-  private static final Logger s_log            = LogManager.getLogger(DataController.class);
-  private static final String CSZ_PROP_SCARTA  = "voci.scarta";
-  private static final String CSZ_FLAG_FILTRI  = "FLAG_FILTRI";
-  private static final String CSZ_QTA_THREADS  = "QTA_THREADS";
-  public static final String  CSZ_FILTER_FILES = "filter_files";
+  private static final Logger s_log                 = LogManager.getLogger(DataController.class);
+  private static final String CSZ_PROP_SCARTA       = "voci.scarta";
+  private static final String CSZ_PROP_EXCLUDEDCOLS = "excludedcols";
+  private static final String CSZ_FLAG_FILTRI       = "FLAG_FILTRI";
+  private static final String CSZ_QTA_THREADS       = "QTA_THREADS";
+  public static final String  CSZ_FILTER_FILES      = "filter_files";
 
-  public static final String EVT_CODSTAT    = "codstat";
-  public static final String EVT_RESULTVIEW = "dtsresult";
-  public static final String EVT_TOTCODSTAT = "totcodstats";
+  public static final String EVT_CODSTAT             = "codstat";
+  public static final String EVT_RESULTVIEW          = "dtsresult";
+  public static final String EVT_TOTCODSTAT          = "totcodstats";
+  public static final String EVT_TREECODSTAT_CHANGED = "treeCodstat";
 
   //  public static final String  FILE_CODSTAT    = "CodStat.properties";
   private static final String QRY_TOT_CODSTAT = //
@@ -58,6 +61,8 @@ public class DataController implements IStartApp {
   private int                   qtaThreads;
   @Getter @Setter
   private CardidAssoc           associd;
+  @Getter @Setter
+  private List<IRigaBanca>      excludeCols;
   @Getter
   private boolean               overwrite;
   @Getter
@@ -159,7 +164,7 @@ public class DataController implements IStartApp {
           dbconn.setStmtString(p_stmt, k++, p_rig.getDescr());
           break;
         case ABICaus:
-          dbconn.setStmtString(p_stmt, k++, p_rig.getCaus());
+          dbconn.setStmtString(p_stmt, k++, p_rig.getAbicaus());
           break;
         case Cardid:
           dbconn.setStmtString(p_stmt, k++, p_rig.getCardid());
@@ -186,6 +191,16 @@ public class DataController implements IStartApp {
         sep = ",";
       scartaVoci.addAll(Arrays.asList(sz.toLowerCase().split(sep)));
     }
+    sz = props.getProperty(CSZ_PROP_EXCLUDEDCOLS);
+    if (null != sz && sz.length() > 0) {
+      String sep = ";";
+      if ( !sz.contains(sep))
+        sep = ",";
+      excludeCols = new ArrayList<>();
+      List<String> li = Arrays.asList(sz.toLowerCase().split(sep));
+      for (String coln : li)
+        excludeCols.add(IRigaBanca.parse(coln));
+    }
     associd = new CardidAssoc();
     associd.load(p_props);
     //    try {
@@ -210,6 +225,15 @@ public class DataController implements IStartApp {
 
     prop.setIntProperty(CSZ_FLAG_FILTRI, filtriQuery);
     prop.setIntProperty(CSZ_QTA_THREADS, qtaThreads);
+    String sz;
+    if (null != scartaVoci) {
+      sz = String.join(",", scartaVoci);
+      prop.setProperty(CSZ_PROP_SCARTA, sz);
+    }
+    if (null != excludeCols) {
+      sz = excludeCols.stream().map(s -> s.getColNam()).collect(Collectors.joining(","));
+      prop.setProperty(CSZ_PROP_EXCLUDEDCOLS, sz);
+    }
   }
 
   public AppProperties getProps() {
@@ -225,6 +249,32 @@ public class DataController implements IStartApp {
   public void setOverwrite(boolean bv) {
     overwrite = bv;
     System.out.printf("DataController.setOverwrite(%s)\n", Boolean.valueOf(bv).toString());
+  }
+
+  public void addExcludeCol(IRigaBanca p_colNam, boolean bv) {
+    if (null == excludeCols)
+      excludeCols = new ArrayList<>();
+    if (bv) {
+      System.out.println("Excl:" + p_colNam);
+      if ( !excludeCols.contains(p_colNam))
+        excludeCols.add(p_colNam);
+    } else {
+      System.out.println("Incl:" + p_colNam);
+      if (excludeCols.contains(p_colNam))
+        excludeCols.remove(p_colNam);
+    }
+  }
+
+  /**
+   * Esclude dalla vista le colonne estratte dal dataset della query
+   * listMovimentiXX
+   *
+   * @param p_colNam
+   */
+  public void addExcludeCol(IRigaBanca p_colNam) {
+    if (null == excludeCols)
+      excludeCols = new ArrayList<>();
+    excludeCols.add(p_colNam);
   }
 
   public boolean scartaVoce(String descr) {
@@ -281,9 +331,16 @@ public class DataController implements IStartApp {
       return;
     for (DtsRow riga : dts.getRighe()) {
       String szCodice = (String) riga.get("codstat");
-      Double dare = (Double) riga.get("totDare");
-      Double avere = (Double) riga.get("totAvere");
-      codStatData.getRoot().somma(szCodice, dare, avere);
+      // Double dare = (Double) riga.get("totDare");
+      // Double avere = (Double) riga.get("totAvere");
+      // causa:
+      //   Exception in thread "JavaFX Application Thread" java.lang.ClassCastException: class java.lang.Float cannot be cast to class java.lang.Double (java.lang.Float and java.lang.Double are in module java.base of loader 'bootstrap')
+      //      at sm.clagenna.banca.dati.DataController.aggiornaTotaliCodStat(DataController.java:285)
+      //      at sm.clagenna.banca.javafx.CodStatView.lambda$propertyChange$9(CodStatView.java:456)
+      Number dareX = (Number) riga.get("totDare");
+      Number avereX = (Number) riga.get("totAvere");
+
+      codStatData.getRoot().somma(szCodice, dareX.doubleValue(), avereX.doubleValue());
     }
     s_log.debug("Calcolato totali X CodStat con {} risultati", dts.size());
     firePropertyChange(EVT_TOTCODSTAT, "-1", codStatData.getCodStat());

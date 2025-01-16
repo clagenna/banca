@@ -37,15 +37,6 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class CsvImportBanca extends Task<String> implements Closeable {
 
-  public static final String COL_ID     = "id";
-  public static final String COL_IDFILE = "idfile";
-  public static final String COL_DTMOV  = "dtmov";
-  public static final String COL_DTVAL  = "dtval";
-  public static final String COL_DARE   = "dare";
-  public static final String COL_AVERE  = "avere";
-  public static final String COL_DESCR  = "descr";
-  public static final String COL_CAUS   = "caus";
-
   private static final Logger s_log = LogManager.getLogger(CsvImportBanca.class);
 
   public static final String EVT_PARSECSV  = "parsecsv";
@@ -80,7 +71,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
   private Dataset dtsCsv;
 
   private PropertyChangeSupport     prchsupp;
-  private Map<String, List<String>> nomiCols;
+  private Map<IRigaBanca, List<String>> nomiCols;
   @Getter
   private List<RigaBanca>           righeBanca;
   private DBConn                    dbconn;
@@ -103,13 +94,13 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     prchsupp = new PropertyChangeSupport(this);
     Utils.setLocale(Locale.ITALY);
     nomiCols = new HashMap<>();
-    nomiCols.put(COL_DTMOV, Arrays.asList(new String[] { COL_DTMOV, "data", "Date", "Data transazione", "Created on", "" }));
-    nomiCols.put(COL_DTVAL, Arrays.asList(new String[] { COL_DTVAL, "valuta", "Data contabile", "Finished on" }));
-    nomiCols.put(COL_DARE, Arrays.asList(new String[] { COL_DARE, "importo", "Amount", "Source amount (after fees)" }));
-    nomiCols.put(COL_AVERE, Arrays.asList(new String[] { COL_AVERE, "*no*", "*no*" }));
-    nomiCols.put(COL_DESCR,
-        Arrays.asList(new String[] { COL_DESCR, "causale", "descrizione", "Target name", "Esercente", "Merchant" }));
-    nomiCols.put(COL_CAUS, Arrays.asList(new String[] { "causabi", "causale abi", "categoria", "ID" }));
+    nomiCols.put(IRigaBanca.DTMOV, Arrays.asList(new String[] { IRigaBanca.DTMOV.getColNam(), "data", "Date", "Data transazione", "Created on", "" }));
+    nomiCols.put(IRigaBanca.DTVAL, Arrays.asList(new String[] { IRigaBanca.DTVAL.getColNam(), "valuta", "Data contabile", "Finished on" }));
+    nomiCols.put(IRigaBanca.DARE, Arrays.asList(new String[] { IRigaBanca.DARE.getColNam(), "importo", "Amount", "Source amount (after fees)" }));
+    nomiCols.put(IRigaBanca.AVERE, Arrays.asList(new String[] { IRigaBanca.AVERE.getColNam(), "*no*", "*no*" }));
+    nomiCols.put(IRigaBanca.DESCR,
+        Arrays.asList(new String[] { IRigaBanca.DESCR.getColNam(), "causale", "descrizione", "Target name", "Esercente", "Merchant" }));
+    nomiCols.put(IRigaBanca.CAUS, Arrays.asList(new String[] { "causabi", "causale abi", "categoria", "ID" }));
 
     cntrl = DataController.getInst();
     // Thread.setDefaultUncaughtExceptionHandler(this);
@@ -363,14 +354,14 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     final String CAUS_TRANSF = "Z7";
     final String CAUS_CASH = "18";
 
-    Object val = getRowVal(COL_DTMOV, row);
+    Object val = getRowVal(IRigaBanca.DTMOV, row);
     if (null == val) {
       s_log.debug("Scarto riga Wise: {}", row.toString());
       return;
     }
     dtmov = ParseData.parseData(val.toString());
 
-    val = getRowVal("dtval", row);
+    val = getRowVal( IRigaBanca.DTVAL, row);
     if (null == val) {
       dtval = dtmov;
     } else
@@ -382,7 +373,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     else
       source = source.toLowerCase().replace("\"", "");
 
-    val = getRowVal("dare", row);
+    val = getRowVal(IRigaBanca.DARE, row);
     if (null == val || val.toString().length() == 0)
       dare = 0.;
     else if (val instanceof Double dbl)
@@ -415,7 +406,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     }
 
     if (null == descr) {
-      val = getRowVal("descr", row);
+      val = getRowVal( IRigaBanca.DESCR, row);
       if (null == val) {
         s_log.debug("Scarto riga : {}", row.toString());
         return;
@@ -444,7 +435,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     final String OPER_Spesa = "spesa"; // s2
     final String OPER_Spesa_fiscale = "spesa fiscale"; // S1
 
-    Object val = getRowVal(COL_DTMOV, row);
+    Object val = getRowVal(IRigaBanca.DTMOV, row);
     if (null == val) {
       s_log.debug("Scarto riga SMAC: {}", row.toString());
       return;
@@ -508,7 +499,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
 
   private void studiaRigaContanti(DtsRow row) {
     RigaBanca rb = new RigaBanca();
-    Object val = getRowVal(COL_DTMOV, row);
+    Object val = getRowVal(IRigaBanca.DTMOV, row);
     if (null == val) {
       s_log.warn("Scarto riga contante: {}", row.toString());
       return;
@@ -521,7 +512,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     rb.setDtmov(ParseData.parseData(val.toString()));
     rb.setDtval(rb.getDtmov());
 
-    val = getRowVal("dare", row);
+    val = getRowVal( IRigaBanca.DARE, row);
     double dbl = 0.;
     if (null == val || val.toString().length() == 0)
       dbl = 0.;
@@ -532,7 +523,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     rb.setDare(dbl);
 
     dbl = 0.;
-    val = getRowVal("avere", row);
+    val = getRowVal(IRigaBanca.AVERE, row);
     if (null == val || val.toString().length() == 0) {
       dbl = 0.;
     } else if (val instanceof Double dou)
@@ -541,13 +532,13 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       dbl = Utils.parseDouble(val.toString());
     rb.setAvere(dbl);
 
-    val = getRowVal("descr", row);
+    val = getRowVal( IRigaBanca.DESCR, row);
     if (null == val) {
       s_log.warn("Scarto riga contante: {}", row.toString());
       return;
     }
     rb.setDescr(val.toString());
-    rb.setCaus("CO");
+    rb.setAbicaus("CO");
 
     if (null != cardIdent)
       rb.setCardid(cardIdent);
@@ -595,7 +586,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       rb.setAvere(dbl);
     else
       rb.setDare( -dbl);
-    rb.setCaus("PP");
+    rb.setAbicaus("PP");
 
     if (null != cardIdent)
       rb.setCardid(cardIdent);
@@ -610,21 +601,21 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     String descr;
     String caus = null;
     String cardid = null;
-    Object val = getRowVal(COL_DTMOV, row);
+    Object val = getRowVal(IRigaBanca.DTMOV, row);
     if (null == val) {
       s_log.debug("Scarto riga : {}", row.toString());
       return;
     }
     dtmov = ParseData.parseData(val.toString());
 
-    val = getRowVal("dtval", row);
+    val = getRowVal(IRigaBanca.DTVAL, row);
     if (null == val) {
       s_log.debug("Scarto riga : {}", row.toString());
       return;
     }
     dtval = ParseData.parseData(val.toString());
 
-    val = getRowVal("dare", row);
+    val = getRowVal(IRigaBanca.DARE, row);
     if (null == val || val.toString().length() == 0)
       dare = 0.;
     else if (val instanceof Double dbl)
@@ -632,7 +623,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     else
       dare = Utils.parseDouble(val.toString());
 
-    val = getRowVal("avere", row);
+    val = getRowVal(IRigaBanca.AVERE, row);
     if (null == val || val.toString().length() == 0) {
       if (dare < 0) {
         avere = -dare;
@@ -644,7 +635,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     else
       avere = Utils.parseDouble(val.toString());
 
-    val = getRowVal("descr", row);
+    val = getRowVal(IRigaBanca.DESCR, row);
     if (null == val) {
       s_log.debug("Scarto riga : {}", row.toString());
       return;
@@ -655,7 +646,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       return;
     }
 
-    val = getRowVal("caus", row);
+    val = getRowVal( IRigaBanca.CAUS, row);
     if (null != val)
       caus = val.toString();
     RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid, null);
@@ -664,7 +655,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     righeBanca.add(rigb);
   }
 
-  private Object getRowVal(String p_nome, DtsRow p_row) {
+  private Object getRowVal(IRigaBanca p_nome, DtsRow p_row) {
     List<String> colsn = nomiCols.get(p_nome);
     if (null == colsn)
       throw new UnsupportedOperationException("Colname " + p_nome + " not recognized");

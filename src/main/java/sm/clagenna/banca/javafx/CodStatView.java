@@ -2,6 +2,7 @@ package sm.clagenna.banca.javafx;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -20,10 +21,14 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
@@ -32,6 +37,7 @@ import javafx.scene.control.TreeTableView;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
@@ -92,6 +98,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   @Getter @Setter
   private String           styMatchDescr;
   private boolean          bInEventEnterFile;
+
+  private ModTreeCodStat modTreeView;
 
   public CodStatView() {
     styMatchDescr = "gold";
@@ -178,11 +186,71 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       }
     });
 
+    // Context menu open document
+    MenuItem mi1 = new MenuItem("Filtra Movimenti");
+    mi1.setOnAction((ActionEvent ev) -> {
+      treeView_filtra(null);
+    });
+
+    MenuItem mi2 = new MenuItem("Aggiung/modifica");
+    mi2.setOnAction((ActionEvent ev) -> {
+      treeView_modTree(null);
+    });
+    ContextMenu menu = new ContextMenu();
+    menu.getItems().addAll(mi1, mi2);
+    // liBanca.setContextMenu(menu);
+    treeview.setContextMenu(menu);
+
     //    CodStatTreeData cdst = new CodStatTreeData();
     //    CodStat radice = cdst.readTree();
     CodStatTreeData treeData = datacntrlr.getCodStatData();
     TreeItem<CodStat> root = treeData.getTreeItemRoot();
     treeview.setRoot(root);
+  }
+
+  private void treeView_filtra(Object object) {
+    System.out.println("CodStatView.treeView_filtra()");
+
+  }
+
+  private void treeView_modTree(Object object) {
+    URL url = getClass().getResource(ModTreeCodStat.CSZ_FXMLNAME);
+    if (url == null)
+      url = getClass().getClassLoader().getResource(ModTreeCodStat.CSZ_FXMLNAME);
+    Parent radice;
+    modTreeView = null;
+    try {
+      FXMLLoader fxmlLoad = new FXMLLoader(url);
+      //      radice = FXMLLoader.load(url);
+      radice = fxmlLoad.load();
+      modTreeView = fxmlLoad.getController();
+    } catch (IOException e) {
+      s_log.error("Errore caricamento FXML {}", ModTreeCodStat.CSZ_FXMLNAME, e);
+      return;
+    }
+
+    Stage stageModCodStat = new Stage();
+    Scene scene = new Scene(radice, 300, 240);
+    stageModCodStat.setScene(scene);
+    stageModCodStat.setWidth(427);
+    stageModCodStat.setHeight(125);
+    stageModCodStat.initOwner(lstage);
+    stageModCodStat.initModality(Modality.APPLICATION_MODAL);
+    stageModCodStat.setTitle("Gestione delle Opzioni di Import files CSV");
+    stageModCodStat.setX(20.);
+    stageModCodStat.setY(20.);
+    // verifica che nel FXML ci sia la dichiarazione:
+    // <userData> <fx:reference source="controller" /> </userData>
+    if (modTreeView != null) {
+      TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
+      if (null != tricds) {
+        CodStat cds = tricds.getValue();
+        modTreeView.setCdsPadre(cds);
+      }
+      modTreeView.setMyScene(scene);
+      modTreeView.initApp(mainProps);
+    }
+    stageModCodStat.show();
   }
 
   private String formattaCella(String colNam, TreeItem<CodStat> value) {
@@ -223,12 +291,11 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       lstage.setWidth(dx);
       lstage.setHeight(dy);
     }
-
     URL url = m_appmain.getUrlCSS();
     if (null != url)
       myScene.getStylesheets().add(url.toExternalForm());
   }
-
+  
   private Object txDescrSel(ObservableValue<? extends String> obj, String old, String nv) {
     if ( !Utils.isValue(nv) || nv.length() <= 2)
       return null;
@@ -331,6 +398,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   public void closeApp(AppProperties p_props) {
     //    for (PropertyChangeListener pl : m_prcsupp.getPropertyChangeListeners())
     //      m_prcsupp.removePropertyChangeListener(pl);
+    if (null != modTreeView)
+      modTreeView.closeApp(p_props);
     datacntrlr.removePropertyChangeListener(this);
     m_appmain.removeCodStatView(this);
     if (myScene == null) {
@@ -388,6 +457,13 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
       case DataController.EVT_TOTCODSTAT:
         treeview.refresh();
+        break;
+
+      case DataController.EVT_TREECODSTAT_CHANGED:
+        Platform.runLater(() -> {
+          treeview.setRoot(datacntrlr.getCodStatData().getTreeItemRoot());
+          treeview.refresh();
+        });
         break;
     }
   }

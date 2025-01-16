@@ -206,7 +206,7 @@ public abstract class SqlGest implements ISQLGest {
     }
 
     try {
-      String szCaus = p_rig.getCaus();
+      String szCaus = p_rig.getAbicaus();
       if (null != szCaus)
         szCaus = szCaus.replace(".0", "");
       int k = 1;
@@ -268,7 +268,7 @@ public abstract class SqlGest implements ISQLGest {
     }
 
     try {
-      String szCaus = p_rig.getCaus();
+      String szCaus = p_rig.getAbicaus();
       if (null != szCaus)
         szCaus = szCaus.replace(".0", "");
       int k = 1;

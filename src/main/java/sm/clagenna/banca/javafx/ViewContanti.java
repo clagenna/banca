@@ -232,7 +232,7 @@ public class ViewContanti implements Initializable, IStartApp {
       contante.setCardid(nv);
     });
     cbCausABI.getSelectionModel().selectedItemProperty().addListener((opt, old, nv) -> {
-      contante.setCaus(estraiCausABI(nv));
+      contante.setAbicaus(estraiCausABI(nv));
     });
   }
   //
@@ -528,10 +528,10 @@ public class ViewContanti implements Initializable, IStartApp {
           txDescr.setText(contante.getDescr());
           break;
         case 6: // abicaus
-          contante.setCaus(null);
+          contante.setAbicaus(null);
           if (null != e)
-            contante.setCaus(e.toString());
-          cbCausABI.getSelectionModel().select(m_db.getDescrCausABI(contante.getCaus()));
+            contante.setAbicaus(e.toString());
+          cbCausABI.getSelectionModel().select(m_db.getDescrCausABI(contante.getAbicaus()));
           break;
         case 7: // cardid
           contante.setCardid(null);

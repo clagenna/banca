@@ -29,17 +29,6 @@ public class ImpFile implements Cloneable {
   private static final Logger  s_log      = LogManager.getLogger(ImpFile.class);
   private static final Pattern s_cardHold = Pattern.compile(".*_([a-z]+)\\.[a-z]+", Pattern.CASE_INSENSITIVE);
 
-  public static final String COL_Tipo      = "tipo";
-  public static final String COL_IdFile    = "idfile";
-  public static final String COL_dtMov     = "dtmov";
-  public static final String COL_dtVal     = "dtval";
-  public static final String COL_Dare      = "dare";
-  public static final String COL_Avere     = "avere";
-  public static final String COL_CardId    = "cardid";
-  public static final String COL_Descr     = "descr";
-  public static final String COL_ABICaus   = "abicaus";
-  public static final String COL_DescrCaus = "descrcaus";
-
   @Getter
   private Integer       id;
   @Getter

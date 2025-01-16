@@ -29,10 +29,20 @@ public class CodStat implements Comparable<CodStat> {
   private boolean       matched;
 
   public CodStat() {
+    assign(0, 0, 0);
+  }
+
+  public void assign(CodStat cds) {
+    assign(cds.cod1, cds.cod2, cds.cod3);
+    setDescr(cds.descr);
+  }
+
+  public void assign(int cd1, int cd2, int cd3) {
+    setDescr(null);
     setPadre(null);
-    setCod1(0);
-    setCod2(0);
-    setCod3(0);
+    setCod1(cd1);
+    setCod2(cd2);
+    setCod3(cd3);
     calcLivello();
     setMatched(false);
     totdare = 0d;
@@ -105,10 +115,18 @@ public class CodStat implements Comparable<CodStat> {
       case 2:
         sb.insert(0, String.format(".%02d", cod2));
       case 1:
-        sb.insert(0, String.format(".%02d", cod1));
+        sb.insert(0, String.format("%02d", cod1));
         break;
     }
     return CodStat.parse(sb.toString());
+  }
+  
+  public boolean isValid() {
+    if ( !Utils.isValue(cod1))
+      return false;
+    if ( !Utils.isValue(descr))
+      return false;
+    return true;
   }
 
   public CodStat add(CodStat cds) {
@@ -120,6 +138,7 @@ public class CodStat implements Comparable<CodStat> {
       figli = new ArrayList<CodStat>();
     bSorted = false;
     int diff = cds.getLivello() - getLivello();
+    // sono sul Padre, aggiungo qui
     if (diff == 1) {
       // allora figlio diretto
       cds.setPadre(this);
@@ -129,6 +148,7 @@ public class CodStat implements Comparable<CodStat> {
         figli.get(figli.indexOf(cds)).update(cds);
       return this;
     }
+    // sono sugli ancestrali
     int livdiscend = livello + 1;
     String arr[] = cds.getCodice().split("\\.");
     StringBuilder sb = new StringBuilder();
@@ -215,6 +235,32 @@ public class CodStat implements Comparable<CodStat> {
         fi.printAll(p_sb, nesting + 1);
     }
     return p_sb;
+  }
+
+  public String toStringEx() {
+    return String.format("%d.%d.%d %s" //
+        , cod1, cod2, cod3 //
+//        , Utils.formatDouble(totdare) //
+//        , Utils.formatDouble(totavere) //
+        , descr);
+  }
+  
+  public String toExpanded() {
+    StringBuilder sb = new StringBuilder();
+    toExpanded(livello, sb);
+    return sb.toString();
+  }
+
+  private String toExpanded(int liv, StringBuilder sb) {
+    String szTab = "  ".repeat(liv);
+    sb.append(szTab);
+    sb.append(toStringEx()).append("\n");
+    if ( null != figli) {
+      for ( CodStat cds : figli) {
+        sb.append(cds.toExpanded(liv+1, sb));
+      }
+    }
+    return sb.toString();
   }
 
   @Override

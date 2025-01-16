@@ -1,8 +1,11 @@
 package sm.clagenna.banca.javafx;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Semaphore;
 import java.util.regex.Pattern;
 
@@ -18,8 +21,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.CsvImportBanca;
 import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.IRigaBanca;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsCol;
@@ -32,6 +35,8 @@ public class TableViewFiller extends Task<String> {
   private static final Logger s_log           = LogManager.getLogger(TableViewFiller.class);
   private static String       CSZ_NULLVAL     = "**null**";
   private static String       QRY_WHE_NOTRASF = "AND abicaus not in ('45','S3','S4') AND descr NOT LIKE '%wise%'";
+
+  private static DecimalFormat fmtDbl;
 
   @Getter @Setter
   private ResultView              resView;
@@ -48,11 +53,19 @@ public class TableViewFiller extends Task<String> {
   private boolean                 m_bScartaImpTrasf;
   @Getter @Setter
   private boolean                 conRecTotali;
+  @Getter @Setter
+  private List<IRigaBanca>        excludeCols;
+
+  static {
+    fmtDbl = (DecimalFormat) NumberFormat.getInstance(Locale.getDefault()); // ("#,##0.00", Locale.getDefault())
+    fmtDbl.applyPattern("#,##0.00");
+  }
 
   public TableViewFiller(TableView<List<Object>> tblview) {
     setTableview(tblview);
     conRecTotali = false;
     m_db = LoadBancaMainApp.getInst().getConnSQL();
+    excludeCols = LoadBancaMainApp.getInst().getData().getExcludeCols();
   }
 
   public static void setNullRetValue(String vv) {
@@ -130,12 +143,23 @@ public class TableViewFiller extends Task<String> {
     // FIXME mi fermo qui altrimenti il dataset e Table view non è esportabile
   }
 
+  private boolean isExcludedCol(String p_colNam) {
+    if (null == excludeCols || null == p_colNam)
+      return false;
+    IRigaBanca rb = IRigaBanca.parse(p_colNam);
+    if (null == rb)
+      return false;
+    return excludeCols.contains(rb);
+  }
+
   private void creaTableView(Dataset p_dts) {
     DtsCols cols = p_dts.getColumns();
     int k = 0;
     for (DtsCol col : cols.getColumns()) {
       final int j = k++;
       String szColNam = col.getName();
+      if (isExcludedCol(szColNam))
+        continue;
       String cssAlign = "-fx-alignment: center-left;";
       switch (col.getType()) {
         case BIGINT:
@@ -185,7 +209,7 @@ public class TableViewFiller extends Task<String> {
       patt = Pattern.compile(fltrParola.toLowerCase());
     for (DtsRow riga : m_dts.getRighe()) {
       if (fltrParolaRegEx) {
-        String desc = (String) riga.get(CsvImportBanca.COL_DESCR);
+        String desc = (String) riga.get(IRigaBanca.DESCR.getColNam());
         if ( !Utils.isValue(desc))
           continue;
         var lo = desc.toLowerCase();
@@ -217,7 +241,8 @@ public class TableViewFiller extends Task<String> {
       case "Double":
         if ((Double) p_o == 0)
           return "";
-        return p_o;
+        // return Utils.formatDouble((Double) p_o);
+        return fmtDbl.format(p_o);
     }
     return p_o;
   }

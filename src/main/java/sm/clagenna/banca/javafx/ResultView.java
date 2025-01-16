@@ -48,6 +48,7 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CsvFileContainer;
 import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.IRigaBanca;
 import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.sql.ISQLGest;
@@ -552,14 +553,14 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     //    System.out.println("ResultView.tableRow_dblclick(row):" + (null != row ? row.getClass().getSimpleName() : "**null**"));
     List<Object> r = tblview.getSelectionModel().getSelectedItem();
     Dataset dts = m_tbvf.getDataset();
-    int nCol = dts.getColumNo(ImpFile.COL_IdFile);
+    int nCol = dts.getColumNo(IRigaBanca.IDFILE.getColNam());
     if (nCol < 0 || r.size() <= nCol) {
-      s_log.warn("Non trovo la colonna {} sulla Table", ImpFile.COL_IdFile);
+      s_log.warn("Non trovo la colonna {} sulla Table", IRigaBanca.IDFILE.getColNam());
       return;
     }
     Integer iidFil = (Integer) r.get(nCol);
     if (null == iidFil) {
-      s_log.warn("IdFile = {} sulla Table", ImpFile.COL_IdFile);
+      s_log.warn("IdFile = {} sulla Table", IRigaBanca.IDFILE.getColNam());
       return;
     }
     DataController data = m_appmain.getData();

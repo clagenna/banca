@@ -10,6 +10,22 @@ import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class RigaBanca {
+
+//  public static final String COL_ID        = "id";
+//  public static final String COL_IDFILE    = "idfile";
+//  public static final String COL_DTMOV     = "dtmov";
+//  public static final String COL_DTVAL     = "dtval";
+//  public static final String COL_DTMOVSTR  = "dtmovstr";
+//  public static final String COL_DTVALSTR  = "dtvalstr";
+//  public static final String COL_DARE      = "dare";
+//  public static final String COL_AVERE     = "avere";
+//  public static final String COL_CARDID    = "cardid";
+//  public static final String COL_DESCR     = "descr";
+//  public static final String COL_CAUS      = "abicaus";
+//  public static final String COL_DESCRCAUS = "descrcaus";
+//  public static final String COL_COSTO     = "costo";
+//  public static final String COL_CODSTAT   = "codstat";
+
   @Getter @Setter
   private Integer       rigaid;
   @Getter @Setter
@@ -31,7 +47,7 @@ public class RigaBanca {
   @Getter
   private String        descr;
   @Getter @Setter
-  private String        caus;
+  private String        abicaus;
   @Getter @Setter
   private String        descrcaus;
   @Getter @Setter
@@ -42,6 +58,7 @@ public class RigaBanca {
   private String        codstat;
   @Getter
   private String        localCardIdent;
+
 
   public RigaBanca() {
     azzera();
@@ -54,7 +71,7 @@ public class RigaBanca {
     dare = p_dare;
     setAvere(p_avere);
     setDescr(p_descr);
-    caus = p_caus;
+    abicaus = p_caus;
     if (Utils.isValue(p_cardid))
       setCardid(p_cardid);
     codstat = p_codstat;
@@ -64,7 +81,7 @@ public class RigaBanca {
   public String toString() {
     String sz1 = null == dtmov ? "*null*" : ParseData.formatDate(dtmov);
     String sz2 = null == dtval ? "*null*" : ParseData.formatDate(dtval);
-    return sz1 + "\t" + sz2 + "\t" + dare + "\t" + avere + "\t" + descr + "\t" + caus + "\t" + cardid + "\\n";
+    return sz1 + "\t" + sz2 + "\t" + dare + "\t" + avere + "\t" + descr + "\t" + abicaus + "\t" + cardid + "\\n";
   }
 
   public void setDtmov(LocalDateTime dt) {
@@ -104,7 +121,7 @@ public class RigaBanca {
     dare = 0.;
     avere = .0;
     descr = null;
-    caus = null;
+    abicaus = null;
     cardid = null;
     codstat = null;
   }
@@ -114,7 +131,7 @@ public class RigaBanca {
       return false;
     if (null == dare || null == avere || dare == 0 && avere == 0)
       return false;
-    if ( !Utils.isValue(descr) || !Utils.isValue(caus))
+    if ( !Utils.isValue(descr) || !Utils.isValue(abicaus))
       return false;
     return true;
   }
@@ -180,7 +197,7 @@ public class RigaBanca {
           rb.setDescr(col.toString());
           break;
         case abicaus:
-          rb.setCaus(col.toString());
+          rb.setAbicaus(col.toString());
           break;
         case descrcaus:
           rb.setDescrcaus(col.toString());
