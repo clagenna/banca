@@ -23,16 +23,18 @@ public class TableViewFillerBanca extends TableViewFiller {
   private Pattern patt;
 
   private List<IRigaBanca> myExcludeCols;
+  private DataController   cntrl;
 
   public TableViewFillerBanca(TableView<List<Object>> tblview, DBConn p_dbc) {
     super(tblview, p_dbc);
     myExcludeCols = LoadBancaMainApp.getInst().getData().getExcludeCols();
+    cntrl = DataController.getInst();
   }
 
   @Override
   public boolean isExcludedCol(String p_colNam) {
     boolean bRet = super.isExcludedCol(p_colNam);
-    if (bRet)
+    if (bRet || (null == myExcludeCols))
       return bRet;
     IRigaBanca rb = IRigaBanca.parse(p_colNam);
     if (null == rb)
@@ -43,10 +45,7 @@ public class TableViewFillerBanca extends TableViewFiller {
 
   @Override
   public void datasetReady() {
-    // cambiare questo in datacontroller.firePropertyChange "resultview", szQry,szQry
-    // LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
-    // mainApp.aggiornaTotaliCodStat(szQry);
-    DataController cntrl = DataController.getInst();
+    cntrl.azzeraTotaliCodStat();
     String szQry = super.getSzQry();
     Dataset dts = super.getDataset();
     cntrl.firePropertyChange(DataController.EVT_NEW_QUERY_RESULT, null, szQry);
@@ -55,16 +54,34 @@ public class TableViewFillerBanca extends TableViewFiller {
 
   @Override
   public boolean scartaRiga(DtsRow riga) {
+    if (super.scartaRiga(riga))
+      return true;
+    if ( !Utils.isValue(fltrParola))
+      return false;
     if (fltrParolaRegEx)
       patt = Pattern.compile(fltrParola.toLowerCase());
-    if (fltrParolaRegEx) {
-      String desc = (String) riga.get(IRigaBanca.DESCR.getColNam());
-      if ( !Utils.isValue(desc))
-        return true;
-      var lo = desc.toLowerCase();
-      if ( !patt.matcher(lo).find())
-        return true;
-    }
+    String desc = (String) riga.get(IRigaBanca.DESCR.getColNam());
+    if ( !Utils.isValue(desc))
+      return true;
+    var lo = desc.toLowerCase();
+    if ( !fltrParolaRegEx)
+      return !lo.contains(fltrParola);
+    if ( !patt.matcher(lo).find())
+      return true;
     return false;
   }
+
+  @Override
+  public void addRiga(DtsRow riga) {
+    super.addRiga(riga);
+    String szCodice = (String) riga.get(EColsTableView.codstat.name());
+    Number dareX = (Number) riga.get(EColsTableView.dare.name());
+    Number avereX = (Number) riga.get(EColsTableView.avere.name());
+    cntrl.aggiornaTotaliCodStat2(szCodice, dareX, avereX);
+  }
+
+  public void tableViewFilled() {
+    cntrl.fineTotaliCodstat();
+  }
+
 }

@@ -456,8 +456,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     switch (szEvtId) {
       case DataController.EVT_NEW_QUERY_RESULT:
         // m_szQryResulView = evt.getNewValue().toString();
-        datacntrlr.setQryResulView(evt.getNewValue().toString());
-        Platform.runLater(() -> datacntrlr.aggiornaTotaliCodStat());
+//        datacntrlr.setQryResulView(evt.getNewValue().toString());
+//        Platform.runLater(() -> datacntrlr.aggiornaTotaliCodStat());
         break;
 
       case DataController.EVT_TOTCODSTAT:

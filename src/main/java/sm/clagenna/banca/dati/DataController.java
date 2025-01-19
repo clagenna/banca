@@ -306,6 +306,21 @@ public class DataController implements IStartApp, PropertyChangeListener {
     codStatData.setCodStat(value);
   }
 
+  public void azzeraTotaliCodStat() {
+    codStatData.clear();
+  }
+
+  public void aggiornaTotaliCodStat2(String szCodStat, Number dareX, Number avereX) {
+    if (null == dareX || null == avereX)
+      return;
+    var szCdS = szCodStat == null ? "99" : szCodStat;
+    codStatData.getRoot().somma(szCdS, dareX.doubleValue(), avereX.doubleValue());
+  }
+
+  public void fineTotaliCodstat() {
+    firePropertyChange(EVT_TOTCODSTAT, "-1", codStatData.getCodStat());
+  }
+
   public void aggiornaTotaliCodStat() {
     // parse : SELECT * from ListaMovimentiUNION WHERE 1=1  AND movStr like '2024%'  ORDER BY dtMov,dtval
     if (null == qryResulView)
