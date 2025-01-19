@@ -3,6 +3,9 @@ package sm.clagenna.banca.dati;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Enumerato che descrive l'output della consultazione dei movimenti bancari
+ */
 public enum IRigaBanca {
   ID("id"), //
   IDFILE("idfile"), //

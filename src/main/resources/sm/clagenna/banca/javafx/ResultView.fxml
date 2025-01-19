@@ -56,8 +56,8 @@
                   <Tooltip text="Digita un testo da ricercare nelle causali dei movimenti, es: &quot;TitanCOOP&quot;" />
                </tooltip>
             </Label>
-            <TextField fx:id="txParola" layoutX="87.0" layoutY="7.0" prefHeight="25.0" prefWidth="484.0" promptText="Parola da cercare" />
-            <ComboBox fx:id="cbSaveQuery" editable="true" layoutX="581.0" layoutY="7.0" onAction="#cbSaveQuerySel" prefHeight="25.0" prefWidth="236.0">
+            <TextField fx:id="txParola" layoutX="87.0" layoutY="7.0" prefHeight="25.0" prefWidth="484.0" promptText="Parola da cercare" AnchorPane.leftAnchor="87.0" AnchorPane.rightAnchor="617.0" />
+            <ComboBox fx:id="cbSaveQuery" editable="true" layoutX="581.0" layoutY="7.0" onAction="#cbSaveQuerySel" prefHeight="25.0" prefWidth="236.0" AnchorPane.rightAnchor="371.0">
                <tooltip>
                   <Tooltip text="Tutti gli identificativi di query salvate con &quot;Salva Query&quot;" />
                </tooltip>
@@ -70,49 +70,55 @@
                   <Tooltip text="La clausola filtro di una query SQL, senza 'AND' iniziale" />
                </tooltip>
             </Label>
-            <TextArea fx:id="txWhere" layoutX="87.0" layoutY="40.0" prefHeight="37.0" prefWidth="484.0" promptText="Testo della WHERE SQL " />
-				<Button fx:id="btCerca" layoutX="581.0" layoutY="44.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca" />
-            <Button fx:id="btSaveQuery" layoutX="642.0" layoutY="44.0" mnemonicParsing="false" onAction="#btSaveQueryClick" text="Salva Query">
+            <TextArea fx:id="txWhere" layoutX="87.0" layoutY="40.0" prefHeight="37.0" prefWidth="484.0" promptText="Testo della WHERE SQL " AnchorPane.leftAnchor="87.0" AnchorPane.rightAnchor="617.0" />
+				<Button fx:id="btCerca" layoutX="582.0" layoutY="44.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca" AnchorPane.rightAnchor="560.0" />
+            <Button fx:id="btSaveQuery" layoutX="669.0" layoutY="44.0" mnemonicParsing="false" onAction="#btSaveQueryClick" text="Salva Query" AnchorPane.rightAnchor="440.0">
                <tooltip>
                   <Tooltip text="Permette di salvare tutti i parametri di ricerca impostati con un identificativo richiamabile in futuro" />
                </tooltip>
             </Button>
-				<Button fx:id="btExportCsv" layoutX="764.0" layoutY="44.0" mnemonicParsing="false" onAction="#btExportCsvClick" text="To CSV" />
-            <CheckBox fx:id="ckRegExp" layoutX="866.0" layoutY="-3.0" mnemonicParsing="false" onAction="#ckRegExpClick" text="Espressione Regolare su Descr.">
+				<Button fx:id="btExportCsv" layoutX="764.0" layoutY="44.0" mnemonicParsing="false" onAction="#btExportCsvClick" text="To CSV" AnchorPane.rightAnchor="370.0" />
+            <CheckBox fx:id="ckRegExp" layoutX="837.0" mnemonicParsing="false" onAction="#ckRegExpClick" text="Espressione Regolare su Descr." AnchorPane.rightAnchor="167.0">
                <tooltip>
                   <Tooltip text="Permette la ricerca con Reg.Expr. sul campo &quot;Parola Descr&quot;" />
                </tooltip>
             </CheckBox>
-            <CheckBox fx:id="ckScartaImp" layoutX="866.0" layoutY="18.0" mnemonicParsing="false" text="Scarta Imp. di trasferimento">
+            <CheckBox fx:id="ckScartaImp" layoutX="837.0" layoutY="19.0" mnemonicParsing="false" text="Scarta Imp. di trasferimento" AnchorPane.rightAnchor="183.0">
                <tooltip>
                   <Tooltip text="Scarta le doppie registrazione che hanno causale ('45','S3','S4') e i trasferimenti in WISE" />
                </tooltip>
             </CheckBox>
-            <CheckBox fx:id="ckLanciaExcel" layoutX="866.0" layoutY="39.0" mnemonicParsing="false" text="Lancia Excel">
+            <CheckBox fx:id="ckLanciaExcel" layoutX="837.0" layoutY="39.0" mnemonicParsing="false" text="Lancia Excel" AnchorPane.rightAnchor="267.0">
                <tooltip>
                   <Tooltip text="Dopo aver scritto il CSV tenta di leggerlo lanciando Excel (se installato e associato all'estensione *.csv)" />
                </tooltip></CheckBox>
-            <CheckBox fx:id="ckCvsBlankOnZero" layoutX="866.0" layoutY="60.0" mnemonicParsing="false" text="CSV con Zero null">
+            <CheckBox fx:id="ckCvsBlankOnZero" layoutX="836.0" layoutY="61.0" mnemonicParsing="false" text="CSV con Zero null" AnchorPane.rightAnchor="236.0">
                <tooltip>
                   <Tooltip text="Nel CSV di Export mette NULL al posto di 0.00 (Zero) cosi che nel foglio excel la cella risulta vuota" />
                </tooltip></CheckBox>
-            <Button fx:id="btMostraCodStat" layoutX="1055.0" layoutY="23.0" mnemonicParsing="false" onAction="#btMostraCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Mostra Cod.Stat" AnchorPane.rightAnchor="23.0" AnchorPane.topAnchor="23.0">
+            <Button fx:id="btMostraCodStat" layoutX="1063.0" layoutY="6.0" mnemonicParsing="false" onAction="#btMostraCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Mostra Cod.Stat" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="6.0">
                <tooltip>
                   <Tooltip text="Mostra la finestra per la selezione dei codici statistici" />
                </tooltip>
             </Button>
-            <Button fx:id="btAssignCodStat" layoutX="1028.0" layoutY="50.0" mnemonicParsing="false" onAction="#btAssignCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Cod.Stat." AnchorPane.rightAnchor="23.0" AnchorPane.topAnchor="50.0">
+            <Button fx:id="btAssignCodStat" layoutX="1063.0" layoutY="38.0" mnemonicParsing="false" onAction="#btAssignCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Cod.Stat." AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="38.0">
                <tooltip>
                   <Tooltip text="Assegna il codice statistico evidenziato a tutte le righe selezionate " />
                </tooltip>
             </Button>
+            <Label fx:id="lbAssignCodStat" layoutX="1072.0" layoutY="66.0" prefHeight="17.0" prefWidth="153.0" textAlignment="CENTER" AnchorPane.rightAnchor="11.0" />
          </children>
       </AnchorPane>
-	  <TableView fx:id="tblview" layoutY="129.0" maxHeight="1.7976931348623157E308" prefHeight="375.0" prefWidth="962.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="129.0">
+	  <TableView fx:id="tblview" layoutY="129.0" maxHeight="1.7976931348623157E308" prefHeight="351.0" prefWidth="1188.0" AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="129.0">
 			<columns>
 				<TableColumn prefWidth="75.0" text="C1" />
 				<TableColumn prefWidth="75.0" text="C2" />
 			</columns>
 	  </TableView>
+      <AnchorPane layoutX="6.0" layoutY="471.0" prefHeight="28.0" prefWidth="1169.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+         <children>
+            <Label fx:id="lbMsg" layoutX="4.0" layoutY="6.0" text="Messaggi..." />
+         </children>
+      </AnchorPane>
 	</children>
 </AnchorPane>

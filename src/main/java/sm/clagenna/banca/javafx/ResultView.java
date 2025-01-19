@@ -8,11 +8,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -35,6 +37,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableRow;
@@ -46,6 +49,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.CsvFileContainer;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.IRigaBanca;
@@ -53,7 +57,9 @@ import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
+import sm.clagenna.stdcla.javafx.AutoCompleteComboBoxListener;
 import sm.clagenna.stdcla.javafx.IStartApp;
+import sm.clagenna.stdcla.javafx.TableViewFiller;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sys.ex.DatasetException;
@@ -96,6 +102,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   @FXML
   private Button              btAssignCodStat;
   @FXML
+  private Label               lbAssignCodStat;
+  @FXML
   protected CheckBox          ckRegExp;
   @FXML
   private CheckBox            ckScartaImp;
@@ -106,6 +114,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @FXML
   private TableView<List<Object>> tblview;
+  @FXML
+  private Label                   lbMsg;
 
   @Getter @Setter
   private Scene myScene;
@@ -127,12 +137,17 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   @Getter @Setter
   private GestResViewQueryParams m_gestQry;
 
-  private TableViewFiller m_tbvf;
-  private Path            m_CSVfile;
-  private String          m_fltrTipoBanca;
+  private TableViewFillerBanca m_tbvf;
+  private Path                 m_CSVfile;
+  private String               m_fltrTipoBanca;
+  private DataController       dataCntrl;
   @Getter @Setter
-  private boolean         csvBlankOnZero;
-  private String          m_codStatSel;
+  private boolean              csvBlankOnZero;
+  private String               m_codStatSel;
+  private boolean              bSemaf;
+
+  @SuppressWarnings("unused")
+  private AutoCompleteComboBoxListener<String> autoCbComp;
 
   public ResultView() {
     //
@@ -149,6 +164,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addResView(this);
     mainProps = m_appmain.getProps();
+    dataCntrl = m_appmain.getData();
+    dataCntrl.addPropertyChangeListener(this);
+
     String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
     m_db = SqlGestFactory.get(szSQLType);
     m_db.setDbconn(LoadBancaMainApp.getInst().getConnSQL());
@@ -173,7 +191,13 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     m_gestQry = new GestResViewQueryParams(this);
     m_gestQry.caricaCombo(cbSaveQuery);
     btSaveQuery.setDisable(true);
-    cbSaveQuery.getEditor().textProperty().addListener((obj, old, nv) -> cbSaveQueryUpd(obj, old, nv));
+    autoCbComp = new AutoCompleteComboBoxListener<String>(cbSaveQuery);
+    cbSaveQuery //
+        .getEditor() //
+        .textProperty() //
+        .addListener( //
+            (obj, old, nv) -> cbSaveQueryUpd(obj, old, nv) //
+        );
   }
 
   private void caricaComboTipoBanca() {
@@ -271,7 +295,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @Override
   public void closeApp(AppProperties p_props) {
+    dataCntrl.removePropertyChangeListener(this);
     m_appmain.removeResView(this);
+    autoCbComp = null;
     if (null != m_gestQry)
       m_gestQry.closeApp(p_props);
     if (myScene == null) {
@@ -331,6 +357,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @FXML
   void txWhereSel(ObservableValue<? extends String> obj, String old, String nval) {
+    if (bSemaf)
+      return;
     m_fltrWhere = nval;
     // s_log.debug("ResultView.txWhereSel({}):", m_fltrWhere);
     abilitaBottoni();
@@ -362,8 +390,25 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   }
 
   @FXML
-  void btCercaClick(ActionEvent event) {
-    // System.out.println("ResultView.btCercaClick()");
+  private void btCercaClick(ActionEvent event) {
+    if (bSemaf)
+      return;
+    bSemaf = true;
+    // chiamando btCercaClick() dal propertyChange( EVT_FILTER_CODSTAT )(piu sotto)
+    // ricevo 2 chiamate consecutive !?! Per cui bSema viene spento solo alla fine del thread
+    // creaTableResultThread(szQryFltr);
+    //    System.out.println("ResultView.btCercaClick()");
+    //    printStackTrace();
+    try {
+      if (null != event) {
+        if (event.getSource() instanceof String szCodstat) {
+          m_fltrWhere = String.format("codstat like '%s%%'", szCodstat);
+          txWhere.setText(m_fltrWhere);
+        }
+      }
+    } finally {
+      // bSemaf = false;
+    }
     String szQryFltr = creaQuery();
     // test validita query
     DBConn dbc = m_db.getDbconn();
@@ -371,6 +416,22 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       return;
     creaTableResultThread(szQryFltr);
     abilitaBottoni();
+  }
+
+  @SuppressWarnings("unused")
+  private void printStackTrace() {
+    StackTraceElement[] ll = Thread.currentThread().getStackTrace();
+    int k = 0;
+    final int MAX = 50;
+    for (StackTraceElement stk : ll) {
+      String sz = stk.toString();
+      if (sz.contains("getStackTrace") || sz.contains("printStackTrace"))
+        continue;
+      System.out.println("\t" + sz);
+      if (k++ > MAX)
+        break;
+
+    }
   }
 
   @FXML
@@ -469,9 +530,12 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   }
 
   private void creaTableResultThread(String szQryFltr) {
+    // System.out.println("ResultView.creaTableResultThread()");
     TableViewFiller.setNullRetValue("");
-    m_tbvf = new TableViewFiller(tblview);
-    m_tbvf.setResView(this);
+
+    m_tbvf = new TableViewFillerBanca(tblview, m_appmain.getConnSQL());
+
+    // m_tbvf.setResView(this);
     if (fltrParolaRegEx) {
       m_tbvf.setFltrParolaRegEx(fltrParolaRegEx);
       m_tbvf.setFltrParola(m_fltrParola);
@@ -495,6 +559,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
           lstage.getScene().setCursor(Cursor.DEFAULT);
           btCerca.setDisable(false);
           btExportCsv.setDisable(false);
+          bSemaf = false;
         });
       });
       m_tbvf.setOnFailed(ev -> {
@@ -503,6 +568,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
           lstage.getScene().setCursor(Cursor.DEFAULT);
           btCerca.setDisable(false);
           btExportCsv.setDisable(false);
+          bSemaf = false;
         });
       });
       backGrService.execute(m_tbvf);
@@ -538,15 +604,39 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
     // System.out.printf("ResultView.propertyChange(\"%s=%s\")\n", evt.getPropertyName(), evt.getNewValue().toString());
-    if ( !evt.getPropertyName().equals(DataController.EVT_CODSTAT))
-      return;
+    String szEvt = evt.getPropertyName();
+    switch (szEvt) {
 
-    m_codStatSel = evt.getNewValue().toString();
-    Platform.runLater(() -> {
-      btAssignCodStat.setText(m_codStatSel);
-      abilitaBottoni();
-    });
+      case DataController.EVT_CODSTAT:
+        m_codStatSel = evt.getNewValue().toString();
+        Platform.runLater(() -> {
+          DataController data = m_appmain.getData();
+          CodStat cds = data.getCodStatData().decodeCodStat(m_codStatSel);
+          String szLb = "...";
+          if (null != cds)
+            szLb = cds.getDescr();
+          btAssignCodStat.setText(m_codStatSel);
+          lbAssignCodStat.setText(szLb);
+          abilitaBottoni();
+        });
+        break;
 
+      case DataController.EVT_FILTER_CODSTAT:
+        if (evt.getNewValue() instanceof CodStat cds) {
+          String szFltrCodstat = cds.getCodice();
+          ActionEvent nevt = new ActionEvent(szFltrCodstat, null);
+          Platform.runLater(() -> btCercaClick(nevt));
+        }
+        break;
+
+      case DataController.EVT_DATASET_CREATED:
+        if (evt.getNewValue() instanceof Integer nv) {
+          var fmt = NumberFormat.getInstance(Locale.getDefault());
+          String szMsg = String.format("Letti %s recs", fmt.format(nv));
+          Platform.runLater(() -> lbMsg.setText(szMsg));
+        }
+        break;
+    }
   }
 
   protected void tableRow_dblclick(TableRow<List<Object>> row) {
@@ -563,9 +653,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       s_log.warn("IdFile = {} sulla Table", IRigaBanca.IDFILE.getColNam());
       return;
     }
-    DataController data = m_appmain.getData();
-    Path lastd = data.getLastDir();
-    CsvFileContainer csvf = data.getContCsv();
+    Path lastd = dataCntrl.getLastDir();
+    CsvFileContainer csvf = dataCntrl.getContCsv();
     ImpFile impf = csvf.getFromIndex(iidFil);
     if (null == impf) {
       s_log.warn("IdFile = {} non memorizzato ?", iidFil);
@@ -617,6 +706,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     //    if (cnt
     // rl.isLanciaExc())
     //      lanciaExcel2();
+    String szMsg = String.format("Creato il file di export CSV : %s", m_CSVfile.toString());
+    m_appmain.messageDialog(AlertType.INFORMATION, szMsg);
     abilitaBottoni();
   }
 

@@ -42,6 +42,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat;
+import sm.clagenna.banca.dati.CodStatTreeData;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
@@ -210,7 +211,11 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
   private void treeView_filtra(Object object) {
     System.out.println("CodStatView.treeView_filtra()");
-
+    TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
+    CodStat cds =  null;
+    if (null != tricds) 
+      cds = tricds.getValue();
+    datacntrlr.firePropertyChange(DataController.EVT_FILTER_CODSTAT, null, cds);
   }
 
   private void treeView_modTree(Object object) {
@@ -449,7 +454,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   public void propertyChange(PropertyChangeEvent evt) {
     String szEvtId = evt.getPropertyName();
     switch (szEvtId) {
-      case DataController.EVT_RESULTVIEW:
+      case DataController.EVT_NEW_QUERY_RESULT:
         // m_szQryResulView = evt.getNewValue().toString();
         datacntrlr.setQryResulView(evt.getNewValue().toString());
         Platform.runLater(() -> datacntrlr.aggiornaTotaliCodStat());

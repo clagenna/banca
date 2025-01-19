@@ -1,5 +1,6 @@
 package sm.clagenna.banca.dati;
 
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
@@ -20,7 +21,6 @@ import org.apache.logging.log4j.Logger;
 import javafx.collections.ObservableList;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.javafx.CodStatTreeData;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.stdcla.javafx.IStartApp;
@@ -29,7 +29,7 @@ import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.AppProperties;
 
-public class DataController implements IStartApp {
+public class DataController implements IStartApp, PropertyChangeListener {
   private static final Logger s_log                 = LogManager.getLogger(DataController.class);
   private static final String CSZ_PROP_SCARTA       = "voci.scarta";
   private static final String CSZ_PROP_EXCLUDEDCOLS = "excludedcols";
@@ -38,9 +38,11 @@ public class DataController implements IStartApp {
   public static final String  CSZ_FILTER_FILES      = "filter_files";
 
   public static final String EVT_CODSTAT             = "codstat";
-  public static final String EVT_RESULTVIEW          = "dtsresult";
+  public static final String EVT_NEW_QUERY_RESULT    = "dtsresult";
   public static final String EVT_TOTCODSTAT          = "totcodstats";
   public static final String EVT_TREECODSTAT_CHANGED = "treeCodstat";
+  public static final String EVT_FILTER_CODSTAT      = "filterCodstat";
+  public static final String EVT_DATASET_CREATED     = "datasetCreated";
 
   //  public static final String  FILE_CODSTAT    = "CodStat.properties";
   private static final String QRY_TOT_CODSTAT = //
@@ -97,6 +99,7 @@ public class DataController implements IStartApp {
     filtriQuery = ESqlFiltri.AllSets.getFlag();
     codStatData = new CodStatTreeData();
     codStatData.readTree();
+    addPropertyChangeListener(this);
   }
 
   public Path assegnaLastDir(Path p_ld, boolean bForce) {
@@ -344,6 +347,19 @@ public class DataController implements IStartApp {
     }
     s_log.debug("Calcolato totali X CodStat con {} risultati", dts.size());
     firePropertyChange(EVT_TOTCODSTAT, "-1", codStatData.getCodStat());
+  }
+
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    String szEvtId = evt.getPropertyName();
+    switch (szEvtId) {
+      // meglio se l'evento lo lancia la CodStatView (perche aperta)
+      //      case DataController.EVT_NEW_QUERY_RESULT:
+      //        // m_szQryResulView = evt.getNewValue().toString();
+      //        setQryResulView(evt.getNewValue().toString());
+      //        Platform.runLater(() -> aggiornaTotaliCodStat());
+      //        break;
+    }
   }
 
 }

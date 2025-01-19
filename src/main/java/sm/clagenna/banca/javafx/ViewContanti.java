@@ -33,6 +33,7 @@ import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
+import sm.clagenna.stdcla.javafx.TableViewFiller;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
@@ -121,10 +122,10 @@ public class ViewContanti implements Initializable, IStartApp {
   private Stage            lstage;
   private LoadBancaMainApp m_appmain;
   // private AppProperties     m_mainProps;
-  private ISQLGest        m_db;
-  private EModalitaView   modalita;
+  private ISQLGest                m_db;
+  private EModalitaView           modalita;
   private TableViewFiller m_tbvf;
-  private RigaBanca       contante;
+  private RigaBanca               contante;
   //  private PreparedStatement stmtIns;
   // private PreparedStatement stmtMod;
   //  private PreparedStatement stmtDel;
@@ -395,7 +396,7 @@ public class ViewContanti implements Initializable, IStartApp {
 
   @SuppressWarnings("unused")
   private void creaTableResult(String szQryFltr) {
-    m_tbvf = new TableViewFiller(tblview);
+    m_tbvf = new TableViewFiller(tblview, m_appmain.getConnSQL());
     m_tbvf.setSzQry(szQryFltr);
     try {
       m_tbvf.call();
@@ -419,7 +420,7 @@ public class ViewContanti implements Initializable, IStartApp {
 
   private void creaTableResultThread(String szQryFltr) {
     TableViewFiller.setNullRetValue("");
-    m_tbvf = new TableViewFiller(tblview);
+    m_tbvf = new TableViewFiller(tblview, m_appmain.getConnSQL());
     m_tbvf.setSzQry(szQryFltr);
 
     ExecutorService backGrService = Executors.newFixedThreadPool(1);
@@ -430,19 +431,19 @@ public class ViewContanti implements Initializable, IStartApp {
 
     try {
       m_tbvf.setOnRunning(ev -> {
-        s_log.debug("TableViewFiller task running...");
+        s_log.debug("TableViewFiller(2) task running...");
       });
       m_tbvf.setOnSucceeded(ev -> {
-        s_log.debug("TableViewFiller task Finished!");
+        s_log.debug("TableViewFiller(2) task Finished!");
         endTask();
       });
       m_tbvf.setOnFailed(ev -> {
-        s_log.debug("TableViewFiller task failure");
+        s_log.debug("TableViewFiller(2) task failure");
         endTask();
       });
       backGrService.execute(m_tbvf);
     } catch (Exception e) {
-      s_log.error("Errore task TableViewFiller");
+      s_log.error("Errore task TableViewFiller(2)");
     }
     backGrService.shutdown();
     tblview.setRowFactory(tbl -> new TableRow<List<Object>>() {

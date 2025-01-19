@@ -1,8 +1,10 @@
-package sm.clagenna.banca.javafx;
+package sm.clagenna.banca.dati;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 import javafx.scene.control.TreeItem;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.stdcla.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
 
@@ -20,15 +21,17 @@ public class CodStatTreeData {
 
   /** il file properties con tutti i Codstat gestiti */
   @Getter @Setter
-  private Path              fileCodStats;
+  private Path                 fileCodStats;
   @Getter
-  private AppProperties     codstats;
+  private AppProperties        codstats;
   @Getter @Setter
-  private String            codStat;
+  private String               codStat;
   @Getter @Setter
-  private CodStat           root;
+  private CodStat              root;
   @Getter
-  private TreeItem<CodStat> treeItemRoot;
+  private TreeItem<CodStat>    treeItemRoot;
+  @Getter
+  private Map<String, CodStat> mapCodStat;
 
   public CodStatTreeData() {
     //
@@ -46,17 +49,18 @@ public class CodStatTreeData {
       codstats = new AppProperties();
       codstats.leggiPropertyFile(fileCodStats.toFile(), true, false);
     } catch (AppPropsException e) {
-      e.printStackTrace();
+      s_log.error("Errore lettura File dei codici statistici \"{}\", err={}", fileCodStats.toString(), e.getMessage(), e);
       return root;
     }
 
     root = new CodStat();
+    mapCodStat = new TreeMap<String, CodStat>(String.CASE_INSENSITIVE_ORDER);
     for (Object szKey : codstats.getProperties().keySet()) {
       String szVal = codstats.getProperty(szKey.toString());
       // System.out.println("Add:" + szKey);
       CodStat nuovo = CodStat.parse(szKey.toString());
       nuovo.setDescr(szVal);
-      root.add(nuovo);
+      addNode(nuovo);
     }
     refreshTreeItems();
     return root;
@@ -65,7 +69,16 @@ public class CodStatTreeData {
   public void addNode(CodStat cds) {
     if (null == root)
       root = new CodStat();
+    if (null == mapCodStat)
+      mapCodStat = new TreeMap<String, CodStat>(String.CASE_INSENSITIVE_ORDER);
     root.add(cds);
+    mapCodStat.put(cds.getCodice(), cds);
+  }
+  
+  public CodStat decodeCodStat(String p_cod) {
+    if ( p_cod == null || null==mapCodStat)
+      return null;
+    return mapCodStat.get(p_cod);
   }
 
   public void refreshTreeItems() {
