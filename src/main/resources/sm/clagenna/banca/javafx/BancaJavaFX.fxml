@@ -51,6 +51,7 @@
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
                      </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#mnuConfMostraGuessCodStatClick" text="Indovina Cod.Stat." />
               </items>
             </Menu>
 	        <Menu mnemonicParsing="false" text="Help">

@@ -11,20 +11,20 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class RigaBanca {
 
-//  public static final String COL_ID        = "id";
-//  public static final String COL_IDFILE    = "idfile";
-//  public static final String COL_DTMOV     = "dtmov";
-//  public static final String COL_DTVAL     = "dtval";
-//  public static final String COL_DTMOVSTR  = "dtmovstr";
-//  public static final String COL_DTVALSTR  = "dtvalstr";
-//  public static final String COL_DARE      = "dare";
-//  public static final String COL_AVERE     = "avere";
-//  public static final String COL_CARDID    = "cardid";
-//  public static final String COL_DESCR     = "descr";
-//  public static final String COL_CAUS      = "abicaus";
-//  public static final String COL_DESCRCAUS = "descrcaus";
-//  public static final String COL_COSTO     = "costo";
-//  public static final String COL_CODSTAT   = "codstat";
+  //  public static final String COL_ID        = "id";
+  //  public static final String COL_IDFILE    = "idfile";
+  //  public static final String COL_DTMOV     = "dtmov";
+  //  public static final String COL_DTVAL     = "dtval";
+  //  public static final String COL_DTMOVSTR  = "dtmovstr";
+  //  public static final String COL_DTVALSTR  = "dtvalstr";
+  //  public static final String COL_DARE      = "dare";
+  //  public static final String COL_AVERE     = "avere";
+  //  public static final String COL_CARDID    = "cardid";
+  //  public static final String COL_DESCR     = "descr";
+  //  public static final String COL_CAUS      = "abicaus";
+  //  public static final String COL_DESCRCAUS = "descrcaus";
+  //  public static final String COL_COSTO     = "costo";
+  //  public static final String COL_CODSTAT   = "codstat";
 
   @Getter @Setter
   private Integer       rigaid;
@@ -58,7 +58,6 @@ public class RigaBanca {
   private String        codstat;
   @Getter
   private String        localCardIdent;
-
 
   public RigaBanca() {
     azzera();
@@ -104,7 +103,8 @@ public class RigaBanca {
 
   public void setDescr(String p_des) {
     descr = p_des;
-    localCardIdent = DataController.getInst().getAssocid().findAssoc(descr);
+    if (null != DataController.getInst())
+      localCardIdent = DataController.getInst().getAssocid().findAssoc(descr);
     if (null == cardid && localCardIdent != null)
       setCardid(localCardIdent);
   }

@@ -57,6 +57,7 @@ public class LoadBancaMainApp extends Application implements IStartApp {
   private List<ResultView> m_liResViews;
   private ViewContanti     m_viewContanti;
   private CodStatView      m_viewCodStat;
+  private GuessCodStatView m_viewGuessCodStat;
 
   public LoadBancaMainApp() {
     //
@@ -349,13 +350,30 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     m_viewCodStat = null;
   }
 
-  public boolean isCodeStatViewOpened() {
+  public boolean isCodStatViewOpened() {
     return null != m_viewCodStat;
   }
 
-//  public void aggiornaTotaliCodStat(String szQry) {
-//    if (isCodeStatViewOpened()) {
-//      m_viewCodStat.aggiornaTotaliCodStat(szQry);
-//    }
-//  }
+  public void addGuessCodeStatView(GuessCodStatView view) {
+    m_viewGuessCodStat = view;
+    if (null != m_liResViews) {
+      DataController cntrl = DataController.getInst();
+      // m_liResViews.stream().forEach(s -> m_viewCodStat.addPropertyChangeListener(s));
+      m_liResViews.stream().forEach(s -> cntrl.addPropertyChangeListener(s));
+    }
+  }
+
+  public void removeGuessCodStatView(GuessCodStatView view) {
+    m_viewGuessCodStat = null;
+  }
+
+  public boolean isGuessCodStatViewOpened() {
+    return null != m_viewGuessCodStat;
+  }
+
+  //  public void aggiornaTotaliCodStat(String szQry) {
+  //    if (isCodeStatViewOpened()) {
+  //      m_viewCodStat.aggiornaTotaliCodStat(szQry);
+  //    }
+  //  }
 }

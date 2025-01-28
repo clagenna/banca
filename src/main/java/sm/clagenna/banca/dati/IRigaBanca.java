@@ -8,6 +8,7 @@ import java.util.Map;
  */
 public enum IRigaBanca {
   ID("id"), //
+  TIPO("tipo"), //
   IDFILE("idfile"), //
   DTMOV("dtmov"), //
   DTVAL("dtval"), //

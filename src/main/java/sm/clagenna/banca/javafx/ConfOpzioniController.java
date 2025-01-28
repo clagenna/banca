@@ -135,6 +135,8 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   private Scene            myScene;
   private DataController   dataCntr;
   private boolean          bSema;
+  private static final boolean VERDE=true;
+  private static final boolean ROSSO=false;
 
   @Getter @Setter
   private EServerId serverId;
@@ -167,7 +169,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   }
 
   private void prepareFiltro() {
-    bSema = false;
+    bSema = ROSSO;
     int filtr = dataCntr.getFiltriQuery();
     ckDtmov.setSelected(ESqlFiltri.Dtmov.isSet(filtr));
     ckDtval.setSelected(ESqlFiltri.Dtval.isSet(filtr));
@@ -176,7 +178,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     ckDescr.setSelected(ESqlFiltri.Descr.isSet(filtr));
     ckCausABI.setSelected(ESqlFiltri.ABICaus.isSet(filtr));
     ckcredhold.setSelected(ESqlFiltri.Cardid.isSet(filtr));
-    bSema = true;
+    bSema = VERDE;
   }
 
   private void prepareDbVal(AppProperties p_props) {
@@ -301,7 +303,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     List<IRigaBanca> excl = dataCntr.getExcludeCols();
     try {
       if (null != excl) {
-        bSema = true;
+        bSema =  ROSSO; //    true;
 
         for (IRigaBanca ir : excl) {
           switch (ir) {
@@ -353,7 +355,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
         }
       }
     } finally {
-      bSema = false;
+      bSema = VERDE;// false;
     }
   }
 
@@ -471,7 +473,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     }
 
     ckoverwrite.selectedProperty().addListener((obs, o, n) -> {
-      if (bSema)
+      if (bSema) // VERDE
         dataCntr.setOverwrite(n);
     });
     int qtaTh = dataCntr.getQtaThreads();

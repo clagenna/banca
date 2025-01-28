@@ -135,6 +135,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private int                   qtaActiveTasks;
   private ResultView            cntrResultView;
   private CodStatView           cntrCodStatView;
+  private GuessCodStatView      cntrGuessCodStatView;
   private ViewContanti          cntrViewContanti;
   private SovrapposView         cntrViewSovrapp;
   private List<Log4jRow>        m_liMsgs;
@@ -537,7 +538,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @FXML
   public void mnuConfMostraCodStatClick(ActionEvent event) {
     LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
-    if ( mainApp.isCodeStatViewOpened()) {
+    if (mainApp.isCodStatViewOpened()) {
       s_log.warn("La finestra dei codici statistici e' gia' aperta!");
       return;
     }
@@ -569,6 +570,44 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     if (cntrCodStatView != null) {
       cntrCodStatView.setMyScene(scene);
       cntrCodStatView.initApp(props);
+    }
+    stageResults.show();
+  }
+
+  @FXML
+  public void mnuConfMostraGuessCodStatClick(ActionEvent event) {
+    LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
+    if (mainApp.isGuessCodStatViewOpened()) {
+      s_log.warn("La finestra associazione codici statistici e' gia' aperta!");
+      return;
+    }
+    Stage primaryStage = mainApp.getPrimaryStage();
+
+    URL url = getClass().getResource(GuessCodStatView.CSZ_FXMLNAME);
+    if (url == null)
+      url = getClass().getClassLoader().getResource(GuessCodStatView.CSZ_FXMLNAME);
+    Parent radice;
+    cntrGuessCodStatView = null;
+    FXMLLoader fxmlLoad = new FXMLLoader(url);
+    try {
+      radice = fxmlLoad.load();
+      cntrGuessCodStatView = fxmlLoad.getController();
+    } catch (IOException e) {
+      s_log.error("Errore caricamento FXML {}", GuessCodStatView.CSZ_FXMLNAME, e);
+      return;
+    }
+
+    Stage stageResults = new Stage();
+    Scene scene = new Scene(radice, 600, 440);
+    stageResults.setScene(scene);
+    stageResults.setWidth(800);
+    stageResults.setHeight(600);
+    stageResults.initOwner(primaryStage);
+    stageResults.initModality(Modality.NONE);
+    stageResults.setTitle("Visualizzazione Codici Statistici");
+    if (cntrGuessCodStatView != null) {
+      cntrGuessCodStatView.setMyScene(scene);
+      cntrGuessCodStatView.initApp(props);
     }
     stageResults.show();
   }
