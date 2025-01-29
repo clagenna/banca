@@ -104,6 +104,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   @FXML
   private Label               lbAssignCodStat;
   @FXML
+  private Button              btIndovinaCodStat;
+  @FXML
   protected CheckBox          ckRegExp;
   @FXML
   private CheckBox            ckScartaImp;
@@ -492,6 +494,12 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       lstage.getScene().setCursor(Cursor.DEFAULT);
       btAssignCodStat.setDisable(false);
     });
+  }
+
+  @FXML
+  void btIndovinaCodStatClick(ActionEvent event) {
+    LoadBancaController cntr = (LoadBancaController) m_appmain.getController();
+    cntr.mnuConfMostraGuessCodStatClick(null);
   }
 
   private String creaQuery() {

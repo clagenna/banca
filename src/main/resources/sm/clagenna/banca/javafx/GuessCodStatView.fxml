@@ -10,14 +10,14 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="1188.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.GuessCodStatView">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="778.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.GuessCodStatView">
 	<children>
 		<HBox prefHeight="40.0" prefWidth="846.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<padding>
 				<Insets bottom="5.0" left="5.0" right="9.0" top="7.0" />
 			</padding>
 		</HBox>
-		<AnchorPane layoutX="2.0" layoutY="38.0" prefHeight="90.0" prefWidth="962.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="38.0">
+		<AnchorPane prefHeight="90.0" prefWidth="962.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<children>
 				<Label layoutX="2.0" layoutY="12.0" text="Parola Descr">
 					<padding>
@@ -27,22 +27,22 @@
 						<Tooltip text="Digita un testo da ricercare nelle causali dei movimenti, es: &quot;TitanCOOP&quot;" />
 					</tooltip>
 				</Label>
-				<TextField fx:id="txParola" layoutX="87.0" layoutY="7.0" prefHeight="25.0" prefWidth="484.0" promptText="Parola da cercare" AnchorPane.leftAnchor="87.0" AnchorPane.rightAnchor="617.0" />
-				<Button fx:id="btCerca" layoutX="594.0" layoutY="8.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca" AnchorPane.rightAnchor="548.0" />
-				<Button fx:id="btMostraCodStat" layoutX="1063.0" layoutY="6.0" mnemonicParsing="false" onAction="#btMostraCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Mostra Cod.Stat" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="6.0">
+				<TextField fx:id="txParola" layoutX="87.0" layoutY="12.0" prefHeight="25.0" prefWidth="409.0" promptText="Parola da cercare" AnchorPane.leftAnchor="87.0" AnchorPane.rightAnchor="282.0" />
+				<Button fx:id="btCerca" layoutX="505.0" layoutY="12.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca" AnchorPane.rightAnchor="227.0" />
+            <Button fx:id="btSalva" layoutX="566.0" layoutY="12.0" mnemonicParsing="false" onAction="#btSalvaClick" text="Salva" AnchorPane.rightAnchor="168.0" />
+				<Button fx:id="btMostraCodStat" layoutX="645.0" layoutY="12.0" mnemonicParsing="false" onAction="#btMostraCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Mostra Cod.Stat" AnchorPane.rightAnchor="23.0" AnchorPane.topAnchor="12.0">
 					<tooltip>
 						<Tooltip text="Mostra la finestra per la selezione dei codici statistici" />
 					</tooltip>
 				</Button>
-				<Button fx:id="btAssignCodStat" layoutX="1063.0" layoutY="38.0" mnemonicParsing="false" onAction="#btAssignCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Assign Cod.Stat." AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="38.0">
+				<Button fx:id="btAssignCodStat" layoutX="1063.0" layoutY="38.0" mnemonicParsing="false" onAction="#btAssignCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Assign Cod.Stat." visible="false" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="38.0">
 					<tooltip>
 						<Tooltip text="Assegna il codice statistico evidenziato a tutte le righe selezionate " />
 					</tooltip>
 				</Button>
-				<Label fx:id="lbAssignCodStat" layoutX="1072.0" layoutY="66.0" prefHeight="17.0" prefWidth="153.0" textAlignment="CENTER" AnchorPane.rightAnchor="11.0" />
 			</children>
 		</AnchorPane>
-		<TableView fx:id="tblview" layoutY="129.0" maxHeight="1.7976931348623157E308" prefHeight="351.0" prefWidth="1188.0" AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="129.0">
+		<TableView fx:id="tblview" layoutY="51.0" maxHeight="1.7976931348623157E308" prefHeight="427.0" prefWidth="778.0" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="51.0">
 			<columns>
 				  <TableColumn fx:id="colId" editable="false" prefWidth="75.0" text="Id" />
 				  <TableColumn fx:id="colTipo" editable="false" prefWidth="75.0" text="Tipo" />

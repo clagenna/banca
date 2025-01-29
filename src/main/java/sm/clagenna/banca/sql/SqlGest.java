@@ -251,6 +251,37 @@ public abstract class SqlGest implements ISQLGest {
   }
 
   @Override
+  public boolean updateCodStat(List<RigaBanca> rigs) {
+    String qry1 = getQryMODCodstat();
+    Connection conn = dbconn.getConn();
+    beginTrans();
+    int qtaTrans = 0;
+
+    for (RigaBanca rig : rigs) {
+      String qry2 = String.format(qry1, rig.getTiporec());
+
+      try (PreparedStatement stmtModCod = conn.prepareStatement(qry2)) {
+        int k = 1;
+        dbconn.setStmtString(stmtModCod, k++, rig.getCodstat());
+        dbconn.setStmtInt(stmtModCod, k++, rig.getRigaid());
+
+        stmtModCod.executeUpdate();
+
+        if (++qtaTrans > 50) {
+          commitTrans();
+          qtaTrans = 0;
+          beginTrans();
+        }
+      } catch (SQLException e) {
+        getLog().error("Errore MODIF codstat on {} with err={}", rig.getTiporec(), e.getMessage());
+        return false;
+      }
+    }
+    commitTrans();
+    return true;
+  }
+
+  @Override
   public boolean insertMovimento(String p_tab, RigaBanca p_rig) {
     boolean bRet = false;
     lastRowid = -1;

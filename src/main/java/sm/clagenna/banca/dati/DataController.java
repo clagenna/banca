@@ -43,6 +43,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
   public static final String EVT_TREECODSTAT_CHANGED = "treeCodstat";
   public static final String EVT_FILTER_CODSTAT      = "filterCodstat";
   public static final String EVT_DATASET_CREATED     = "datasetCreated";
+  public static final String EVT_GUESSDATA_CREATED     = "guessdataCreated";
 
   //  public static final String  FILE_CODSTAT    = "CodStat.properties";
   private static final String QRY_TOT_CODSTAT = //

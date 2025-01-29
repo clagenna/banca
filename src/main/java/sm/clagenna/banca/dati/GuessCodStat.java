@@ -14,6 +14,18 @@ import javafx.beans.property.StringProperty;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class GuessCodStat {
+
+  public static final String COL_ID       = "id";
+  public static final String COL_TIPO     = "tipo";
+  public static final String COL_DTMOV    = "dtmov";
+  public static final String COL_DARE     = "dare";
+  public static final String COL_AVERE    = "avere";
+  public static final String COL_CARDID   = "cardid";
+  public static final String COL_DESCR    = "descr";
+  public static final String COL_CODSTAT  = "codstat";
+  public static final String COL_CDSDESCR = "cdsdescr";
+  public static final String COL_ASSIGNED = "assigned";
+
   private SimpleIntegerProperty               id;
   private SimpleStringProperty                tipo;
   private SimpleObjectProperty<LocalDateTime> dtmov;
@@ -24,27 +36,27 @@ public class GuessCodStat {
   private SimpleStringProperty                codstat;
   private SimpleStringProperty                descrcds;
   private SimpleBooleanProperty               assigned;
-  private String codstatOrig;
+  private String                              codstatOrig;
 
   public GuessCodStat() {
     init();
   }
 
   private void init() {
-    id = new SimpleIntegerProperty();
-    tipo = new SimpleStringProperty();
-    dtmov = new SimpleObjectProperty<LocalDateTime>();
-    dare = new SimpleDoubleProperty();
-    avere = new SimpleDoubleProperty();
-    cardid = new SimpleStringProperty();
-    descr = new SimpleStringProperty();
-    codstat = new SimpleStringProperty();
-    descrcds = new SimpleStringProperty();
-    assigned = new SimpleBooleanProperty();
+    id = new SimpleIntegerProperty(null, COL_ID);
+    tipo = new SimpleStringProperty(null, COL_TIPO);
+    dtmov = new SimpleObjectProperty<LocalDateTime>(null, COL_DTMOV);
+    dare = new SimpleDoubleProperty(null, COL_DARE);
+    avere = new SimpleDoubleProperty(null, COL_AVERE);
+    cardid = new SimpleStringProperty(null, COL_CARDID);
+    descr = new SimpleStringProperty(null, COL_DESCR);
+    codstat = new SimpleStringProperty(null, COL_CODSTAT);
+    descrcds = new SimpleStringProperty(null, COL_CDSDESCR);
+    assigned = new SimpleBooleanProperty(null, COL_ASSIGNED);
   }
 
   public GuessCodStat(Integer id, String tipo, LocalDateTime dtmov, Double dare, Double avere, String cardid, String descr,
-      String codstat, String descrcds,  boolean assigned) {
+      String codstat, String descrcds, boolean assigned) {
     init();
     setId(id);
     setTipo(tipo);
@@ -89,7 +101,7 @@ public class GuessCodStat {
   public StringProperty propertyCodstat() {
     return codstat;
   }
-  
+
   public StringProperty propertyDescrcds() {
     return descrcds;
   }
@@ -160,14 +172,14 @@ public class GuessCodStat {
 
   public void setCodstat(String ii) {
     codstat.set(ii);
-    if ( null == codstatOrig)
-      codstatOrig=ii;
+    if (null == codstatOrig)
+      codstatOrig = ii;
   }
-  
+
   public String getDescrcds() {
     return descrcds.get();
   }
-  
+
   public void setDescrCds(String ii) {
     descrcds.set(ii);
   }
@@ -184,5 +196,5 @@ public class GuessCodStat {
     boolean ret = Utils.isChanged(codstatOrig, codstat.get());
     return ret;
   }
-  
+
 }

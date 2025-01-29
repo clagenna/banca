@@ -29,6 +29,8 @@ public interface ISQLGest {
   
   boolean updateCodStat(RigaBanca rig);
 
+  boolean updateCodStat(List<RigaBanca> liRb);
+
   int deleteMovimento(String p_tab, RigaBanca rig);
 
   boolean insertMovimento(String p_tab, RigaBanca p_rig);
