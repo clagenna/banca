@@ -443,8 +443,12 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     mi2.setOnAction((ActionEvent ev) -> {
       rifiutaTutti_click(null);
     });
+    MenuItem mi3 = new MenuItem("Accetta Selezione");
+    mi3.setOnAction((ActionEvent ev) -> {
+      accettaSel_click(null);
+    });
     ContextMenu menu = new ContextMenu();
-    menu.getItems().addAll(mi1, mi2);
+    menu.getItems().addAll(mi1, mi2, mi3);
     // liBanca.setContextMenu(menu);
     tblview.setContextMenu(menu);
 
@@ -472,6 +476,12 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     Platform.runLater(() -> tblview.refresh());
   }
 
+  private void accettaSel_click(Object object) {
+    tblview.getSelectionModel().getSelectedItems().forEach(s -> s.setAssigned(true));
+    Platform.runLater(() -> tblview.refresh());
+  }
+
+  
   private void riga_dblclick() {
     System.out.println("GuessCodStatView.riga_dblclick()");
   }
