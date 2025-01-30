@@ -1,19 +1,45 @@
 package sm.clagenna.banca.dati;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.javafx.EColsTableView;
+import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class RigaBanca {
+
+  //  public static final String COL_ID        = "id";
+  //  public static final String COL_IDFILE    = "idfile";
+  //  public static final String COL_DTMOV     = "dtmov";
+  //  public static final String COL_DTVAL     = "dtval";
+  //  public static final String COL_DTMOVSTR  = "dtmovstr";
+  //  public static final String COL_DTVALSTR  = "dtvalstr";
+  //  public static final String COL_DARE      = "dare";
+  //  public static final String COL_AVERE     = "avere";
+  //  public static final String COL_CARDID    = "cardid";
+  //  public static final String COL_DESCR     = "descr";
+  //  public static final String COL_CAUS      = "abicaus";
+  //  public static final String COL_DESCRCAUS = "descrcaus";
+  //  public static final String COL_COSTO     = "costo";
+  //  public static final String COL_CODSTAT   = "codstat";
+
   @Getter @Setter
   private Integer       rigaid;
   @Getter @Setter
-  private LocalDateTime dtmov;
+  private String        tiporec;
   @Getter @Setter
+  private Integer       idfile;
+  @Getter
+  private LocalDateTime dtmov;
+  @Getter
   private LocalDateTime dtval;
+  @Getter
+  private String        movstr;
+  @Getter @Setter
+  private String        valstr;
   @Getter @Setter
   private Double        dare;
   @Getter
@@ -21,9 +47,15 @@ public class RigaBanca {
   @Getter
   private String        descr;
   @Getter @Setter
-  private String        caus;
+  private String        abicaus;
+  @Getter @Setter
+  private String        descrcaus;
+  @Getter @Setter
+  private Integer       costo;
   @Getter
   private String        cardid;
+  @Getter @Setter
+  private String        codstat;
   @Getter
   private String        localCardIdent;
 
@@ -32,22 +64,35 @@ public class RigaBanca {
   }
 
   public RigaBanca(LocalDateTime p_dtmov, LocalDateTime p_dtval, double p_dare, double p_avere, String p_descr, String p_caus,
-      String p_cardid) {
+      String p_cardid, String p_codstat) {
     dtmov = p_dtmov;
     dtval = p_dtval;
     dare = p_dare;
     setAvere(p_avere);
     setDescr(p_descr);
-    caus = p_caus;
-    cardid = p_cardid;
+    abicaus = p_caus;
+    if (Utils.isValue(p_cardid))
+      setCardid(p_cardid);
+    codstat = p_codstat;
   }
 
   @Override
   public String toString() {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    String sz1 = null == dtmov ? "*null*" : formatter.format(dtmov);
-    String sz2 = null == dtval ? "*null*" : formatter.format(dtval);
-    return sz1 + "\t" + sz2 + "\t" + dare + "\t" + avere + "\t" + descr + "\t" + caus + "\t" + cardid + "\\n";
+    String sz1 = null == dtmov ? "*null*" : ParseData.formatDate(dtmov);
+    String sz2 = null == dtval ? "*null*" : ParseData.formatDate(dtval);
+    return sz1 + "\t" + sz2 + "\t" + dare + "\t" + avere + "\t" + descr + "\t" + abicaus + "\t" + cardid + "\\n";
+  }
+
+  public void setDtmov(LocalDateTime dt) {
+    dtmov = dt;
+    if (null != dt)
+      movstr = ParseData.s_fmtPY4M.format(dt);
+  }
+
+  public void setDtval(LocalDateTime dt) {
+    dtval = dt;
+    if (null != dt)
+      valstr = ParseData.s_fmtPY4M.format(dt);
   }
 
   public void setAvere(double vv) {
@@ -58,54 +103,116 @@ public class RigaBanca {
 
   public void setDescr(String p_des) {
     descr = p_des;
-    localCardIdent = discerniCardId(p_des);
+    if (null != DataController.getInst())
+      localCardIdent = DataController.getInst().getAssocid().findAssoc(descr);
+    if (null == cardid && localCardIdent != null)
+      setCardid(localCardIdent);
   }
 
   public void setCardid(String p_sz) {
     cardid = p_sz;
-    if (null == p_sz && localCardIdent != null)
-      cardid = localCardIdent;
-  }
-
-  public String discerniCardId(String descr) {
-    String ret = null;
-    if (null == descr)
-      return ret;
-    if (descr.matches(".*[0-9]+84806"))
-      ret = "cla";
-    else if (descr.matches(".*[0-9]+66542"))
-      ret = "eug";
-    else if (descr.matches(".*[0-9]+85928"))
-      ret = "eug";
-    return ret;
   }
 
   public void azzera() {
     rigaid = null;
+    idfile = null;
     dtmov = null;
     dtval = null;
     dare = 0.;
     avere = .0;
     descr = null;
-    caus = null;
+    abicaus = null;
     cardid = null;
+    codstat = null;
   }
 
   public boolean isValido() {
-    if ( !Utils.isValue(rigaid))
+    if ( !Utils.isValue(rigaid) || !Utils.isValue(dtmov) || !Utils.isValue(dtval))
       return false;
-    if ( !Utils.isValue(dtmov))
+    if (null == dare || null == avere || dare == 0 && avere == 0)
       return false;
-    if ( !Utils.isValue(dtval))
-      return false;
-    if (null == dare || null == avere)
-      return false;
-    if (dare == 0 && avere == 0)
-      return false;
-    if ( !Utils.isValue(descr))
-      return false;
-    if ( !Utils.isValue(caus))
+    if ( !Utils.isValue(descr) || !Utils.isValue(abicaus))
       return false;
     return true;
+  }
+
+  /**
+   * Creo un id univoco per dtmov + dare + avere
+   *
+   * @return
+   */
+  public String getIdSet() {
+    StringBuilder szRet = new StringBuilder().append(ParseData.formatDate(dtmov));
+    szRet.append("_").append(Utils.formatDouble(dare));
+    szRet.append("_").append(Utils.formatDouble(avere));
+    return szRet.toString();
+  }
+
+  public void suply(int i) {
+    LocalDateTime ldt = dtmov.plusSeconds(i);
+    dtmov = ldt;
+  }
+
+  public static RigaBanca parse(List<Object> elem) {
+    if (null == elem)
+      return null;
+    int k = 0;
+    RigaBanca rb = new RigaBanca();
+    for (Object col : elem) {
+      EColsTableView nome = EColsTableView.colName(k++);
+      if ( !Utils.isValue(col))
+        continue;
+      switch (nome) {
+        case id:
+          rb.setRigaid(Integer.decode(col.toString()));
+          break;
+        case tipo:
+          rb.setTiporec(col.toString());
+          break;
+        case idfile:
+          rb.setIdfile(Integer.decode(col.toString()));
+          break;
+        case dtmov:
+          rb.setDtmov(ParseData.parseData(col.toString()));
+          break;
+        case dtval:
+          rb.setDtval(ParseData.parseData(col.toString()));
+          break;
+        case movstr:
+          // settato da setDtmov()
+          break;
+        case valstr:
+          // settato da setDtval()
+          break;
+        case dare:
+          rb.setDare(Utils.parseDouble(col.toString()));
+          break;
+        case avere:
+          rb.setAvere(Utils.parseDouble(col.toString()));
+          break;
+        case cardid:
+          rb.setCardid(col.toString());
+          break;
+        case descr:
+          rb.setDescr(col.toString());
+          break;
+        case abicaus:
+          rb.setAbicaus(col.toString());
+          break;
+        case descrcaus:
+          rb.setDescrcaus(col.toString());
+          break;
+        case costo:
+          rb.setCosto(Integer.decode(col.toString()));
+          break;
+        case codstat:
+          rb.setCodstat(col.toString());
+          break;
+        default:
+          break;
+
+      }
+    }
+    return rb;
   }
 }

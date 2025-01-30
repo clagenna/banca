@@ -5,11 +5,13 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -17,11 +19,14 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.DBConnFactory;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -30,7 +35,7 @@ import sm.clagenna.stdcla.utils.Utils;
 public class LoadBancaMainApp extends Application implements IStartApp {
   private static final Logger s_log            = LogManager.getLogger(LoadBancaMainApp.class);
   private static final String CSZ_MAIN_APP_CSS = "LoadBancaFX.css";
-  private static final String CSZ_MAIN_ICON    = "sm/clagenna/banca/javafx/banca-100.png";
+  public static final String  CSZ_MAIN_ICON    = "sm/clagenna/banca/javafx/banca-100.png";
   private static final String CSZ_MAIN_PROPS   = "Banca.properties";
 
   @Getter
@@ -49,9 +54,10 @@ public class LoadBancaMainApp extends Application implements IStartApp {
   @Getter @Setter
   private DataController data;
 
-
-  List<ResultView>     m_liResViews;
-  private ViewContanti m_viewContanti;
+  private List<ResultView> m_liResViews;
+  private ViewContanti     m_viewContanti;
+  private CodStatView      m_viewCodStat;
+  private GuessCodStatView m_viewGuessCodStat;
 
   public LoadBancaMainApp() {
     //
@@ -63,6 +69,8 @@ public class LoadBancaMainApp extends Application implements IStartApp {
 
   @Override
   public void start(Stage p_primaryStage) throws Exception {
+    s_log.info("Java Version:{}", System.getProperty("java.runtime.version"));
+    s_log.info("JavaFX Version:{}", System.getProperty("javafx.runtime.version"));
     setPrimaryStage(p_primaryStage);
     LoadBancaMainApp.inst = this;
     initApp(null);
@@ -100,7 +108,7 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     if ( !Utils.isChanged(skin, skinName))
       return;
     skin = skinName;
-    props.setProperty(skinName, 0);
+    // props.setProperty(skinName, 0);
     mainCSS = null;
     props.setProperty(AppProperties.CSZ_PROP_SKIN, skin);
     /* URL url = */ getUrlCSS();
@@ -149,9 +157,10 @@ public class LoadBancaMainApp extends Application implements IStartApp {
       connSQL = conFact.get(szDbType);
       connSQL.readProperties(props);
       connSQL.doConn();
-      // TODO Apri le tabelle ausiliarie
     } catch (Exception e) {
       s_log.error("Errore apertura DB, error={}", e.getMessage(), e);
+      Platform.exit();
+      System.exit(1957);
     }
   }
 
@@ -190,8 +199,8 @@ public class LoadBancaMainApp extends Application implements IStartApp {
 
   }
 
-  public void messageDialog(AlertType typ, String p_msg) {
-    messageDialog(typ, p_msg, ButtonType.CLOSE);
+  public Optional<ButtonType> messageDialog(AlertType typ, String p_msg) {
+    return messageDialog(typ, p_msg, ButtonType.CLOSE);
   }
 
   /**
@@ -209,9 +218,11 @@ public class LoadBancaMainApp extends Application implements IStartApp {
    *          Il messaggio (anche HTML) da emettere
    * @param bt
    *          Il tipo di {@link ButtonType}
+   * @return
    */
-  public void messageDialog(AlertType typ, String p_msg, ButtonType bt) {
-    Alert alert = new Alert(typ, p_msg, bt);
+  public Optional<ButtonType> messageDialog(AlertType typ, String p_msg, ButtonType bt) {
+    Alert alert = new Alert(typ);
+    alert.setResizable(true);
     Scene scene = primaryStage.getScene();
     double posx = scene.getWindow().getX();
     double posy = scene.getWindow().getY();
@@ -220,17 +231,21 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     double py = posy + 50;
     alert.setX(px);
     alert.setY(py);
-    // alert.setWidth(300);
+    alert.setWidth(400);
 
     switch (typ) {
+      case CONFIRMATION:
+        alert.setTitle("Verifica");
+        alert.setHeaderText("Scegli cosa fare");
+        break;
       case INFORMATION:
         alert.setTitle("Informa");
-        alert.setHeaderText("Ok !");
+        alert.setHeaderText("Comunicazione");
         break;
 
       case WARNING:
         alert.setTitle("Attenzione");
-        alert.setHeaderText("Fai Attenzione !");
+        alert.setHeaderText("Occhio !");
         break;
 
       case ERROR:
@@ -246,7 +261,47 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     webView.getEngine().loadContent(p_msg);
     webView.setPrefSize(300, 60);
     alert.getDialogPane().setContent(webView);
-    alert.showAndWait();
+    Optional<ButtonType> btret = alert.showAndWait();
+    return btret;
+  }
+
+  public void msgBox(String p_txt) {
+    msgBox(p_txt, AlertType.INFORMATION);
+  }
+
+  public boolean msgBox(String p_txt, AlertType tipo) {
+    return msgBox(p_txt, tipo, (String) null);
+  }
+
+  public boolean msgBox(String p_txt, AlertType tipo, String p_ico) {
+    boolean bRet = true;
+    Alert alt = new Alert(tipo);
+    Scene sce = getPrimaryStage().getScene();
+    if (null != p_ico) {
+      URL resico = getClass().getResource(p_ico);
+      if (null == resico)
+        resico = getClass().getClassLoader().getResource(CSZ_MAIN_ICON);
+      if (null != resico) {
+        ImageView ico = new ImageView(resico.toString());
+        alt.setGraphic(ico);
+      }
+    }
+
+    Window wnd = null;
+    if (sce != null)
+      wnd = sce.getWindow();
+    if (wnd != null) {
+      alt.initOwner(wnd);
+      alt.setTitle(tipo.toString());
+      alt.setHeaderText(tipo.toString());
+      alt.setContentText(p_txt);
+      Optional<ButtonType> result = alt.showAndWait();
+      if (tipo == AlertType.CONFIRMATION) {
+        bRet = result.get() == ButtonType.OK;
+      }
+    } else
+      s_log.error("Windows==null; msg={}", p_txt);
+    return bRet;
   }
 
   public void addViewContanti(ViewContanti pview) {
@@ -263,13 +318,62 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     if (m_liResViews == null)
       m_liResViews = new ArrayList<>();
     m_liResViews.add(resultView);
+    DataController cntrl = DataController.getInst();
+    if (null != m_viewCodStat) {
+      //   m_viewCodStat.addPropertyChangeListener(resultView);
+      cntrl.addPropertyChangeListener(resultView);
+    }
   }
 
   public void removeResView(ResultView resultView) {
     if (m_liResViews == null || m_liResViews.size() == 0)
       return;
+    DataController cntrl = DataController.getInst();
+    if (null != m_viewCodStat) {
+      //      m_viewCodStat.removePropertyChangeListener(resultView);
+      cntrl.removePropertyChangeListener(resultView);
+    }
     if (m_liResViews.contains(resultView))
       m_liResViews.remove(resultView);
   }
 
+  public void addCodeStatView(CodStatView codStatView) {
+    m_viewCodStat = codStatView;
+    if (null != m_liResViews) {
+      DataController cntrl = DataController.getInst();
+      // m_liResViews.stream().forEach(s -> m_viewCodStat.addPropertyChangeListener(s));
+      m_liResViews.stream().forEach(s -> cntrl.addPropertyChangeListener(s));
+    }
+  }
+
+  public void removeCodStatView(CodStatView codStatView) {
+    m_viewCodStat = null;
+  }
+
+  public boolean isCodStatViewOpened() {
+    return null != m_viewCodStat;
+  }
+
+  public void addGuessCodeStatView(GuessCodStatView view) {
+    m_viewGuessCodStat = view;
+    if (null != m_liResViews) {
+      DataController cntrl = DataController.getInst();
+      // m_liResViews.stream().forEach(s -> m_viewCodStat.addPropertyChangeListener(s));
+      m_liResViews.stream().forEach(s -> cntrl.addPropertyChangeListener(s));
+    }
+  }
+
+  public void removeGuessCodStatView(GuessCodStatView view) {
+    m_viewGuessCodStat = null;
+  }
+
+  public boolean isGuessCodStatViewOpened() {
+    return null != m_viewGuessCodStat;
+  }
+
+  //  public void aggiornaTotaliCodStat(String szQry) {
+  //    if (isCodeStatViewOpened()) {
+  //      m_viewCodStat.aggiornaTotaliCodStat(szQry);
+  //    }
+  //  }
 }

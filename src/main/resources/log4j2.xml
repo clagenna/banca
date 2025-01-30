@@ -3,12 +3,42 @@
 	<Appenders>
 
 		<Console name="console" target="SYSTEM_OUT">
-			<PatternLayout 	pattern="%d %-5p  %X{loginame} %-32F:%L - %m%n" />
+			<PatternLayout
+				pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p  %-32c{3}:%L - %m%n" />
 		</Console>
 
 		<File name="banca" fileName="log/banca.log" append="true">
-			<PatternLayout pattern="%-32c  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
+			<PatternLayout
+				pattern="%-32c{3}  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
 		</File>
+
+		<RollingFile name="rollingFile"
+			fileName="log/rollbanca.log"
+			filePattern="log/rollbanca.%d{yyyy-MM-dd}.log" ignoreExceptions="false">
+			<PatternLayout pattern="%-32c{3}  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" />
+			</Policies>
+			<DefaultRolloverStrategy max="5" />
+		</RollingFile>
+
+
+		<appender name="roll-by-time-and-size" class="org.apache.log4j.rolling.RollingFileAppender">
+			<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+				<param name="ActiveFileName" value="log/rollTimeSizeBanca.log" />
+				<param name="FileNamePattern" value="log/rollTimeSizeBanca_%d{HH-mm}.log" />
+			</rollingPolicy>
+			<triggeringPolicy
+				class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy">
+				<param name="MaxFileSize" value="100" />
+			</triggeringPolicy>
+			<layout class="org.apache.log4j.PatternLayout">
+				<param name="ConversionPattern"
+					value="%-32c{3}  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
+			</layout>
+		</appender>
+
+
 		<MioAppender name="MIOAPPENDER">
 			<PatternLayout pattern="%logger(%L)\t%d\t%level\t%m%n" />
 		</MioAppender>
@@ -17,7 +47,7 @@
 	<Loggers>
 		<Root level="debug">
 			<AppenderRef ref="console" />
-			<AppenderRef ref="banca" />
+			<AppenderRef ref="rollingFile" />
 			<AppenderRef ref="MIOAPPENDER" />
 		</Root>
 	</Loggers>

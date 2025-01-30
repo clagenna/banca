@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="689.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.CodStatView">
+	<children>
+		<AnchorPane layoutX="2.0" layoutY="1.0" prefHeight="89.0" prefWidth="689.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+			<children>
+            <Label layoutX="12.0" layoutY="21.0" prefHeight="17.0" prefWidth="75.0" text="File Cod Stat." AnchorPane.leftAnchor="12.0" AnchorPane.topAnchor="21.0" />
+            <TextField fx:id="txFileCodStat" layoutX="96.0" layoutY="17.0" onAction="#onEnterFileCodStat" onKeyReleased="#premutoTasto" prefHeight="25.0" prefWidth="363.0" promptText="Scegli il file contenente i codici Statistici" AnchorPane.leftAnchor="96.0" AnchorPane.rightAnchor="230.0" AnchorPane.topAnchor="17.0" />
+            <Button fx:id="btCercaFile" layoutX="471.0" layoutY="17.0" mnemonicParsing="false" onAction="#btCercaFileClick" text="Cerca..." AnchorPane.rightAnchor="164.0">
+               <tooltip>
+                  <Tooltip text="Cerca il file di codici Statistici" />
+               </tooltip>
+            </Button>
+            <Button fx:id="btImportFile" layoutX="533.0" layoutY="17.0" mnemonicParsing="false" onAction="#btImportFileClick" text="Import" AnchorPane.rightAnchor="104.0">
+               <tooltip>
+                  <Tooltip text="Leggi e importa i codici statistici dal file" />
+               </tooltip>
+            </Button>
+            <Button fx:id="btSaveDB" layoutX="599.0" layoutY="17.0" mnemonicParsing="false" onAction="#btSaveCodStatSuDBClick" text="Save DB" AnchorPane.rightAnchor="30.0">
+               <tooltip>
+                  <Tooltip text="Salva l'intero albero di codici statistici su DB" />
+               </tooltip>
+            </Button>
+				<Label layoutX="11.0" layoutY="52.0" prefHeight="25.0" prefWidth="75.0" text="Cerca Descr" AnchorPane.leftAnchor="11.0">
+					<padding>
+						<Insets left="5.0" right="5.0" />
+					</padding>
+					<tooltip>
+						<Tooltip text="Digita un testo da ricercare nelle causali dei movimenti, es: &quot;TitanCOOP&quot;" />
+					</tooltip>
+				</Label>
+				<TextField fx:id="txDescr" layoutX="96.0" layoutY="52.0" prefHeight="25.0" prefWidth="563.0" promptText="Parola da cercare" AnchorPane.leftAnchor="96.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="52.0" />
+			</children>
+		</AnchorPane>
+		<TreeTableView fx:id="treeview" layoutY="91.0" maxHeight="1.7976931348623157E308" prefHeight="413.0" prefWidth="689.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="91.0">
+         <columns>
+            <TreeTableColumn fx:id="colCodStat" prefWidth="75.0" text="Cod. Stat." />
+            <TreeTableColumn fx:id="colDescr" prefWidth="75.0" text="Descrizione" />
+            <TreeTableColumn fx:id="colTotDare" prefWidth="75.0" text="Dare" />
+            <TreeTableColumn fx:id="colTotAvere" prefWidth="75.0" text="Avere" />
+         </columns>
+		</TreeTableView>
+	</children>
+</AnchorPane>

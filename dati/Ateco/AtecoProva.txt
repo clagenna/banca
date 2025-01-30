@@ -1,0 +1,15 @@
+01                             COLTIVAZIONI AGRICOLE E PRODUZIONE DI PRODOTTI ANIMALI, CACCIA E SERVIZI CONNESSI
+01.1                           COLTIVAZIONE DI COLTURE AGRICOLE NON PERMANENTI
+01.11                          Coltivazione di cereali (escluso il riso), legumi da granella e semi oleosi
+01.11.1                        Coltivazione di cereali (escluso il riso)
+01.11.10                       Coltivazione di cereali (escluso il riso)
+01.11.2                        Coltivazione di semi oleosi
+01.11.20                       Coltivazione di semi oleosi
+01.13.20                       Coltivazione di ortaggi (inclusi i meloni) in foglia, a fusto, a frutto, in radici, bulbi e tuberi in colture protette (escluse barbabietola da zucchero e patat…
+01.13.3                        Coltivazione di barbabietola da zucchero
+01.13.30                       Coltivazione di barbabietola da zucchero
+02                             SILVICOLTURA ED UTILIZZO DI AREE FORESTALI
+02.1                           SILVICOLTURA ED ALTRE ATTIVITA' FORESTALI
+02.10                          Silvicoltura ed altre attivita' forestali
+09.90.01                       Attivita' di supporto all'estrazione di pietre ornamentali, da costruzione, da gesso, di anidrite, per calce e cementi, di dolomite, di ardesia, di ghiaia e sab…
+09.90.09                       Attivita' di supporto all'estrazione di altri minerali nca

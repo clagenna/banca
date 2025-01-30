@@ -20,6 +20,7 @@ dove:
 **Credit**	se si tratta di estratto conto della carta di credito di quella banca
 
 **AAMM**	e' la data finale dei l'ultimo movimento formato Anno-Mese[Giono]
+
 **CCCC**	e' il _Card Holder_ identificativo (3 lettere) di chi appartienne il file CSV. Nel caso di conto cointestato si ommette. Nel caso di carta di credito invece ha senso specificarlo.
 
 Per cui un esempio di nomi di files estratti conti potrebbe essere:

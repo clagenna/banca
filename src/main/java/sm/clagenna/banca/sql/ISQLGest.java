@@ -17,9 +17,19 @@ public interface ISQLGest {
 
   void write(RigaBanca ri);
 
+  void beginTrans();
+
+  void commitTrans();
+
+  void rollBackTrans();
+
   boolean existMovimento(String p_tab, RigaBanca rig);
 
   boolean updateMovimento(String p_tab, RigaBanca rig);
+  
+  boolean updateCodStat(RigaBanca rig);
+
+  boolean updateCodStat(List<RigaBanca> liRb);
 
   int deleteMovimento(String p_tab, RigaBanca rig);
 
@@ -31,7 +41,7 @@ public interface ISQLGest {
 
   List<Integer> getListAnni();
 
-  List<String> getListMeseComp();
+  List<String> getListMeseComp(Integer m_fltrAnnoComp);
 
   List<String> getListCausABI();
 

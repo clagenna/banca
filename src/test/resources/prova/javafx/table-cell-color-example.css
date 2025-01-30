@@ -1,0 +1,17 @@
+/*
+Set background color for table cell in selected row.
+*/
+.table-row-cell:selected .table-cell {
+	/*
+	We set the background color to the looked-up color -fx-background. The
+	reason for this is that the default text fill for the cell depends on -fx-background,
+	in a way that ensures it always contrasts that value. 
+	*/
+	-fx-background-color: -fx-background ;
+	
+	/*
+	Now set the value of -fx-background to the looked-up color cell-selection-color, which
+	is set in the Java code.
+	*/
+	-fx-background: cell-selection-color ;
+}

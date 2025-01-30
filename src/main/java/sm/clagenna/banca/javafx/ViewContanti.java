@@ -32,6 +32,9 @@ import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
+import sm.clagenna.stdcla.javafx.IStartApp;
+import sm.clagenna.stdcla.javafx.JFXUtils;
+import sm.clagenna.stdcla.javafx.TableViewFiller;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
@@ -120,10 +123,10 @@ public class ViewContanti implements Initializable, IStartApp {
   private Stage            lstage;
   private LoadBancaMainApp m_appmain;
   // private AppProperties     m_mainProps;
-  private ISQLGest        m_db;
-  private EModalitaView   modalita;
+  private ISQLGest                m_db;
+  private EModalitaView           modalita;
   private TableViewFiller m_tbvf;
-  private RigaBanca       contante;
+  private RigaBanca               contante;
   //  private PreparedStatement stmtIns;
   // private PreparedStatement stmtMod;
   //  private PreparedStatement stmtDel;
@@ -166,11 +169,12 @@ public class ViewContanti implements Initializable, IStartApp {
     int py = p_props.getIntProperty(CSZ_PROP_POSVIEWCONT_Y);
     int dx = p_props.getIntProperty(CSZ_PROP_DIMVIEWCONT_X);
     int dy = p_props.getIntProperty(CSZ_PROP_DIMVIEWCONT_Y);
-    if (px != -1 && py != -1 && px * py != 0) {
-      lstage.setX(px);
-      lstage.setY(py);
-      lstage.setWidth(dx);
-      lstage.setHeight(dy);
+    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+      lstage.setX(mm.poxX());
+      lstage.setY(mm.posY());
+      lstage.setWidth(mm.width());
+      lstage.setHeight(mm.height());
     }
     double spltPos = p_props.getDoubleProperty(CSZ_PROP_SPLITPOS, -1.);
     if (spltPos > 0.)
@@ -231,7 +235,7 @@ public class ViewContanti implements Initializable, IStartApp {
       contante.setCardid(nv);
     });
     cbCausABI.getSelectionModel().selectedItemProperty().addListener((opt, old, nv) -> {
-      contante.setCaus(estraiCausABI(nv));
+      contante.setAbicaus(estraiCausABI(nv));
     });
   }
   //
@@ -266,46 +270,6 @@ public class ViewContanti implements Initializable, IStartApp {
         break;
     }
   }
-
-  //  private void trovaMaxId() {
-  //    if (null == stmtMaxId) {
-  //      try {
-  //        Connection conn = m_db.getDbconn().getConn();
-  //        stmtMaxId = conn.prepareStatement(CSZ_QRY_IDMAX);
-  //      } catch (SQLException e) {
-  //        s_log.error("Errore prep statement IDMAX on contanti with err={}", e.getMessage());
-  //        return;
-  //      }
-  //    }
-  //    try {
-  //      ResultSet res = stmtMaxId.executeQuery();
-  //      while (res.next()) {
-  //        contante.setId(res.getInt(1) + 1);
-  //        Platform.runLater(new Runnable() {
-  //          @Override
-  //          public void run() {
-  //            txId.setText(String.valueOf(contante.getId()));
-  //          }
-  //        });
-  //
-  //      }
-  //    } catch (SQLException e) {
-  //      s_log.error("Errore IDMAX on contanti with err={}", e.getMessage());
-  //      return;
-  //    }
-  //
-  //  }
-
-  //  private void trovaMaxId() {
-  //    int nextId = m_db.getLastRowid();
-  //    contante.setRigaid(nextId);
-  //    Platform.runLater(new Runnable() {
-  //      @Override
-  //      public void run() {
-  //        txId.setText(String.valueOf(contante.getRigaid()));
-  //      }
-  //    });
-  //  }
 
   private void azzeraCampi() {
     txId.setText("");
@@ -434,7 +398,7 @@ public class ViewContanti implements Initializable, IStartApp {
 
   @SuppressWarnings("unused")
   private void creaTableResult(String szQryFltr) {
-    m_tbvf = new TableViewFiller(tblview);
+    m_tbvf = new TableViewFiller(tblview, m_appmain.getConnSQL());
     m_tbvf.setSzQry(szQryFltr);
     try {
       m_tbvf.call();
@@ -458,33 +422,30 @@ public class ViewContanti implements Initializable, IStartApp {
 
   private void creaTableResultThread(String szQryFltr) {
     TableViewFiller.setNullRetValue("");
-    m_tbvf = new TableViewFiller(tblview);
+    m_tbvf = new TableViewFiller(tblview, m_appmain.getConnSQL());
     m_tbvf.setSzQry(szQryFltr);
 
     ExecutorService backGrService = Executors.newFixedThreadPool(1);
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        lstage.getScene().setCursor(Cursor.WAIT);
-        btCerca.setDisable(true);
-      }
+    Platform.runLater(() -> {
+      lstage.getScene().setCursor(Cursor.WAIT);
+      btCerca.setDisable(true);
     });
 
     try {
       m_tbvf.setOnRunning(ev -> {
-        s_log.debug("TableViewFiller task running...");
+        s_log.debug("TableViewFiller(2) task running...");
       });
       m_tbvf.setOnSucceeded(ev -> {
-        s_log.debug("TableViewFiller task Finished!");
+        s_log.debug("TableViewFiller(2) task Finished!");
         endTask();
       });
       m_tbvf.setOnFailed(ev -> {
-        s_log.debug("TableViewFiller task failure");
+        s_log.debug("TableViewFiller(2) task failure");
         endTask();
       });
       backGrService.execute(m_tbvf);
     } catch (Exception e) {
-      s_log.error("Errore task TableViewFiller");
+      s_log.error("Errore task TableViewFiller(2)");
     }
     backGrService.shutdown();
     tblview.setRowFactory(tbl -> new TableRow<List<Object>>() {
@@ -502,12 +463,9 @@ public class ViewContanti implements Initializable, IStartApp {
   }
 
   private void endTask() {
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        lstage.getScene().setCursor(Cursor.DEFAULT);
-        btCerca.setDisable(false);
-      }
+    Platform.runLater(() -> {
+      lstage.getScene().setCursor(Cursor.DEFAULT);
+      btCerca.setDisable(false);
     });
   }
 
@@ -573,10 +531,10 @@ public class ViewContanti implements Initializable, IStartApp {
           txDescr.setText(contante.getDescr());
           break;
         case 6: // abicaus
-          contante.setCaus(null);
+          contante.setAbicaus(null);
           if (null != e)
-            contante.setCaus(e.toString());
-          cbCausABI.getSelectionModel().select(m_db.getDescrCausABI(contante.getCaus()));
+            contante.setAbicaus(e.toString());
+          cbCausABI.getSelectionModel().select(m_db.getDescrCausABI(contante.getAbicaus()));
           break;
         case 7: // cardid
           contante.setCardid(null);
@@ -622,7 +580,7 @@ public class ViewContanti implements Initializable, IStartApp {
     cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
     m_db.insertMovimento(CSZ_TABLE_NAME, contante);
     contante.setRigaid(m_db.getLastRowid());
-    cambiaTxId();
+    Platform.runLater(() -> txId.setText(String.valueOf(contante.getRigaid())));
   }
 
   private void deleteRecord() {
@@ -630,16 +588,6 @@ public class ViewContanti implements Initializable, IStartApp {
     cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
     int qtaDel = m_db.deleteMovimento(CSZ_TABLE_NAME, contante);
     s_log.info("Cancellato {} records con {}", qtaDel, contante.toString().replace("\t", ";"));
-  }
-
-  private void cambiaTxId() {
-    Platform.runLater(new Runnable() {
-      @Override
-      public void run() {
-        txId.setText(String.valueOf(contante.getRigaid()));
-      }
-    });
-
   }
 
   @Override

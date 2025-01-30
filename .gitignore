@@ -1,6 +1,12 @@
 /target/
 /log/
 /old/
+/zip/
+/Banca.properties
 *.zip
+*.exe
 *.db
 *.csv
+*.bak
+/.apt_generated/
+/.apt_generated_tests/
