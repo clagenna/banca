@@ -604,7 +604,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     stageResults.setHeight(600);
     stageResults.initOwner(primaryStage);
     stageResults.initModality(Modality.NONE);
-    stageResults.setTitle("Visualizzazione Codici Statistici");
+    stageResults.setTitle("Indovina Codici Statistici");
     if (cntrGuessCodStatView != null) {
       cntrGuessCodStatView.setMyScene(scene);
       cntrGuessCodStatView.initApp(props);

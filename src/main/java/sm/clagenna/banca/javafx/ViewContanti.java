@@ -33,6 +33,7 @@ import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
+import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.javafx.TableViewFiller;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
@@ -168,11 +169,12 @@ public class ViewContanti implements Initializable, IStartApp {
     int py = p_props.getIntProperty(CSZ_PROP_POSVIEWCONT_Y);
     int dx = p_props.getIntProperty(CSZ_PROP_DIMVIEWCONT_X);
     int dy = p_props.getIntProperty(CSZ_PROP_DIMVIEWCONT_Y);
-    if (px != -1 && py != -1 && px * py != 0) {
-      lstage.setX(px);
-      lstage.setY(py);
-      lstage.setWidth(dx);
-      lstage.setHeight(dy);
+    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+      lstage.setX(mm.poxX());
+      lstage.setY(mm.posY());
+      lstage.setWidth(mm.width());
+      lstage.setHeight(mm.height());
     }
     double spltPos = p_props.getDoubleProperty(CSZ_PROP_SPLITPOS, -1.);
     if (spltPos > 0.)

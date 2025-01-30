@@ -59,6 +59,7 @@ import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.AutoCompleteComboBoxListener;
 import sm.clagenna.stdcla.javafx.IStartApp;
+import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.javafx.TableViewFiller;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
@@ -265,11 +266,12 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     int py = p_props.getIntProperty(CSZ_PROP_POSRESVIEW_Y);
     int dx = p_props.getIntProperty(CSZ_PROP_DIMRESVIEW_X);
     int dy = p_props.getIntProperty(CSZ_PROP_DIMRESVIEW_Y);
-    if (px != -1 && py != -1 && px * py != 0) {
-      lstage.setX(px);
-      lstage.setY(py);
-      lstage.setWidth(dx);
-      lstage.setHeight(dy);
+    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+      lstage.setX(mm.poxX());
+      lstage.setY(mm.posY());
+      lstage.setWidth(mm.width());
+      lstage.setHeight(mm.height());
     }
     myScene.addEventFilter(KeyEvent.KEY_PRESSED, ev -> gestKey(ev));
     URL url = m_appmain.getUrlCSS();

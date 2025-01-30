@@ -44,6 +44,7 @@ import sm.clagenna.banca.dati.GuessCodStat;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
+import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
@@ -158,11 +159,12 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     int py = p_props.getIntProperty(CSZ_PROP_POS_Y);
     int dx = p_props.getIntProperty(CSZ_PROP_DIM_X);
     int dy = p_props.getIntProperty(CSZ_PROP_DIM_Y);
-    if (px != -1 && py != -1 && px * py != 0) {
-      lstage.setX(px);
-      lstage.setY(py);
-      lstage.setWidth(dx);
-      lstage.setHeight(dy);
+    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
+      lstage.setX(mm.poxX());
+      lstage.setY(mm.posY());
+      lstage.setWidth(mm.width());
+      lstage.setHeight(mm.height());
     }
 
     URL url = m_appmain.getUrlCSS();
@@ -273,14 +275,13 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     colCodstat.setOnEditCommit((TableColumn.CellEditEvent<GuessCodStat, String> t) -> { //
       var row = t.getTableView().getItems().get(t.getTablePosition().getRow());
       row.setCodstat(t.getNewValue());
+      assegnaCodStatAiSelected(t.getNewValue());
     });
     colAssigned.setOnEditCommit((TableColumn.CellEditEvent<GuessCodStat, Boolean> t) -> { //
       var row = t.getTableView().getItems().get(t.getTablePosition().getRow());
       row.setAssigned(t.getNewValue());
     });
 
-    //    tblview.getColumns().addAll(
-    //        colId, colTipo, colDtmov, colDare, colAvere, colCardid, colDescr, colCodstat, colDescrcds, colAssigned);
     tblview.setEditable(true);
     tblview.setRowFactory(row -> new TableRow<GuessCodStat>() {
       @Override
@@ -345,6 +346,15 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
 
   }
 
+  private void assegnaCodStatAiSelected(String newValue) {
+    Platform.runLater(() -> tblview //
+        .getSelectionModel() //
+        .getSelectedItems() //
+        .forEach(s -> s.setCodstat(newValue)) //
+    );
+
+  }
+
   private String formattaCella(Object p_o) {
     if (p_o == null)
       return "**null**";
@@ -374,11 +384,11 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     if (bSemaf)
       return;
     bSemaf = true;
-
+    Platform.runLater(() -> lbMsg.setText("Cerco di indovinare i Codici Statistici ..."));
     creaTableResultThread();
     abilitaBottoni();
   }
-  
+
   @FXML
   private void btSalvaClick(ActionEvent event) {
     System.out.println("GuessCodStatView.btSalvaClick()");
@@ -481,7 +491,6 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     Platform.runLater(() -> tblview.refresh());
   }
 
-  
   private void riga_dblclick() {
     System.out.println("GuessCodStatView.riga_dblclick()");
   }

@@ -174,6 +174,16 @@ public class GuessCodStat {
     codstat.set(ii);
     if (null == codstatOrig)
       codstatOrig = ii;
+    // aggiorno la nuova descr del codstat
+    if ( !codstatOrig.equals(ii)) {
+      DataController cntrl = DataController.getInst();
+      CodStatTreeData cdsCntrl = cntrl.getCodStatData();
+      if (null != cdsCntrl) {
+        CodStat cds = cdsCntrl.decodeCodStat(ii);
+        if (null != cds)
+          setDescrCds(cds.getDescr());
+      }
+    }
   }
 
   public String getDescrcds() {

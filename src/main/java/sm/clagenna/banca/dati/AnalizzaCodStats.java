@@ -54,11 +54,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
           + " %s"                                       //
           + "   AND codstat IS NULL"                    //
           + " ORDER BY descr";
-  private static final String CSZ_QRY_UPDATE  =         //
-      "UPDATE movimenti%s SET codstat='%s' WHERE id=%d";
 
-  //  @Getter @Setter
-  //  private TableView<GuessCodStat> tblview;
   @Getter @Setter
   private DBConn     dbconn;
   private Connection conn;

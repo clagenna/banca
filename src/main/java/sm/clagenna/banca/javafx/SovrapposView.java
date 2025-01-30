@@ -24,6 +24,7 @@ import sm.clagenna.banca.dati.CsvFileContainer;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.stdcla.javafx.IStartApp;
+import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class SovrapposView implements Initializable, IStartApp {
@@ -101,11 +102,12 @@ public class SovrapposView implements Initializable, IStartApp {
     int py = p_props.getIntProperty(CSZ_PROP_POSRESVIEW_Y);
     int dx = p_props.getIntProperty(CSZ_PROP_DIMRESVIEW_X);
     int dy = p_props.getIntProperty(CSZ_PROP_DIMRESVIEW_Y);
-    if (px != -1 && py != -1 && px * py != 0) {
-      lstage.setX(px);
-      lstage.setY(py);
-      lstage.setWidth(dx);
-      lstage.setHeight(dy);
+    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+      lstage.setX(mm.poxX());
+      lstage.setY(mm.posY());
+      lstage.setWidth(mm.width());
+      lstage.setHeight(mm.height());
     }
     URL url = m_appmain.getUrlCSS();
     if (null != url)

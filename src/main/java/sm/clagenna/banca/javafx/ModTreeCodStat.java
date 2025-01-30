@@ -23,6 +23,7 @@ import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.CodStatTreeData;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.stdcla.javafx.IStartApp;
+import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 
@@ -96,12 +97,12 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     int py = p_props.getIntProperty(CSZ_PROP_POSVIEW_Y, 10);
     int dx = p_props.getIntProperty(CSZ_PROP_DIMVIEW_X, 427);
     int dy = p_props.getIntProperty(CSZ_PROP_DIMVIEW_Y, 150);
-
-    if (px * py != 0) {
-      lstage.setX(px);
-      lstage.setY(py);
-      lstage.setWidth(dx);
-      lstage.setHeight(dy);
+    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+      lstage.setX(mm.poxX());
+      lstage.setY(mm.posY());
+      lstage.setWidth(mm.width());
+      lstage.setHeight(mm.height());
     }
     lstage.setOnHiding(ev -> {
       closeApp(m_mainProps);
