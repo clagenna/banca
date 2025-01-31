@@ -156,7 +156,21 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     colTotAvere.setStyle("-fx-alignment: center-right;");
     colTotAvere.setCellValueFactory(param -> new SimpleObjectProperty<String>(formattaCella("avere", param.getValue())));
 
+    treeview.setOnMouseClicked(evt -> {
+      if (/* evt.isPrimaryButtonDown() && */ evt.getClickCount() == 2) {
+        var row = treeview.getSelectionModel().getSelectedItem();
+        CodStat cds = row.getValue();
+        System.out.println("Doppio click su:" + cds.getCodice());
+      }
+    });
+
     treeview.setRowFactory(row -> new TreeTableRow<CodStat>() {
+
+      //      @Override
+      //      void setOnMouseClicked(MouseEvent evt) {
+      //        
+      //      }
+
       @Override
       protected void updateItem(CodStat item, boolean empty) {
         // super.updateItem(item, empty);
@@ -212,8 +226,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private void treeView_filtra(Object object) {
     System.out.println("CodStatView.treeView_filtra()");
     TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
-    CodStat cds =  null;
-    if (null != tricds) 
+    CodStat cds = null;
+    if (null != tricds)
       cds = tricds.getValue();
     datacntrlr.firePropertyChange(DataController.EVT_FILTER_CODSTAT, null, cds);
   }
@@ -300,7 +314,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     if (null != url)
       myScene.getStylesheets().add(url.toExternalForm());
   }
-  
+
   private Object txDescrSel(ObservableValue<? extends String> obj, String old, String nv) {
     if ( !Utils.isValue(nv) || nv.length() <= 2)
       return null;
@@ -456,8 +470,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     switch (szEvtId) {
       case DataController.EVT_NEW_QUERY_RESULT:
         // m_szQryResulView = evt.getNewValue().toString();
-//        datacntrlr.setQryResulView(evt.getNewValue().toString());
-//        Platform.runLater(() -> datacntrlr.aggiornaTotaliCodStat());
+        //        datacntrlr.setQryResulView(evt.getNewValue().toString());
+        //        Platform.runLater(() -> datacntrlr.aggiornaTotaliCodStat());
         break;
 
       case DataController.EVT_TOTCODSTAT:

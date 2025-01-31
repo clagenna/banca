@@ -47,6 +47,7 @@ public class ProvaConvCsv2RigaBanca {
 
   private List<RigaBanca> convertiDataSet(Dataset dts) {
     List<RigaBanca> retli = new ArrayList<>();
+    @SuppressWarnings("unused")
     DtsCols cols = dts.getColumns();
     for (DtsRow riga : dts.getRighe()) {
       RigaBanca rb = new RigaBanca();

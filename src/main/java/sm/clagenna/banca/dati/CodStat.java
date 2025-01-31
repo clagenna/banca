@@ -70,13 +70,18 @@ public class CodStat implements Comparable<CodStat> {
     String arr[] = p_sz.split("\\.");
     if (arr.length > 3)
       throw new UnsupportedOperationException("Troppi campi : " + p_sz);
-    if (arr.length >= 1)
-      cds.setCod1(Integer.parseInt(arr[0]));
-    if (arr.length >= 2)
-      cds.setCod2(Integer.parseInt(arr[1]));
-    if (arr.length >= 3)
-      cds.setCod3(Integer.parseInt(arr[2]));
-    cds.calcLivello();
+    try {
+      if (arr.length >= 1)
+        cds.setCod1(Integer.parseInt(arr[0]));
+      if (arr.length >= 2)
+        cds.setCod2(Integer.parseInt(arr[1]));
+      if (arr.length >= 3)
+        cds.setCod3(Integer.parseInt(arr[2]));
+      cds.calcLivello();
+    } catch (NumberFormatException e) {
+      s_log.error("Cod. stat. \"{}\" non e' interpretabile", p_sz);
+      cds = null;
+    }
     return cds;
   }
 
@@ -120,11 +125,9 @@ public class CodStat implements Comparable<CodStat> {
     }
     return CodStat.parse(sb.toString());
   }
-  
+
   public boolean isValid() {
-    if ( !Utils.isValue(cod1))
-      return false;
-    if ( !Utils.isValue(descr))
+    if ( !Utils.isValue(cod1) || !Utils.isValue(descr))
       return false;
     return true;
   }
@@ -240,11 +243,11 @@ public class CodStat implements Comparable<CodStat> {
   public String toStringEx() {
     return String.format("%d.%d.%d %s" //
         , cod1, cod2, cod3 //
-//        , Utils.formatDouble(totdare) //
-//        , Utils.formatDouble(totavere) //
+        //        , Utils.formatDouble(totdare) //
+        //        , Utils.formatDouble(totavere) //
         , descr);
   }
-  
+
   public String toExpanded() {
     StringBuilder sb = new StringBuilder();
     toExpanded(livello, sb);
@@ -255,9 +258,9 @@ public class CodStat implements Comparable<CodStat> {
     String szTab = "  ".repeat(liv);
     sb.append(szTab);
     sb.append(toStringEx()).append("\n");
-    if ( null != figli) {
-      for ( CodStat cds : figli) {
-        sb.append(cds.toExpanded(liv+1, sb));
+    if (null != figli) {
+      for (CodStat cds : figli) {
+        sb.append(cds.toExpanded(liv + 1, sb));
       }
     }
     return sb.toString();

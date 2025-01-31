@@ -11,6 +11,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class GuessCodStat {
@@ -66,6 +67,7 @@ public class GuessCodStat {
     setCardid(cardid);
     setDescr(descr);
     setCodstat(codstat);
+    codstatOrig = codstat;
     setDescrCds(descrcds);
     setAssigned(assigned);
   }
@@ -171,15 +173,21 @@ public class GuessCodStat {
   }
 
   public void setCodstat(String ii) {
-    codstat.set(ii);
-    if (null == codstatOrig)
-      codstatOrig = ii;
+    if ( null == ii) {
+      codstat.set(null);
+      return;
+    }
+    CodStat cds = CodStat.parse(ii);
+    if ( null == cds)
+      return;
+    codstat.set(cds.getCodice());
+
     // aggiorno la nuova descr del codstat
-    if ( !codstatOrig.equals(ii)) {
+    if ( !cds.getCodice().equals(codstatOrig)) {
       DataController cntrl = DataController.getInst();
       CodStatTreeData cdsCntrl = cntrl.getCodStatData();
       if (null != cdsCntrl) {
-        CodStat cds = cdsCntrl.decodeCodStat(ii);
+        cds = cdsCntrl.decodeCodStat(cds.getCodice());
         if (null != cds)
           setDescrCds(cds.getDescr());
       }
@@ -207,4 +215,22 @@ public class GuessCodStat {
     return ret;
   }
 
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    String vir = "";
+    sb.append(String.format("%s%s=%s", vir, COL_ID, getId()));
+    vir = ";\n";
+    sb.append(String.format("%s%s=%s", vir, COL_TIPO, getTipo()));
+    sb.append(String.format("%s%s=%s", vir, COL_DTMOV, ParseData.formatDate(getDtmov())));
+    sb.append(String.format("%s%s=%s", vir, COL_DARE, getDare() != null ? Utils.s_fmtDbl.format(getDare()) : "-"));
+    sb.append(String.format("%s%s=%s", vir, COL_AVERE, getAvere() != null ? Utils.s_fmtDbl.format(getAvere()) : "-"));
+    sb.append(String.format("%s%s=%s", vir, COL_CARDID, getCardid()));
+    sb.append(String.format("%s%s=%s", vir, COL_DESCR, getDescr()));
+    sb.append(String.format("%s%s=%s", vir, COL_CODSTAT, getCodstat()));
+    sb.append(String.format("%s%s=%s", vir, COL_CDSDESCR, getDescrcds()));
+    sb.append(String.format("%s%s=%s", vir, COL_ASSIGNED, isAssigned()));
+    
+    return sb.toString();
+  }
 }

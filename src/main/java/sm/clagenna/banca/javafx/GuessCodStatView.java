@@ -188,7 +188,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       var dati = m_tbvf.getDati();
       tblview.getItems().addAll(dati);
     }
-    System.out.println("Fine buildTableView()");
+    // System.out.println("Fine buildTableView()");
   }
 
   private void buildColumsTableView() {
@@ -276,6 +276,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       var row = t.getTableView().getItems().get(t.getTablePosition().getRow());
       row.setCodstat(t.getNewValue());
       assegnaCodStatAiSelected(t.getNewValue());
+      accettaSel_click(null);
     });
     colAssigned.setOnEditCommit((TableColumn.CellEditEvent<GuessCodStat, Boolean> t) -> { //
       var row = t.getTableView().getItems().get(t.getTablePosition().getRow());
@@ -309,9 +310,10 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       }
     });
 
-    //    ObservableList<GuessCodStat> dati = getDati();
-    //    tblview.setItems(dati);
+    setWidthColums();
+  }
 
+  private void setWidthColums() {
     double vv;
     vv = mainProps.getDoubleProperty(CSZ_PROP_COL_Id, -1);
     if (vv > 0)
@@ -343,14 +345,16 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     vv = mainProps.getDoubleProperty(CSZ_PROP_COL_Assigned, -1);
     if (vv > 0)
       colAssigned.setPrefWidth(vv);
-
   }
 
   private void assegnaCodStatAiSelected(String newValue) {
     Platform.runLater(() -> tblview //
         .getSelectionModel() //
         .getSelectedItems() //
-        .forEach(s -> s.setCodstat(newValue)) //
+        .forEach(s -> {
+          s.setCodstat(newValue);
+          s.setAssigned(true);
+        }) //
     );
 
   }
@@ -385,6 +389,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       return;
     bSemaf = true;
     Platform.runLater(() -> lbMsg.setText("Cerco di indovinare i Codici Statistici ..."));
+    saveDimCols(mainProps);
     creaTableResultThread();
     abilitaBottoni();
   }
@@ -458,7 +463,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       accettaSel_click(null);
     });
     ContextMenu menu = new ContextMenu();
-    menu.getItems().addAll(mi1, mi2, mi3);
+    menu.getItems().addAll(mi3, mi1, mi2);
     // liBanca.setContextMenu(menu);
     tblview.setContextMenu(menu);
 
@@ -506,6 +511,21 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     if ( !Utils.isValue(m_codStatSel))
       return;
     System.out.println("GuessCodStatView.btAssignCodStatClick()");
+
+    ObservableList<GuessCodStat> li = tblview.getSelectionModel().getSelectedItems();
+    if (null == li || li.size() == 0) {
+      s_log.warn("Nessun record selezionato per l'assegnamento di {}", m_codStatSel);
+      return;
+    }
+    Platform.runLater(() -> {
+      lstage.getScene().setCursor(Cursor.WAIT);
+      btAssignCodStat.setDisable(true);
+    });
+    assegnaCodStatAiSelected(m_codStatSel);
+    Platform.runLater(() -> {
+      lstage.getScene().setCursor(Cursor.DEFAULT);
+      btAssignCodStat.setDisable(false);
+    });
   }
 
   @Override
@@ -539,6 +559,11 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     p_props.setProperty(CSZ_PROP_DIM_X, (int) dx);
     p_props.setProperty(CSZ_PROP_DIM_Y, (int) dy);
 
+    saveDimCols(p_props);
+
+  }
+
+  private void saveDimCols(AppProperties p_props) {
     p_props.setProperty(CSZ_PROP_COL_Id, Double.valueOf(colId.getWidth()).intValue());
     p_props.setProperty(CSZ_PROP_COL_Tipo, Double.valueOf(colTipo.getWidth()).intValue());
     p_props.setProperty(CSZ_PROP_COL_Dtmov, Double.valueOf(colDtmov.getWidth()).intValue());
@@ -549,7 +574,6 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     p_props.setProperty(CSZ_PROP_COL_Codstat, Double.valueOf(colCodstat.getWidth()).intValue());
     p_props.setProperty(CSZ_PROP_COL_Descrcds, Double.valueOf(colDescrcds.getWidth()).intValue());
     p_props.setProperty(CSZ_PROP_COL_Assigned, Double.valueOf(colAssigned.getWidth()).intValue());
-
   }
 
   @Override
@@ -560,6 +584,16 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
 
       case DataController.EVT_CODSTAT:
         m_codStatSel = evt.getNewValue().toString();
+        Platform.runLater(() -> {
+          // DataController data = m_appmain.getData();
+          // CodStat cds = data.getCodStatData().decodeCodStat(m_codStatSel);
+          //          String szLb = "...";
+          //          if (null != cds)
+          //            szLb = cds.getDescr();
+          btAssignCodStat.setText(m_codStatSel);
+          abilitaBottoni();
+        });
+
         break;
 
       case DataController.EVT_DATASET_CREATED:

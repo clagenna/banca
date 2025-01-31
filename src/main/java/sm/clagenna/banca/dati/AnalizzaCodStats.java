@@ -52,6 +52,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
           + " FROM ListaMovimentiUNION"                 //
           + " WHERE 1=1"                                //
           + " %s"                                       //
+          + "   AND (dare <> 0 OR avere <> 0)"          //
           + "   AND codstat IS NULL"                    //
           + " ORDER BY descr";
 
@@ -119,6 +120,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
       String whe = String.format(" AND descr LIKE('%%%s%%')", parola);
       qry = String.format(CSZ_QRY_UNKNOWN, whe);
     }
+    s_log.debug("Cerca Training con: {}", qry);
     try (PreparedStatement stmt = conn.prepareStatement(qry); ResultSet res = stmt.executeQuery()) {
       if (null == res || res.isClosed())
         return;
@@ -133,6 +135,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
         String descr = res.getString(GuessCodStat.COL_DESCR);
         PhraseComparator.Similarity sim = compr.similarity(descr);
         Phrase phr = sim.phrase();
+        GuessCodStat gcds = new GuessCodStat(id, tipo, dtmov, dare, avere, cardid, descr, null, null, false);
         if (sim.percent() >= 0.4) {
           String codstat = phr.getKey();
           // String codstDescr = codstats.getProperty(codstat);
@@ -141,22 +144,22 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
           String codstDescr = "???";
           if (null != cds)
             codstDescr = cds.getDescr();
-          GuessCodStat gcds = new GuessCodStat(id, tipo, dtmov, dare, avere, cardid, descr, codstat, codstDescr, false);
-          gcds.propertyCodstat().addListener(this);
-          listGuess.add(gcds);
-          s_log.debug("MATCH! {} == ({}) {} \t({}={})" //
+          //GuessCodStat gcds = new GuessCodStat(id, tipo, dtmov, dare, avere, cardid, descr, codstat, codstDescr, false);
+          gcds.setCodstat(codstat);
+          gcds.setDescrCds(codstDescr);
+          
+          s_log.trace("MATCH! {} == ({}) {} \t({}={})" //
               , descr, Utils.formatDouble(sim.percent()), phr.getPhrase() //
               , codstat, codstDescr);
-          //          System.out.printf("MATCH! %-20s == (%.2f) %s \t(%s=%s)\n" //
-          //              , descr, sim.percent(), phr.getPhrase() //
-          //              , codstat, codstDescr);
         } else if (sim.percent() >= 0.1) {
           // System.out.printf("\t%-20s != (%.2f) %s\n", descr, sim.percent(), phr.getPhrase());
-          s_log.debug("\t{} != ({}) {}", descr, Utils.formatDouble(sim.percent()), phr.getPhrase());
+          s_log.trace("\t{} != ({}) {}", descr, Utils.formatDouble(sim.percent()), phr.getPhrase());
         } else {
           // System.out.printf("\t%-20s (%.2f) *sconosciuto* \n", descr, sim.percent());
-          s_log.debug("\t{} ({}) *sconosciuto*", descr, Utils.formatDouble(sim.percent()));
+          s_log.trace("\t{} ({}) *sconosciuto*", descr, Utils.formatDouble(sim.percent()));
         }
+        gcds.propertyCodstat().addListener(this);
+        listGuess.add(gcds);
       }
     } catch (SQLException e) {
       s_log.error("Errore comparatore frasi, err={}", e.getMessage());
@@ -189,7 +192,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
       if (szp.getName().equals(GuessCodStat.COL_CODSTAT)) {
         CodStat cds = codStatData.decodeCodStat(newValue);
         if (null == cds) {
-          System.out.println("CodStat.changed()=NULL");
+          // System.out.println("CodStat.changed()=NULL");
           String szMsg = String.format("Il codice Statistico \"%s\" *NON* esiste !", newValue);
           s_log.error(szMsg);
           Platform.runLater(() -> mainApp.msgBox(szMsg, AlertType.ERROR));
