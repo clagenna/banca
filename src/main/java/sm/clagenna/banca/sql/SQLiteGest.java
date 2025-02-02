@@ -6,18 +6,19 @@ import org.apache.logging.log4j.Logger;
 public class SQLiteGest extends SqlGest {
   private static final Logger s_log = LogManager.getLogger(SQLiteGest.class);
 
-  private static final String QRY_LIST_CARDS    = "SELECT DISTINCT tipo FROM ListaMovimentiUNION";
-  private static final String QRY_LIST_ANNI     = "SELECT DISTINCT strftime('%Y', dtmov) as anno FROM ListaMovimentiUNION";
-  private static final String QRY_LIST_MESI     = "SELECT DISTINCT movstr FROM ListaMovimentiUNION ORDER BY movstr";
+  private static final String QRY_LIST_CARDS    = "SELECT DISTINCT tipo FROM ListaMovimenti";
+  private static final String QRY_LIST_ANNI     = "SELECT DISTINCT strftime('%Y', dtmov) as anno FROM ListaMovimenti";
+  private static final String QRY_LIST_MESI     = "SELECT DISTINCT movstr FROM ListaMovimenti ORDER BY movstr";
   private static final String QRY_LIST_CAUSABI  = "SELECT abicaus, descrcaus || ' (' || abicaus || ')' as descr FROM causali ORDER BY descr";
-  private static final String QRY_LIST_CARDHOLD = "SELECT DISTINCT cardid FROM ListaMovimentiUNION WHERE cardid IS NOT NULL ORDER BY cardid";
+  private static final String QRY_LIST_CARDHOLD = "SELECT DISTINCT cardid FROM ListaMovimenti WHERE cardid IS NOT NULL ORDER BY cardid";
   private static final String QRY_LIST_VIEWS    = "SELECT name FROM sqlite_master WHERE type = 'view'";
   private static final String QRY_VIEW_PATT     = "SELECT %s from %s WHERE 1=1 ORDER BY dtMov,dtval;";
   private static final String QRY_LAST_ROWID    = "SELECT last_insert_rowid()";
 
   private static final String QRY_INS_Mov = //
-      "INSERT INTO movimenti%s" //
-          + "                 (idfile" //
+      "INSERT INTO movimenti" //
+          + "                 (tipo"
+          + "                 ,idfile" //
           + "                 ,dtmov" //
           + "                 ,dtval" //
           + "                 ,dare" //
@@ -26,20 +27,21 @@ public class SQLiteGest extends SqlGest {
           + "                 ,abicaus" //
           + "                 ,cardid" //
           + "                 ,codstat)" //
-          + "           VALUES (?,?,?,?,?,?,?,?,?)";
+          + "           VALUES (?,?,?,?,?,?,?,?,?,?)";
 
   private static final String QRY_SEL_Mov = //
       "SELECT COUNT(*)" //
-          + "  FROM movimenti%s" //
+          + "  FROM movimenti" //
           + " WHERE 1=1"; //
 
   private static final String QRY_DEL_Mov = //
-      "DELETE FROM movimenti%s" //
+      "DELETE FROM movimenti" //
           + " WHERE 1=1"; //
 
   private static final String QRY_MOD_Mov = //
-      "UPDATE movimenti%s" //
-          + "  SET idfile=?" //
+      "UPDATE movimenti" //
+          + "  SET tipo=?" //
+          + "     ,idfile=?" //
           + "     ,dtmov=?" //
           + "     ,dtval=?" //
           + "     ,dare=?" //
@@ -51,7 +53,7 @@ public class SQLiteGest extends SqlGest {
           + "  WHERE 1=1";
 
   private static final String QRY_MOD_CodStat = //
-      "UPDATE movimenti%s" //
+      "UPDATE movimenti" //
           + "  SET codstat=?" //
           + "  WHERE id=?";
 

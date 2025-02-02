@@ -252,11 +252,11 @@ SELECT tipo
       ,cardid
       ,descr
       ,mo.abicaus
-	  ,ca.descrcaus
-	  ,ca.costo
+      ,ca.descrcaus
+      ,ca.costo
       ,codstat
   FROM movimenti mo
-    left outer join causali ca
+    LEFT OUTER JOIN causali ca
 	  on mo.abicaus = ca.abicaus
 GO
 

@@ -49,7 +49,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
   //  public static final String  FILE_CODSTAT    = "CodStat.properties";
   private static final String QRY_TOT_CODSTAT = //
       "SELECT coalesce(Codstat, '99') as codstat, SUM(dare) as totDare, SUM(avere) as totAvere" + //
-          "  FROM listaMovimentiUNION" + //
+          "  FROM listaMovimenti" + //
           "  %s" + //
           "  GROUP BY codstat" + //
           "  ORDER BY codstat";
@@ -331,7 +331,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
   }
 
   public void aggiornaTotaliCodStat() {
-    // parse : SELECT * from ListaMovimentiUNION WHERE 1=1  AND movStr like '2024%'  ORDER BY dtMov,dtval
+    // parse : SELECT * from ListaMovimenti WHERE 1=1  AND movStr like '2024%'  ORDER BY dtMov,dtval
     if (null == qryResulView)
       return;
     qryResulViewOld = qryResulView;

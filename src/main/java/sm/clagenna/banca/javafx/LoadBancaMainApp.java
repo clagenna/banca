@@ -27,6 +27,7 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.stdcla.javafx.IStartApp;
+import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.DBConnFactory;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -141,11 +142,14 @@ public class LoadBancaMainApp extends Application implements IStartApp {
       int py = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_Y);
       int dx = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_X);
       int dy = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_Y);
-      if (px * py != 0) {
-        primaryStage.setX(px);
-        primaryStage.setY(py);
-        primaryStage.setWidth(dx);
-        primaryStage.setHeight(dy);
+      
+      
+      var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+      if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+        primaryStage.setX(mm.poxX());
+        primaryStage.setY(mm.posY());
+        primaryStage.setWidth(mm.width());
+        primaryStage.setHeight(mm.height());
       }
     } catch (Exception l_e) {
       LoadBancaMainApp.s_log.error("Errore in main initApp: {}", l_e.getMessage(), l_e);

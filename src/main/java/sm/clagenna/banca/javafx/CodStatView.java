@@ -47,6 +47,7 @@ import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
+import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 
@@ -304,11 +305,12 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     int py = p_props.getIntProperty(CSZ_PROP_POScdstt_Y);
     int dx = p_props.getIntProperty(CSZ_PROP_DIMcdstt_X);
     int dy = p_props.getIntProperty(CSZ_PROP_DIMcdstt_Y);
-    if (px != -1 && py != -1 && px * py != 0) {
-      lstage.setX(px);
-      lstage.setY(py);
-      lstage.setWidth(dx);
-      lstage.setHeight(dy);
+    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+      lstage.setX(mm.poxX());
+      lstage.setY(mm.posY());
+      lstage.setWidth(mm.width());
+      lstage.setHeight(mm.height());
     }
     URL url = m_appmain.getUrlCSS();
     if (null != url)
