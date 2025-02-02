@@ -7,7 +7,7 @@ import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.stdcla.sql.DBConn;
 
 public interface ISQLGest {
-  void setTableName(String szTblNam);
+  // void setTableName(String szTblNam);
 
   DBConn getDbconn();
 
@@ -23,17 +23,17 @@ public interface ISQLGest {
 
   void rollBackTrans();
 
-  boolean existMovimento(String p_tab, RigaBanca rig);
+  boolean existMovimento(RigaBanca rig);
 
-  boolean updateMovimento(String p_tab, RigaBanca rig);
+  boolean updateMovimento(RigaBanca rig);
   
   boolean updateCodStat(RigaBanca rig);
 
   boolean updateCodStat(List<RigaBanca> liRb);
 
-  int deleteMovimento(String p_tab, RigaBanca rig);
+  int deleteMovimento(RigaBanca rig);
 
-  boolean insertMovimento(String p_tab, RigaBanca p_rig);
+  boolean insertMovimento(RigaBanca p_rig);
 
   List<String> getListTipoCard();
 

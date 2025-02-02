@@ -31,8 +31,8 @@ public abstract class SqlGest implements ISQLGest {
   private PreparedStatement stmtMod;
   private PreparedStatement stmtLastRowId;
 
-  @Getter @Setter
-  private String  tableName;
+//  @Getter @Setter
+//  private String  tableName;
   @Getter @Setter
   private DBConn  dbconn;
   @Getter @Setter
@@ -53,23 +53,12 @@ public abstract class SqlGest implements ISQLGest {
   static {
     allTables = Arrays.asList(new String[] { //
         "impFiles", //
-        "movimentiBSI", //
-        "movimentiBSICredit", //
-        "movimentiCarisp", //
-        "movimentiCarispCredit", //
-        "movimentiPaypal", //
-        "movimentiWise", //
-        "movimentiContanti", //
-        "movimentiSmac" });
+        "movimenti" //
+    });
   }
 
   public SqlGest() {
     init();
-  }
-
-  public SqlGest(String p_tbl) {
-    init();
-    setTableName(p_tbl);
   }
 
   private void init() {
@@ -110,15 +99,15 @@ public abstract class SqlGest implements ISQLGest {
   @Override
   public void write(RigaBanca ri) {
     try {
-      if (existMovimento(tableName, ri)) {
+      if (existMovimento(ri)) {
         if ( !overwrite) {
           getLog().debug("Il movimento esiste! scarto {} ", ri.toString());
           scarti++;
           return;
         }
-        deleted += deleteMovimento(tableName, ri);
+        deleted += deleteMovimento(ri);
       }
-      insertMovimento(tableName, ri);
+      insertMovimento(ri);
       added++;
     } catch (Exception e) {
       getLog().error("!err scrittura DB, {}", e.getMessage(), e);
@@ -126,25 +115,26 @@ public abstract class SqlGest implements ISQLGest {
   }
 
   @Override
-  public boolean existMovimento(String p_tab, RigaBanca rig) {
+  public boolean existMovimento(RigaBanca rig) {
     boolean bRet = false;
     int qta = 0;
     // TimerMeter tm = new TimerMeter("Exist");
     DataController cntrl = DataController.getInst();
+    StringBuilder qry = new StringBuilder();
     try {
       if (null == stmtSel) {
         int fq = cntrl.getFiltriQuery();
         // resetto la ricerca sul campo "Id"
         if (ESqlFiltri.Id.isSet(fq))
           cntrl.setFiltriQuery(fq & (ESqlFiltri.AllSets.getFlag() ^ ESqlFiltri.Id.getFlag()));
-
-        StringBuilder qry = new StringBuilder(String.format(getQrySELMov(), p_tab));
+        qry.append(getQrySELMov());
         qry.append(cntrl.getCampiFiltro());
+        getLog().debug("prepare existMov:{}", qry);
         Connection conn = dbconn.getConn();
         stmtSel = conn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
-      getLog().error("Errore prep statement SELECT on {} with err={}", p_tab, e.getMessage());
+      getLog().error("Errore prep statement {} with err={}", rig.getTiporec(), e.getMessage());
       return true;
     }
 
@@ -156,52 +146,53 @@ public abstract class SqlGest implements ISQLGest {
         bRet = qta != 0;
       }
     } catch (SQLException e) {
-      getLog().error("Errore SELECT on {} with err={}", p_tab, e.getMessage());
+      getLog().error("Errore query {} with err={}", rig.getTiporec(), e.getMessage());
     }
     // System.out.println(tm.stop());
     return bRet;
   }
 
   @Override
-  public int deleteMovimento(String p_tab, RigaBanca rig) {
+  public int deleteMovimento(RigaBanca rig) {
     int qtaDel = 0;
     // TimerMeter tm = new TimerMeter("Delete");
     DataController cntrl = DataController.getInst();
+    StringBuilder qry = null;
     try {
       if (null == stmtDel) {
-        StringBuilder qry = new StringBuilder(String.format(getQryDELMov(), p_tab));
+        qry = new StringBuilder(getQryDELMov());
         qry.append(cntrl.getCampiFiltro());
         Connection conn = dbconn.getConn();
         stmtDel = conn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
-      getLog().error("Errore prep statement DELETE on {} with err={}", p_tab, e.getMessage());
+      getLog().error("Errore prep statement DELETE on {} with err={}", qry, e.getMessage());
       return 0;
     }
     try {
       cntrl.applicaFiltri(stmtDel, 1, dbconn, rig);
       qtaDel = stmtDel.executeUpdate();
     } catch (SQLException e) {
-      getLog().error("Errore DELETE on {} with err={}", p_tab, e.getMessage());
+      getLog().error("Errore DELETE on {} with err={}", qry, e.getMessage());
     }
     // System.out.println(tm.stop());
     return qtaDel;
   }
 
   @Override
-  public boolean updateMovimento(String p_tab, RigaBanca p_rig) {
+  public boolean updateMovimento(RigaBanca p_rig) {
     boolean bRet = false;
-    // TimerMeter tm = new TimerMeter("Insert");
+    StringBuilder qry = null;
     DataController cntrl = DataController.getInst();
     try {
       if (null == stmtMod) {
-        StringBuilder qry = new StringBuilder(String.format(getQryMODMov(), p_tab));
+        qry = new StringBuilder(getQryMODMov());
         qry.append(cntrl.getCampiFiltro());
         Connection conn = dbconn.getConn();
         stmtMod = conn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
-      getLog().error("Errore prep statement UPDATE on {} with err={}", p_tab, e.getMessage());
+      getLog().error("Errore UPDATE on {} with err={}", qry, e.getMessage());
       return false;
     }
 
@@ -210,6 +201,7 @@ public abstract class SqlGest implements ISQLGest {
       if (null != szCaus)
         szCaus = szCaus.replace(".0", "");
       int k = 1;
+      dbconn.setStmtInt(stmtMod, k++, p_rig.getTiporec());
       dbconn.setStmtInt(stmtMod, k++, p_rig.getIdfile());
       dbconn.setStmtDatetime(stmtMod, k++, p_rig.getDtmov());
       dbconn.setStmtDatetime(stmtMod, k++, p_rig.getDtval());
@@ -225,7 +217,7 @@ public abstract class SqlGest implements ISQLGest {
       stmtMod.executeUpdate();
 
     } catch (SQLException e) {
-      getLog().error("Errore INSERT on {} with err={}", p_tab, e.getMessage());
+      getLog().error("Errore INSERT in {} with err={}", p_rig.getTiporec(), e.getMessage());
     }
     // System.out.println(tm.stop());
     return bRet;
@@ -282,19 +274,19 @@ public abstract class SqlGest implements ISQLGest {
   }
 
   @Override
-  public boolean insertMovimento(String p_tab, RigaBanca p_rig) {
+  public boolean insertMovimento(RigaBanca p_rig) {
     boolean bRet = false;
     lastRowid = -1;
     // TimerMeter tm = new TimerMeter("Insert");
     try {
       if (null == stmtIns) {
-        String qry = String.format(getQryINSMov(), p_tab);
+        String qry = getQryINSMov();
         Connection conn = dbconn.getConn();
         stmtIns = conn.prepareStatement(qry.toString());
         stmtLastRowId = conn.prepareStatement(getQryLASTROWID());
       }
     } catch (SQLException e) {
-      getLog().error("Errore prep statement INSERT on {} with err={}", p_tab, e.getMessage());
+      getLog().error("Errore prep statement INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
       return false;
     }
 
@@ -303,6 +295,7 @@ public abstract class SqlGest implements ISQLGest {
       if (null != szCaus)
         szCaus = szCaus.replace(".0", "");
       int k = 1;
+      dbconn.setStmtString(stmtIns, k++, p_rig.getTiporec());
       dbconn.setStmtInt(stmtIns, k++, p_rig.getIdfile());
       dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtmov());
       dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtval());
@@ -316,7 +309,7 @@ public abstract class SqlGest implements ISQLGest {
       stmtIns.executeUpdate();
       lastRowid = trovaLastRowid();
     } catch (SQLException e) {
-      getLog().error("Errore INSERT on {} with err={}", p_tab, e.getMessage());
+      getLog().error("Errore INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
     }
     // System.out.println(tm.stop());
     return bRet;

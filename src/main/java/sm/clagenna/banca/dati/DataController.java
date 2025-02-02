@@ -35,6 +35,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
   private static final String CSZ_PROP_EXCLUDEDCOLS = "excludedcols";
   private static final String CSZ_FLAG_FILTRI       = "FLAG_FILTRI";
   private static final String CSZ_QTA_THREADS       = "QTA_THREADS";
+  private static final String CSZ_PERC_INDOV       = "PERC_INDOV";
   public static final String  CSZ_FILTER_FILES      = "filter_files";
 
   public static final String EVT_CODSTAT             = "codstat";
@@ -62,6 +63,8 @@ public class DataController implements IStartApp, PropertyChangeListener {
   private int                   filtriQuery;
   @Getter @Setter
   private int                   qtaThreads;
+  @Getter @Setter
+  private int                   percIndov;
   @Getter @Setter
   private CardidAssoc           associd;
   @Getter @Setter
@@ -152,6 +155,9 @@ public class DataController implements IStartApp, PropertyChangeListener {
         case Id:
           dbconn.setStmtInt(p_stmt, k++, p_rig.getRigaid());
           break;
+        case tipo:
+          dbconn.setStmtString(p_stmt, k++, p_rig.getTiporec());
+          break;
         case Dtmov:
           dbconn.setStmtDate(p_stmt, k++, p_rig.getDtmov());
           break;
@@ -186,6 +192,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
     contCsv = new CsvFileContainer();
     filtriQuery = props.getIntProperty(CSZ_FLAG_FILTRI, ESqlFiltri.AllSets.getFlag());
     qtaThreads = props.getIntProperty(CSZ_QTA_THREADS, 1);
+    percIndov = props.getIntProperty(CSZ_PERC_INDOV, 40);
     scartaVoci = new ArrayList<String>();
     lastDir = Paths.get(props.getLastDir());
     String sz = props.getProperty(CSZ_PROP_SCARTA);
@@ -229,6 +236,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
 
     prop.setIntProperty(CSZ_FLAG_FILTRI, filtriQuery);
     prop.setIntProperty(CSZ_QTA_THREADS, qtaThreads);
+    prop.setIntProperty(CSZ_PERC_INDOV, getPercIndov());
     String sz;
     if (null != scartaVoci) {
       sz = String.join(",", scartaVoci);

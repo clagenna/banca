@@ -52,6 +52,8 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   @FXML
   private Spinner<Integer> spinQtaThread;
   @FXML
+  private Spinner<Integer> spinPercIndovina;
+  @FXML
   private TextField        txFilesFiltro;
   @FXML
   private ComboBox<String> cbSkins;
@@ -60,6 +62,8 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   private Button   btTutti;
   @FXML
   private Button   btNessuno;
+  @FXML
+  private CheckBox ckTipo;
   @FXML
   private CheckBox ckDtmov;
   @FXML
@@ -172,6 +176,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   private void prepareFiltro() {
     bSema = ROSSO;
     int filtr = dataCntr.getFiltriQuery();
+    ckTipo.setSelected(ESqlFiltri.tipo.isSet(filtr));
     ckDtmov.setSelected(ESqlFiltri.Dtmov.isSet(filtr));
     ckDtval.setSelected(ESqlFiltri.Dtval.isSet(filtr));
     ckImpdare.setSelected(ESqlFiltri.Dare.isSet(filtr));
@@ -478,8 +483,11 @@ public class ConfOpzioniController implements Initializable, IStartApp {
         dataCntr.setOverwrite(n);
     });
     int qtaTh = dataCntr.getQtaThreads();
+    int percIndov = dataCntr.getPercIndov();
     spinQtaThread.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, qtaTh, 1));
     spinQtaThread.valueProperty().addListener((obj, ov, nv) -> changeQtaThreads(nv));
+    spinPercIndovina.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(5, 100, percIndov, 1));
+    spinPercIndovina.valueProperty().addListener((obj, ov, nv) -> changePercIndov(nv));
     caricaCbSkins();
     cbSkins.valueProperty().addListener((obj, ov, nv) -> cbSkinsSel(nv));
     if (null != m_appmain.getSkin())
@@ -487,6 +495,10 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     txFilesFiltro.setText(p_props.getProperty(DataController.CSZ_FILTER_FILES));
     txFilesFiltro.textProperty().addListener((obj, ov, nv) -> changedFiltroFiles(nv));
 
+    ckTipo.selectedProperty().addListener((obs, o, n) -> {
+      if (bSema)
+        dataCntr.mettiFiltro(ESqlFiltri.tipo, n);
+    });
     ckDtmov.selectedProperty().addListener((obs, o, n) -> {
       if (bSema)
         dataCntr.mettiFiltro(ESqlFiltri.Dtmov, n);
@@ -549,8 +561,14 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   }
 
   private Object changeQtaThreads(Integer nv) {
-    System.out.printf("ConfOpzioniController.changeQtaThreads(%d)\n", nv);
+    // System.out.printf("ConfOpzioniController.changeQtaThreads(%d)\n", nv);
     dataCntr.setQtaThreads(nv);
+    return null;
+  }
+  
+  private Object changePercIndov(Integer nv) {
+    // System.out.printf("ConfOpzioniController.changeQtaThreads(%d)\n", nv);
+    dataCntr.setPercIndov(nv);
     return null;
   }
 
@@ -566,6 +584,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   }
 
   private void setCheckBoxes(boolean bv) {
+    ckTipo.setSelected(bv);
     ckDtmov.setSelected(bv);
     ckDtval.setSelected(bv);
     ckImpavere.setSelected(bv);

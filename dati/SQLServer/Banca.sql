@@ -1,3 +1,7 @@
+USE Banca
+GO
+
+
 /****** Object:  Table dbo.causali    Script Date: 22/11/2024 18:24:23 ******/
 SET ANSI_NULLS ON
 GO
@@ -179,8 +183,9 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE TABLE dbo.movimentiBSI(
+CREATE TABLE dbo.movimenti (
     id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	tipo nvarchar(32) NOT NULL,
 	idfile INT NULL,
 	dtmov datetime NULL,
 	dtval datetime NULL,
@@ -192,170 +197,39 @@ CREATE TABLE dbo.movimentiBSI(
 	codstat nvarchar(20) NULL
 ) 
 GO
-CREATE INDEX IXMovBSI ON dbo.movimentiBSI( dtmov, dtval )
-GO
-/****** Object:  Table dbo.movimentiBSICredit    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE dbo.movimentiBSICredit(
-    id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	idfile INT NULL,
-	dtmov datetime NULL,
-	dtval datetime NULL,
-	dare money NULL,
-	avere money NULL,
-	descr nvarchar(512) NULL,
-	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL,
-	codstat nvarchar(20) NULL
-)
-GO
-CREATE INDEX IXMovBsiCredit ON dbo.movimentiBsiCredit( dtmov, dtval )
+
+/****** Object:  Index IXMovCarisp    Script Date: 02/02/2025 10:18:29 ******/
+CREATE NONCLUSTERED INDEX IXMovim ON dbo.movimenti
+(
+    tipo ASC, 
+	dtmov ASC,
+	dtval ASC
+) 
+WITH (
+	PAD_INDEX = OFF, 
+	STATISTICS_NORECOMPUTE = OFF, 
+	SORT_IN_TEMPDB = OFF, 
+	DROP_EXISTING = OFF, 
+	ONLINE = OFF, 
+	ALLOW_ROW_LOCKS = ON, 
+	ALLOW_PAGE_LOCKS = ON, 
+	OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
 GO
 
-/****** Object:  Table dbo.movimentiCarisp    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE dbo.movimentiCarisp(
-    id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	idfile INT NULL,
-	dtmov datetime NULL,
-	dtval datetime NULL,
-	dare money NULL,
-	avere money NULL,
-	descr nvarchar(512) NULL,
-	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL,
-	codstat nvarchar(20) NULL
-)
-GO
-CREATE INDEX IXMovCarisp ON dbo.movimentiCarisp( dtmov, dtval )
-GO
-/****** Object:  Table dbo.movimentiCarispCredit    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE dbo.movimentiCarispCredit(
-    id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	idfile INT NULL,
-	dtmov datetime NULL,
-	dtval datetime NULL,
-	dare money NULL,
-	avere money NULL,
-	descr nvarchar(512) NULL,
-	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL,
-	codstat nvarchar(20) NULL
-)
-GO
-CREATE INDEX IXMovCarispCredit ON dbo.movimentiCarispCredit( dtmov, dtval )
-GO
-/****** Object:  Table dbo.movimentiCarispCredit    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE dbo.movimentiPaypal(
-    id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	idfile INT NULL,
-	dtmov datetime NULL,
-	dtval datetime NULL,
-	dare money NULL,
-	avere money NULL,
-	descr nvarchar(512) NULL,
-	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL,
-	codstat nvarchar(20) NULL
-)
-GO
-CREATE INDEX IXMovPaypal ON dbo.movimentiPaypal( dtmov, dtval )
-GO
-/****** Object:  Table dbo.movimentiWise    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE dbo.movimentiWise(
-    id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	idfile INT NULL,
-	dtmov datetime NULL,
-	dtval datetime NULL,
-	dare money NULL,
-	avere money NULL,
-	descr nvarchar(512) NULL,
-	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL,
-	codstat nvarchar(20) NULL
-)
-GO
-CREATE INDEX IXMovWise ON dbo.movimentiWise( dtmov, dtval )
-GO
-/****** Object:  Table dbo.movimentiContanti    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE dbo.movimentiContanti(
-    id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	idfile INT NULL,
-	dtmov datetime NULL,
-	dtval datetime NULL,
-	dare money NULL,
-	avere money NULL,
-	descr nvarchar(512) NULL,
-	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL,
-	codstat nvarchar(20) NULL
-)
-GO
-CREATE INDEX IXMovContanti ON dbo.movimentiContanti( dtmov, dtval )
-GO
-/****** Object:  Table dbo.movimentiSmac    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE dbo.movimentiSmac(
-    id INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
-	idfile INT NULL,
-	dtmov datetime NULL,
-	dtval datetime NULL,
-	dare money NULL,
-	avere money NULL,
-	descr nvarchar(512) NULL,
-	abicaus nvarchar(32) NULL,
-	cardid nvarchar(20) NULL,
-	codstat nvarchar(20) NULL
-)
-GO
-CREATE INDEX IXMovSmac ON dbo.movimentiSmac( dtmov, dtval )
-GO
-
-CREATE VIEW dbo.listaMovimentiBSI
-as 
-SELECT 'BSI' as tipo
-      ,id
-      ,idfile
-      ,dtmov
-      ,dtval
-      , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
-      , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
-      ,dare
-      ,avere
-      ,cardid
-      ,descr
-      ,mo.abicaus
-      ,ca.descrcaus
-      ,ca.costo
-      ,codstat
-  FROM movimentiBSI mo
-    left outer join causali ca
-	  on mo.abicaus = ca.abicaus
+/****** Object:  Index IXMovCarisp    Script Date: 02/02/2025 10:18:29 ******/
+CREATE NONCLUSTERED INDEX IXMovCodstat ON dbo.movimenti
+(
+	codstat ASC
+) 
+WITH (
+	PAD_INDEX = OFF, 
+	STATISTICS_NORECOMPUTE = OFF, 
+	SORT_IN_TEMPDB = OFF, 
+	DROP_EXISTING = OFF, 
+	ONLINE = OFF, 
+	ALLOW_ROW_LOCKS = ON, 
+	ALLOW_PAGE_LOCKS = ON, 
+	OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
 GO
 
 /****** Object:  View dbo.listaMovimentiBSICredi ******/
@@ -364,9 +238,9 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE view dbo.listaMovimentiBSICredit
+CREATE view dbo.listaMovimenti
 as 
-SELECT 'BSICred' as tipo
+SELECT tipo
       ,id 
       ,idfile
       ,dtmov
@@ -381,334 +255,10 @@ SELECT 'BSICred' as tipo
 	  ,ca.descrcaus
 	  ,ca.costo
       ,codstat
-  FROM movimentiBSICredit mo
+  FROM movimenti mo
     left outer join causali ca
 	  on mo.abicaus = ca.abicaus
 GO
-
-/****** Object:  View dbo.listaMovimentiPaypal ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-
-CREATE view dbo.listaMovimentiPaypal
-as 
-SELECT 'Paypal' as tipo
-      ,id 
-      ,idfile
-      ,dtmov
-      ,dtval
-	  , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
-	  , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
-      ,dare
-      ,avere
-	  ,cardid
-      ,descr
-      ,mo.abicaus
-	  ,ca.descrcaus
-	  ,ca.costo
-      ,codstat
-  FROM movimentiPaypal mo
-    left outer join causali ca
-	  on mo.abicaus = ca.abicaus
-GO
-
-/****** Object:  View dbo.listaMovimentiCarisp    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE view dbo.listaMovimentiCarisp
-as 
-SELECT 'Carisp' as tipo
-      ,id
-      ,idfile
-      ,dtmov
-      ,dtval
-	  , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
-	  , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
-      ,dare
-      ,avere
-      ,descr
-	  ,cardid
-      ,mo.abicaus
-	  ,ca.descrcaus
-	  ,ca.costo
-      ,codstat
-  FROM movimentiCarisp mo
-    left outer join causali ca
-	  on mo.abicaus = ca.abicaus
-GO
-
-
-/****** Object:  View dbo.listaMovimentiCarispCredit    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-
-
-CREATE view dbo.listaMovimentiCarispCredit
-as 
-SELECT 'CarispCredit' as tipo
-      ,id
-      ,idfile
-      ,dtmov
-      ,dtval
-	  , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
-	  , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
-      ,dare
-      ,avere
-	  ,cardid
-      ,descr
-      ,mo.abicaus
-	  ,ca.descrcaus
-	  ,ca.costo
-      ,codstat
-  FROM movimentiCarispCredit mo
-    left outer join causali ca
-	  on mo.abicaus = ca.abicaus
-GO
-
-/****** Object:  View dbo.listaMovimentiWise    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-
-CREATE view dbo.listaMovimentiWise
-as 
-SELECT 'wise' as tipo
-      ,id
-      ,idfile
-      ,dtmov
-      ,dtval
-	  , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
-	  , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
-      ,dare
-      ,avere
-	  ,cardid
-      ,descr
-      ,mo.abicaus
-	  ,ca.descrcaus
-	  ,ca.costo
-      ,codstat
-  FROM movimentiWise mo
-    left outer join causali ca
-	  on mo.abicaus = ca.abicaus
-GO
-
-
-/****** Object:  View dbo.listaMovimentiContanti    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-
-
-
-CREATE view dbo.listaMovimentiContanti
-as 
-SELECT 'Cont' as tipo
-      ,id
-      ,idfile
-      ,dtmov
-      ,dtval
-	  , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
-	  , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
-      ,dare
-      ,avere
-      ,descr
-	  ,cardid
-      ,mo.abicaus
-	  ,ca.descrcaus
-	  ,ca.costo
-      ,codstat
-  FROM movimentiContanti mo
-    left outer join causali ca
-	  on mo.abicaus = ca.abicaus
-GO
-
-/****** Object:  View dbo.listaMovimentiSmac    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-
-CREATE view dbo.listaMovimentiSmac
-as 
-SELECT 'Smac' as tipo
-      ,id
-      ,idfile
-      ,dtmov
-      ,dtval
-      , SUBSTRING( convert(varchar,dtmov,102), 1,7) as movstr
-      , SUBSTRING( convert(varchar,dtval,102), 1,7) as valstr
-      -- ,dare
-      ,CASE mo.abicaus
-          WHEN 'S3'  THEN 0
-          WHEN 'S4'  THEN 0
-          ELSE mo.dare
-       END dare
-      ,avere
-      ,descr
-      ,cardid
-      ,mo.abicaus
-      ,ca.descrcaus
-      ,ca.costo
-      ,codstat
-  FROM movimentiSmac mo
-    left outer join causali ca
-	  on mo.abicaus = ca.abicaus
-GO
-
-
-/****** Object:  View dbo.ListaMovimentiUNION    Script Date: 22/11/2024 18:24:23 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-
-CREATE     view dbo.ListaMovimentiUNION
-as
-SELECT id
-      ,tipo 
-      ,idfile
-      ,dtmov
-      ,dtval
-      ,movstr
-      ,valstr
-      ,dare
-      ,avere
-      ,cardid
-      ,descr
-      ,abicaus
-      ,descrcaus
-      ,costo
-      ,codstat
-  FROM dbo.listaMovimentiCarisp
-UNION
-SELECT id
-      ,tipo
-      ,idfile
-      ,dtmov
-      ,dtval
-      ,movstr
-      ,valstr
-      ,dare
-      ,avere
-      ,cardid
-      ,descr
-      ,abicaus
-      ,descrcaus
-      ,costo
-      ,codstat
-  FROM dbo.listaMovimentiBSI
-UNION 
-SELECT id
-      ,tipo
-      ,idfile
-      ,dtmov
-      ,dtval
-      ,movstr
-      ,valstr
-      ,dare
-      ,avere
-      ,cardid
-      ,descr
-      ,abicaus
-      ,descrcaus
-      ,costo
-      ,codstat
-  FROM dbo.listaMovimentiBSICredit
-UNION 
-SELECT id
-      ,tipo
-      ,idfile
-      ,dtmov
-      ,dtval
-      ,movstr
-      ,valstr
-      ,dare
-      ,avere
-      ,cardid
-      ,descr
-      ,abicaus
-      ,descrcaus
-      ,costo
-      ,codstat
-  FROM dbo.listaMovimentiCarispCredit
-UNION 
-SELECT id
-      ,tipo
-      ,idfile
-      ,dtmov
-      ,dtval
-      ,movstr
-      ,valstr
-      ,dare
-      ,avere
-      ,cardid
-      ,descr
-      ,abicaus
-      ,descrcaus
-      ,costo
-      ,codstat
-  FROM dbo.listaMovimentiWise
-UNION 
-SELECT id
-      ,tipo
-      ,idfile
-      ,dtmov
-      ,dtval
-      ,movstr
-      ,valstr
-      ,dare
-      ,avere
-      ,cardid
-      ,descr
-      ,abicaus
-      ,descrcaus
-      ,costo
-      ,codstat
-  FROM dbo.listaMovimentiSmac
-UNION 
-SELECT id
-      ,tipo
-      ,idfile
-      ,dtmov
-      ,dtval
-      ,movstr
-      ,valstr
-      ,dare
-      ,avere
-      ,cardid
-      ,descr
-      ,abicaus
-      ,descrcaus
-      ,costo
-      ,codstat
-  FROM dbo.listaMovimentiPaypal
-UNION 
-SELECT id
-      ,tipo
-      ,idfile
-      ,dtmov
-      ,dtval
-      ,movstr
-      ,valstr
-      ,dare
-      ,avere
-      ,cardid
-      ,descr
-      ,abicaus
-      ,descrcaus
-      ,costo
-      ,codstat
-  FROM dbo.listaMovimentiContanti
-GO
-
 
 USE master
 GO

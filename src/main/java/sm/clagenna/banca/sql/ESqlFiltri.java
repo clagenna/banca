@@ -4,14 +4,15 @@ import java.sql.Types;
 
 public enum ESqlFiltri {
   Id(1, Types.DATE), //
-  Dtmov(2, Types.DATE), //
-  Dtval(4, Types.DATE), //
-  Dare(8, Types.DECIMAL), //
-  Avere(16, Types.DECIMAL), //
-  Descr(32, Types.VARCHAR), //
-  ABICaus(64, Types.VARCHAR), //
-  Cardid(128, Types.VARCHAR), //
-  AllSets(255, Types.NULL);
+  tipo(2, Types.VARCHAR), //
+  Dtmov(4, Types.DATE), //
+  Dtval(8, Types.DATE), //
+  Dare(16, Types.DECIMAL), //
+  Avere(32, Types.DECIMAL), //
+  Descr(64, Types.VARCHAR), //
+  ABICaus(128, Types.VARCHAR), //
+  Cardid(256, Types.VARCHAR), //
+  AllSets(511, Types.NULL);
 
   private int flag;
   private int sqlType;

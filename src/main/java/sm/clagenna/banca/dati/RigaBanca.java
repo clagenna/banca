@@ -11,21 +11,6 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class RigaBanca {
 
-  //  public static final String COL_ID        = "id";
-  //  public static final String COL_IDFILE    = "idfile";
-  //  public static final String COL_DTMOV     = "dtmov";
-  //  public static final String COL_DTVAL     = "dtval";
-  //  public static final String COL_DTMOVSTR  = "dtmovstr";
-  //  public static final String COL_DTVALSTR  = "dtvalstr";
-  //  public static final String COL_DARE      = "dare";
-  //  public static final String COL_AVERE     = "avere";
-  //  public static final String COL_CARDID    = "cardid";
-  //  public static final String COL_DESCR     = "descr";
-  //  public static final String COL_CAUS      = "abicaus";
-  //  public static final String COL_DESCRCAUS = "descrcaus";
-  //  public static final String COL_COSTO     = "costo";
-  //  public static final String COL_CODSTAT   = "codstat";
-
   @Getter @Setter
   private Integer       rigaid;
   @Getter @Setter
@@ -34,7 +19,7 @@ public class RigaBanca {
   private Integer       idfile;
   @Getter
   private LocalDateTime dtmov;
-  @Getter
+  // Getter
   private LocalDateTime dtval;
   @Getter
   private String        movstr;
@@ -63,8 +48,14 @@ public class RigaBanca {
     azzera();
   }
 
-  public RigaBanca(LocalDateTime p_dtmov, LocalDateTime p_dtval, double p_dare, double p_avere, String p_descr, String p_caus,
-      String p_cardid, String p_codstat) {
+  public RigaBanca(String p_tipo) {
+    azzera();
+    setTiporec(p_tipo);
+  }
+
+  public RigaBanca(String p_tipo, LocalDateTime p_dtmov, LocalDateTime p_dtval, double p_dare, double p_avere, String p_descr,
+      String p_caus, String p_cardid, String p_codstat) {
+    tiporec = p_tipo;
     dtmov = p_dtmov;
     dtval = p_dtval;
     dare = p_dare;
@@ -80,7 +71,8 @@ public class RigaBanca {
   public String toString() {
     String sz1 = null == dtmov ? "*null*" : ParseData.formatDate(dtmov);
     String sz2 = null == dtval ? "*null*" : ParseData.formatDate(dtval);
-    return sz1 + "\t" + sz2 + "\t" + dare + "\t" + avere + "\t" + descr + "\t" + abicaus + "\t" + cardid + "\\n";
+    return tiporec + "\t" + sz1 + "\t" + sz2 + "\t" + dare + "\t" + avere + "\t" + descr + "\t" + abicaus + "\t" + cardid + "\t"
+        + codstat + "\\n";
   }
 
   public void setDtmov(LocalDateTime dt) {
@@ -90,9 +82,19 @@ public class RigaBanca {
   }
 
   public void setDtval(LocalDateTime dt) {
-    dtval = dt;
+    if (null != dt)
+      dtval = dt;
+    else
+      dtval = dtmov;
     if (null != dt)
       valstr = ParseData.s_fmtPY4M.format(dt);
+  }
+
+  public LocalDateTime getDtval() {
+    if (null != dtval)
+      return dtval;
+    return dtmov;
+
   }
 
   public void setAvere(double vv) {
@@ -114,6 +116,7 @@ public class RigaBanca {
   }
 
   public void azzera() {
+    tiporec = null;
     rigaid = null;
     idfile = null;
     dtmov = null;

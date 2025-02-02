@@ -58,6 +58,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
   public static final String BANCA_PAYPAL        = "paypal";
   public static final String BANCA_SMAC          = "smac";
   public static final String BANCA_WISE          = "wise";
+  public static final String BANCA_AMAZON        = "amazon";
 
   private Path    csvFile;
   @Getter @Setter
@@ -94,6 +95,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     prchsupp = new PropertyChangeSupport(this);
     Utils.setLocale(Locale.ITALY);
     nomiCols = new HashMap<>();
+    nomiCols.put(IRigaBanca.TIPO, Arrays.asList(new String[] { IRigaBanca.DTMOV.getColNam(), "tipo", "" }));
     nomiCols.put(IRigaBanca.DTMOV, Arrays.asList(new String[] { IRigaBanca.DTMOV.getColNam(), "data", "Date", "Data transazione", "Created on", "" }));
     nomiCols.put(IRigaBanca.DTVAL, Arrays.asList(new String[] { IRigaBanca.DTVAL.getColNam(), "valuta", "Data contabile", "Finished on" }));
     nomiCols.put(IRigaBanca.DARE, Arrays.asList(new String[] { IRigaBanca.DARE.getColNam(), "importo", "Amount", "Source amount (after fees)" }));
@@ -233,7 +235,6 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     int nRow = 0;
     try {
       sqlg.setDbconn(dbconn);
-      sqlg.setTableName(getSqlTableName());
       sqlg.setOverwrite(dtc.isOverwrite());
       switch (getSqlTableName()) {
         case "wise":
@@ -312,8 +313,8 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       sqlTableName = BANCA_CARISP;
     else if (sz.contains("contant"))
       sqlTableName = BANCA_CONTANTI;
-    //    if (sz.contains("cred"))
-    //      sqlTableName += "Credit";
+    if (sz.contains("amazon") || sz.contains("amzn"))
+      sqlTableName += "amazon";
     else if (sz.contains(BANCA_PAYPAL))
       sqlTableName = BANCA_PAYPAL;
     else if (sz.contains(BANCA_WISE))
@@ -414,7 +415,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       descr = val.toString().replace("\"", "");
     }
 
-    RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid, null);
+    RigaBanca rigb = new RigaBanca( sqlTableName, dtmov, dtval, dare, avere, descr, caus, cardid, null);
     if (null != cardIdent)
       rigb.setCardid(cardIdent);
     righeBanca.add(rigb);
@@ -491,7 +492,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       return;
     }
 
-    RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid, null);
+    RigaBanca rigb = new RigaBanca(sqlTableName, dtmov, dtval, dare, avere, descr, caus, cardid, null);
     if (null != cardIdent)
       rigb.setCardid(cardIdent);
     righeBanca.add(rigb);
@@ -499,6 +500,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
 
   private void studiaRigaContanti(DtsRow row) {
     RigaBanca rb = new RigaBanca();
+    rb.setTiporec(BANCA_CONTANTI);
     Object val = getRowVal(IRigaBanca.DTMOV, row);
     if (null == val) {
       s_log.warn("Scarto riga contante: {}", row.toString());
@@ -547,6 +549,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
 
   private void studiaRigaPayPal(DtsRow row) {
     RigaBanca rb = new RigaBanca();
+    rb.setTiporec(sqlTableName);
     String sz = null;
     Object dt = row.get("Date");
     Object val = row.get("Time");
@@ -649,7 +652,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     val = getRowVal( IRigaBanca.CAUS, row);
     if (null != val)
       caus = val.toString();
-    RigaBanca rigb = new RigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid, null);
+    RigaBanca rigb = new RigaBanca(sqlTableName, dtmov, dtval, dare, avere, descr, caus, cardid, null);
     if (null != cardIdent)
       rigb.setCardid(cardIdent);
     righeBanca.add(rigb);

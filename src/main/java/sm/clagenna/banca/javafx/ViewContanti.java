@@ -47,8 +47,8 @@ public class ViewContanti implements Initializable, IStartApp {
   private static final String CSZ_PROP_DIMVIEWCONT_X = "ViewCont.lx";
   private static final String CSZ_PROP_DIMVIEWCONT_Y = "ViewCont.ly";
   private static final String CSZ_PROP_SPLITPOS      = "ViewCont.spltpos";
+  private static final String CSZ_Contanti           = "Contanti";
   private static final String CSZ_AND                = " and ";
-  private static final String CSZ_TABLE_NAME         = "contanti";
   private static final String CSZ_QRY_TRUE           = "1=1";
   private static final String CSZ_QRY_MOVIMALL       = "SELECT "                                //
       + "id,"                                                                                   //
@@ -59,30 +59,7 @@ public class ViewContanti implements Initializable, IStartApp {
       + "descr,"                                                                                //
       + "abicaus,"                                                                              //
       + "cardid"                                                                                //
-      + " FROM MovimentiContanti WHERE 1=1 ORDER BY dtmov";
-  //  private static final String CSZ_QRY_INS            =                                          //
-  //      "INSERT INTO movimentiContanti"                                                           //
-  //          + "           (id"                                                                    //
-  //          + "           ,dtmov"                                                                 //
-  //          + "           ,dtval"                                                                 //
-  //          + "           ,dare"                                                                  //
-  //          + "           ,avere"                                                                 //
-  //          + "           ,descr"                                                                 //
-  //          + "           ,abicaus"                                                               //
-  //          + "           ,cardid)"                                                               //
-  //          + "     VALUES (?,?,?,?,?,?,?,?)";
-  //  private static final String CSZ_QRY_MOD = //
-  //      "UPDATE movimentiContanti" //
-  //          + "  SET dtmov=?" //
-  //          + "     ,dtval=?" //
-  //          + "     ,dare=?" //
-  //          + "     ,avere=?" //
-  //          + "     ,descr=?" //
-  //          + "     ,abicaus=?" //
-  //          + "     ,cardid=?" //
-  //          + "  WHERE id=?";
-  //  private static final String CSZ_QRY_DEL =      //
-  //      "DELETE FROM movimentiContanti WHERE id=?";
+      + " FROM Movimenti WHERE 1=1 ORDER BY dtmov";
 
   @FXML
   private SplitPane               spltPane;
@@ -123,10 +100,10 @@ public class ViewContanti implements Initializable, IStartApp {
   private Stage            lstage;
   private LoadBancaMainApp m_appmain;
   // private AppProperties     m_mainProps;
-  private ISQLGest                m_db;
-  private EModalitaView           modalita;
+  private ISQLGest        m_db;
+  private EModalitaView   modalita;
   private TableViewFiller m_tbvf;
-  private RigaBanca               contante;
+  private RigaBanca       contante;
   //  private PreparedStatement stmtIns;
   // private PreparedStatement stmtMod;
   //  private PreparedStatement stmtDel;
@@ -141,7 +118,7 @@ public class ViewContanti implements Initializable, IStartApp {
     // m_mainProps = p_props;
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addViewContanti(this);
-    contante = new RigaBanca();
+    contante = new RigaBanca(CSZ_Contanti);
     String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
     m_db = SqlGestFactory.get(szSQLType);
     m_db.setDbconn(LoadBancaMainApp.getInst().getConnSQL());
@@ -170,7 +147,7 @@ public class ViewContanti implements Initializable, IStartApp {
     int dx = p_props.getIntProperty(CSZ_PROP_DIMVIEWCONT_X);
     int dy = p_props.getIntProperty(CSZ_PROP_DIMVIEWCONT_Y);
     var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
       lstage.setX(mm.poxX());
       lstage.setY(mm.posY());
       lstage.setWidth(mm.width());
@@ -351,11 +328,11 @@ public class ViewContanti implements Initializable, IStartApp {
   }
 
   private String creaWhere() {
-    String szWhere = "";
+    String szWhere = String.format("tipo='%s'", CSZ_Contanti);
     String szAnd = CSZ_AND;
     String sz = txDtmov.getText().trim();
     if (null != sz && sz.length() > 1) {
-      szWhere = String.format("%sdtmov='%s'", szAnd, sz);
+      szWhere += String.format("%sdtmov='%s'", szAnd, sz);
       szAnd = CSZ_AND;
     }
 
@@ -571,14 +548,14 @@ public class ViewContanti implements Initializable, IStartApp {
   private void updateRecord() {
     DataController cntr = DataController.getInst();
     cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
-    m_db.updateMovimento(CSZ_TABLE_NAME, contante);
+    m_db.updateMovimento(contante);
     s_log.info("Modificato records  {}", contante.toString().replace("\t", ";"));
   }
 
   private void insertRecord() {
     DataController cntr = DataController.getInst();
     cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
-    m_db.insertMovimento(CSZ_TABLE_NAME, contante);
+    m_db.insertMovimento(contante);
     contante.setRigaid(m_db.getLastRowid());
     Platform.runLater(() -> txId.setText(String.valueOf(contante.getRigaid())));
   }
@@ -586,7 +563,7 @@ public class ViewContanti implements Initializable, IStartApp {
   private void deleteRecord() {
     DataController cntr = DataController.getInst();
     cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
-    int qtaDel = m_db.deleteMovimento(CSZ_TABLE_NAME, contante);
+    int qtaDel = m_db.deleteMovimento(contante);
     s_log.info("Cancellato {} records con {}", qtaDel, contante.toString().replace("\t", ";"));
   }
 

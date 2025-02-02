@@ -8,6 +8,7 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.ConfOpzioniController">
@@ -41,8 +42,14 @@
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
                         <CheckBox fx:id="ckoverwrite" layoutX="25.0" layoutY="14.0" mnemonicParsing="false" text="Sovrascrivi le registrazioni" />
-                        <Spinner fx:id="spinQtaThread" layoutX="133.0" layoutY="44.0" prefHeight="25.0" prefWidth="70.0" />
                         <Label layoutX="25.0" layoutY="48.0" text="Quantita di thread" />
+                        <Spinner fx:id="spinQtaThread" layoutX="133.0" layoutY="44.0" prefHeight="25.0" prefWidth="70.0" />
+                        <Label layoutX="214.0" layoutY="50.0" text="Soglia Indovina" />
+                        <Spinner fx:id="spinPercIndovina" layoutX="300.0" layoutY="46.0" prefHeight="25.0" prefWidth="70.0">
+                           <tooltip>
+                              <Tooltip text="La percentuale di soglia sopra la quale l'algoritmo di comparazione considera valida l'appartenenza al codice statistico nella scheda &quot;indovina&quot;" />
+                           </tooltip>
+                        </Spinner>
                         <Label layoutX="58.0" layoutY="83.0" text="Filtro files" />
                         <TextField fx:id="txFilesFiltro" layoutX="133.0" layoutY="79.0" prefHeight="25.0" prefWidth="316.0" AnchorPane.leftAnchor="133.0" AnchorPane.rightAnchor="151.0" AnchorPane.topAnchor="79.0" />
                         <ComboBox fx:id="cbSkins" layoutX="300.0" layoutY="10.0" prefWidth="150.0" AnchorPane.leftAnchor="300.0" AnchorPane.rightAnchor="150.0" AnchorPane.topAnchor="10.0" />
@@ -55,15 +62,16 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <CheckBox fx:id="ckDtmov" layoutX="18.0" layoutY="14.0" mnemonicParsing="false" text="Data Movimento" />
-                        <CheckBox fx:id="ckDtval" layoutX="18.0" layoutY="43.0" mnemonicParsing="false" text="Data Valuta" />
-                        <CheckBox fx:id="ckImpdare" layoutX="18.0" layoutY="72.0" mnemonicParsing="false" text="Imp. Dare" />
+                        <CheckBox fx:id="ckDtmov" layoutX="18.0" layoutY="43.0" mnemonicParsing="false" text="Data Movimento" />
+                        <CheckBox fx:id="ckDtval" layoutX="18.0" layoutY="72.0" mnemonicParsing="false" text="Data Valuta" />
+                        <CheckBox fx:id="ckImpdare" layoutX="18.0" layoutY="101.0" mnemonicParsing="false" text="Imp. Dare" />
                         <CheckBox fx:id="ckImpavere" layoutX="167.0" layoutY="14.0" mnemonicParsing="false" text="Imp. Avere" />
                         <CheckBox fx:id="ckDescr" layoutX="167.0" layoutY="43.0" mnemonicParsing="false" text="Descrizione" />
                         <CheckBox fx:id="ckCausABI" layoutX="165.0" layoutY="72.0" mnemonicParsing="false" text="Causale ABI" />
                         <CheckBox fx:id="ckcredhold" layoutX="166.0" layoutY="101.0" mnemonicParsing="false" text="Credit Holder" />
                         <Button fx:id="btTutti" layoutX="32.0" layoutY="132.0" mnemonicParsing="false" onAction="#btTuttiClick" text="Tutti" />
                         <Button fx:id="btNessuno" layoutX="104.0" layoutY="132.0" mnemonicParsing="false" onAction="#btNessunoClick" text="Nessuno" />
+                        <CheckBox fx:id="ckTipo" layoutX="18.0" layoutY="14.0" mnemonicParsing="false" text="Tipo Banca" />
                      </children>
                   </AnchorPane>
             </content>
