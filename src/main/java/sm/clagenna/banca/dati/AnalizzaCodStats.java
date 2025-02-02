@@ -33,27 +33,27 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   private static final Logger s_log = LogManager.getLogger(AnalizzaCodStats.class);
 
   /** query per i record gia riconosciuti per formare il vocabolario */
-  private static final String CSZ_QRY_KNOWN   =         //
-      "SELECT  descr"                                   //
-          + " ,codstat"                                 //
-          + " FROM ListaMovimentiUNION"                 //
-          + " WHERE 1=1"                                //
-          + "   AND codstat IS NOT NULL"                //
+  private static final String CSZ_QRY_KNOWN   =   //
+      "SELECT  descr"                             //
+          + " ,codstat"                           //
+          + " FROM ListaMovimenti"                //
+          + " WHERE 1=1"                          //
+          + "   AND codstat IS NOT NULL"          //
           + " ORDER BY descr";
   /** query per i record da indovinare */
-  private static final String CSZ_QRY_UNKNOWN =         //
-      "SELECT id"                                       //
-          + " ,tipo"                                    //
-          + " ,dtmov"                                   //
-          + " ,dare"                                    //
-          + " ,avere"                                   //
-          + " ,cardid"                                  //
-          + " ,descr"                                   //
-          + " FROM ListaMovimentiUNION"                 //
-          + " WHERE 1=1"                                //
-          + " %s"                                       //
-          + "   AND (dare <> 0 OR avere <> 0)"          //
-          + "   AND codstat IS NULL"                    //
+  private static final String CSZ_QRY_UNKNOWN =   //
+      "SELECT id"                                 //
+          + " ,tipo"                              //
+          + " ,dtmov"                             //
+          + " ,dare"                              //
+          + " ,avere"                             //
+          + " ,cardid"                            //
+          + " ,descr"                             //
+          + " FROM ListaMovimenti"                //
+          + " WHERE 1=1"                          //
+          + " %s"                                 //
+          + "   AND (dare <> 0 OR avere <> 0)"    //
+          + "   AND codstat IS NULL"              //
           + " ORDER BY descr";
 
   @Getter @Setter
@@ -115,6 +115,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
 
   private void scanUnknown() {
     listGuess = new ArrayList<GuessCodStat>();
+    double dblPercIndovina = dataCntrl.getPercIndov() / 100.;
     String qry = String.format(CSZ_QRY_UNKNOWN, "");
     if (Utils.isValue(parola)) {
       String whe = String.format(" AND descr LIKE('%%%s%%')", parola);
@@ -136,7 +137,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
         PhraseComparator.Similarity sim = compr.similarity(descr);
         Phrase phr = sim.phrase();
         GuessCodStat gcds = new GuessCodStat(id, tipo, dtmov, dare, avere, cardid, descr, null, null, false);
-        if (sim.percent() >= 0.4) {
+        if (sim.percent() >= dblPercIndovina) {
           String codstat = phr.getKey();
           // String codstDescr = codstats.getProperty(codstat);
 
@@ -147,7 +148,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
           //GuessCodStat gcds = new GuessCodStat(id, tipo, dtmov, dare, avere, cardid, descr, codstat, codstDescr, false);
           gcds.setCodstat(codstat);
           gcds.setDescrCds(codstDescr);
-          
+
           s_log.trace("MATCH! {} == ({}) {} \t({}={})" //
               , descr, Utils.formatDouble(sim.percent()), phr.getPhrase() //
               , codstat, codstDescr);

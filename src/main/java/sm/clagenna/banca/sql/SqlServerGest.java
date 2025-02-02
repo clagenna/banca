@@ -6,18 +6,19 @@ import org.apache.logging.log4j.Logger;
 public class SqlServerGest extends SqlGest {
   private static final Logger s_log = LogManager.getLogger(SqlServerGest.class);
 
-  private static final String QRY_LIST_CARDS    = "SELECT DISTINCT tipo FROM dbo.ListaMovimentiUNION";
-  private static final String QRY_LIST_ANNI     = "SELECT DISTINCT YEAR(dtmov) as anno FROM ListaMovimentiUNION ORDER BY 1";
-  private static final String QRY_LIST_MESI     = "SELECT DISTINCT movstr FROM dbo.ListaMovimentiUNION ORDER BY movstr";
+  private static final String QRY_LIST_CARDS    = "SELECT DISTINCT tipo FROM dbo.movimenti";
+  private static final String QRY_LIST_ANNI     = "SELECT DISTINCT YEAR(dtmov) as anno FROM movimenti ORDER BY 1";
+  private static final String QRY_LIST_MESI     = "SELECT DISTINCT movstr FROM dbo.ListaMovimenti ORDER BY movstr";
   private static final String QRY_LIST_CAUSABI  = "SELECT abicaus, concat(descrcaus,' (',abicaus ,')') as descr FROM causali ORDER BY descr";
-  private static final String QRY_LIST_CARDHOLD = "SELECT DISTINCT cardid FROM ListaMovimentiUNION WHERE cardid IS NOT NULL AND LEN(RTRIM(cardid)) > 0  ORDER BY cardid";
+  private static final String QRY_LIST_CARDHOLD = "SELECT DISTINCT cardid FROM Movimenti WHERE cardid IS NOT NULL AND LEN(RTRIM(cardid)) > 0  ORDER BY cardid";
   private static final String QRY_LIST_VIEWS    = "SELECT name FROM sys.views ORDER BY name";
   private static final String QRY_VIEW_PATT     = "SELECT %s from %s WHERE 1=1 ORDER BY dtMov,dtval";
   private static final String QRY_LAST_ROWID    = "Select @@IDENTITY  as LastId";
 
   private static final String QRY_INS_Mov = //
-      "INSERT INTO dbo.movimenti%s" //
-          + "                 (idfile" //
+      "INSERT INTO dbo.movimenti" //
+          + "                 (tipo"
+          + "                 ,idfile" //
           + "                 ,dtmov" //
           + "                 ,dtval" //
           + "                 ,dare" //
@@ -26,20 +27,21 @@ public class SqlServerGest extends SqlGest {
           + "                 ,abicaus" //
           + "                 ,cardid" //
           + "                 ,codstat)" //
-          + "           VALUES (?,?,?,?,?,?,?,?,?)";
+          + "           VALUES (?,?,?,?,?,?,?,?,?,?)";
 
   private static final String QRY_SEL_Mov = //
       "SELECT COUNT(*)" //
-          + "  FROM dbo.movimenti%s" //
+          + "  FROM dbo.movimenti" //
           + " WHERE 1=1"; //
 
   private static final String QRY_DEL_Mov = //
-      "DELETE FROM dbo.movimenti%s" //
+      "DELETE FROM dbo.movimenti" //
           + " WHERE 1=1"; //
 
   private static final String QRY_MOD_Mov = //
-      "UPDATE movimenti%s" //
-          + "  SET idfile=?" //
+      "UPDATE movimenti" //
+          + "  SET tipo=?" //
+          + "     ,idfile=?" //
           + "     ,dtmov=?" //
           + "     ,dtval=?" //
           + "     ,dare=?" //
@@ -51,7 +53,7 @@ public class SqlServerGest extends SqlGest {
           + "  WHERE 1=1";
 
   private static final String QRY_MOD_CodStat = //
-      "UPDATE movimenti%s" //
+      "UPDATE movimenti" //
           + "  SET codstat=?" //
           + "  WHERE id=?";
 

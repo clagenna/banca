@@ -6,12 +6,22 @@
 
 for /F %%a in ('echo prompt $E ^| cmd') do @set "ESC=%%a["
 setlocal ENABLEEXTENSIONS
+if "%1" == "" goto noOpt
 if "%1" == "-?" goto help
 if "%1" == "-help" goto help
+if "%1" == "-updVer"  goto second
+if "%1" == "-buildStd"  goto second
+goto help
+:second
+if "%2" == "-updVer"  goto noOpt
+if "%2" == "-buildStd"  goto noOpt
+goto help
+
 if "%DEBUG%" == "1" echo on
 
 :: - - - - - 
 :: (0,2) test parametri di lancio
+:noOpt
 set updVers=
 set buildStd=
 :testp

@@ -78,7 +78,6 @@ public class ProvaCsvImport {
   private void writeDb(CsvImportBanca cs) {
     String szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
     ISQLGest sqlg = SqlGestFactory.get(szDbType);
-    sqlg.setTableName(csvi.getSqlTableName());
     sqlg.setDbconn(connSQL);
     sqlg.setOverwrite(true);
     for (RigaBanca ri : csvi.getRigheBanca()) {

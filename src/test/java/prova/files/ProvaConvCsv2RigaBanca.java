@@ -14,6 +14,7 @@ import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsCols;
 import sm.clagenna.stdcla.sql.DtsRow;
+import sm.clagenna.stdcla.utils.Utils;
 
 public class ProvaConvCsv2RigaBanca {
 
@@ -38,7 +39,7 @@ public class ProvaConvCsv2RigaBanca {
       System.out.println("Rec letti:" + qta);
       System.out.printf("QtaCols:%d\n%s\n", dts.getColumns().size(), dts.getColumns());
       liRibanca = convertiDataSet(dts);
-      liRibanca.stream().forEach(s -> System.out.println(s.toString()));
+      liRibanca.stream().filter(s -> Utils.isValue(s.getDare())).forEach(s -> System.out.println(s.toString()));
     } catch (IOException | CsvException e) {
       e.printStackTrace();
     }
