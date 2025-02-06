@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS causali (
 -- Tabella: CodStat
 CREATE TABLE IF NOT EXISTS CodiciStat (
     codstat   VARCHAR (12)   PRIMARY KEY  NOT NULL,
-    descrstat VARCHAR (256)  DEFAULT NOT NULL,
+    descrstat VARCHAR (256)  NOT NULL
 );
 
 -- Tabella: impfiles

@@ -1,5 +1,7 @@
 package sm.clagenna.banca.javafx;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URL;
@@ -33,7 +35,7 @@ import sm.clagenna.stdcla.sql.DBConnFactory;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class LoadBancaMainApp extends Application implements IStartApp {
+public class LoadBancaMainApp extends Application implements IStartApp, PropertyChangeListener {
   private static final Logger s_log            = LogManager.getLogger(LoadBancaMainApp.class);
   private static final String CSZ_MAIN_APP_CSS = "LoadBancaFX.css";
   public static final String  CSZ_MAIN_ICON    = "sm/clagenna/banca/javafx/banca-100.png";
@@ -122,7 +124,6 @@ public class LoadBancaMainApp extends Application implements IStartApp {
 
   @Override
   public void initApp(AppProperties p_props) {
-    String szDbType = null;
     try {
       data = new DataController();
       AppProperties.setSingleton(false);
@@ -133,7 +134,6 @@ public class LoadBancaMainApp extends Application implements IStartApp {
         props.leggiPropertyFile(new File(LoadBancaMainApp.CSZ_MAIN_PROPS), false, false);
       }
       data.initApp(props);
-      szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
       skin = props.getProperty(AppProperties.CSZ_PROP_SKIN);
       if (null == skin)
         skin = "LoadBancaFX";
@@ -142,10 +142,9 @@ public class LoadBancaMainApp extends Application implements IStartApp {
       int py = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_Y);
       int dx = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_X);
       int dy = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_Y);
-      
-      
+
       var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-      if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+      if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
         primaryStage.setX(mm.poxX());
         primaryStage.setY(mm.posY());
         primaryStage.setWidth(mm.width());
@@ -155,7 +154,14 @@ public class LoadBancaMainApp extends Application implements IStartApp {
       LoadBancaMainApp.s_log.error("Errore in main initApp: {}", l_e.getMessage(), l_e);
       System.exit(1957);
     }
+    data.addPropertyChangeListener(this);
+    scegliDB();
+  }
+
+  public void scegliDB() {
+    String szDbType;
     try {
+      szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
       // connSQL = new DBConnSQL();
       DBConnFactory conFact = new DBConnFactory();
       connSQL = conFact.get(szDbType);
@@ -375,9 +381,17 @@ public class LoadBancaMainApp extends Application implements IStartApp {
     return null != m_viewGuessCodStat;
   }
 
-  //  public void aggiornaTotaliCodStat(String szQry) {
-  //    if (isCodeStatViewOpened()) {
-  //      m_viewCodStat.aggiornaTotaliCodStat(szQry);
-  //    }
-  //  }
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    // System.out.printf("ResultView.propertyChange(\"%s=%s\")\n", evt.getPropertyName(), evt.getNewValue().toString());
+    String szEvt = evt.getPropertyName();
+
+    switch (szEvt) {
+      case DataController.EVT_DBCHANGE:
+        s_log.warn("Cambio di DB, ora sono su {}", evt.getNewValue());
+        scegliDB();
+        break;
+    }
+  }
+
 }

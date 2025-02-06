@@ -170,10 +170,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     dataCntrl = m_appmain.getData();
     dataCntrl.addPropertyChangeListener(this);
 
-    String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
-    m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(LoadBancaMainApp.getInst().getConnSQL());
-
+    scegliDB(p_props);
     caricaComboTipoBanca();
     caricaComboAnno();
     caricaComboMesecomp();
@@ -188,6 +185,12 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         closeApp(mainProps);
       });
     abilitaBottoni();
+  }
+
+  private void scegliDB(AppProperties p_props) {
+    String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
+    m_db = SqlGestFactory.get(szSQLType);
+    m_db.setDbconn(LoadBancaMainApp.getInst().getConnSQL());
   }
 
   private void caricaComboQrySalvate() {

@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +19,7 @@ import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.stdcla.sql.DBConn;
+import sm.clagenna.stdcla.utils.Utils;
 
 public abstract class SqlGest implements ISQLGest {
 
@@ -29,10 +29,10 @@ public abstract class SqlGest implements ISQLGest {
   private PreparedStatement stmtIns;
   private PreparedStatement stmtDel;
   private PreparedStatement stmtMod;
-  private PreparedStatement stmtLastRowId;
+  // private PreparedStatement stmtLastRowId;
 
-//  @Getter @Setter
-//  private String  tableName;
+  //  @Getter @Setter
+  //  private String  tableName;
   @Getter @Setter
   private DBConn  dbconn;
   @Getter @Setter
@@ -47,8 +47,6 @@ public abstract class SqlGest implements ISQLGest {
   private int     lastRowid;
 
   private HashMap<String, String> m_mapCausABI;
-
-  private Savepoint m_savePoint;
 
   static {
     allTables = Arrays.asList(new String[] { //
@@ -283,7 +281,7 @@ public abstract class SqlGest implements ISQLGest {
         String qry = getQryINSMov();
         Connection conn = dbconn.getConn();
         stmtIns = conn.prepareStatement(qry.toString());
-        stmtLastRowId = conn.prepareStatement(getQryLASTROWID());
+        // stmtLastRowId = conn.prepareStatement(getQryLASTROWID());
       }
     } catch (SQLException e) {
       getLog().error("Errore prep statement INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
@@ -294,6 +292,9 @@ public abstract class SqlGest implements ISQLGest {
       String szCaus = p_rig.getAbicaus();
       if (null != szCaus)
         szCaus = szCaus.replace(".0", "");
+      String szDescr = p_rig.getDescr();
+      if (Utils.isValue(szDescr) && szDescr.length() > 512)
+        szDescr = szDescr.substring(0, 512);
       int k = 1;
       dbconn.setStmtString(stmtIns, k++, p_rig.getTiporec());
       dbconn.setStmtInt(stmtIns, k++, p_rig.getIdfile());
@@ -301,13 +302,13 @@ public abstract class SqlGest implements ISQLGest {
       dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtval());
       dbconn.setStmtImporto(stmtIns, k++, p_rig.getDare());
       dbconn.setStmtImporto(stmtIns, k++, p_rig.getAvere());
-      dbconn.setStmtString(stmtIns, k++, p_rig.getDescr());
+      dbconn.setStmtString(stmtIns, k++, szDescr);
       dbconn.setStmtString(stmtIns, k++, szCaus);
       dbconn.setStmtString(stmtIns, k++, p_rig.getCardid());
       dbconn.setStmtString(stmtIns, k++, p_rig.getCodstat());
 
       stmtIns.executeUpdate();
-      lastRowid = trovaLastRowid();
+      lastRowid = dbconn.getLastIdentity();
     } catch (SQLException e) {
       getLog().error("Errore INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
     }
@@ -317,57 +318,60 @@ public abstract class SqlGest implements ISQLGest {
 
   @Override
   public void beginTrans() {
-    try {
-      Connection conn = getDbconn().getConn();
-      conn.setAutoCommit(false);
-      m_savePoint = conn.setSavepoint();
-    } catch (SQLException e) {
-      getLog().error("BEGIN TRAN Error {}", e.getMessage());
-    }
+    getDbconn().beginTrans();
+    //    try {
+    //      Connection conn = getDbconn().getConn();
+    //      conn.setAutoCommit(false);
+    //      m_savePoint = conn.setSavepoint();
+    //    } catch (SQLException e) {
+    //      getLog().error("BEGIN TRAN Error {}", e.getMessage());
+    //    }
   }
 
   @Override
   public void commitTrans() {
-    try {
-      getDbconn().getConn().setAutoCommit(true);
-      m_savePoint = null;
-    } catch (SQLException e) {
-      getLog().error("COMMIT TRAN Error {}", e.getMessage());
-    }
+    getDbconn().commitTrans();
+    //    try {
+    //      getDbconn().getConn().setAutoCommit(true);
+    //      m_savePoint = null;
+    //    } catch (SQLException e) {
+    //      getLog().error("COMMIT TRAN Error {}", e.getMessage());
+    //    }
   }
 
   @Override
   public void rollBackTrans() {
-    try {
-      Connection conn = getDbconn().getConn();
-      conn.rollback(m_savePoint);
-      m_savePoint = null;
-    } catch (SQLException e) {
-      getLog().error("BEGIN TRAN Error {}", e.getMessage());
-    }
+    getDbconn().rollBackTrans();
+    //    try {
+    //      Connection conn = getDbconn().getConn();
+    //      conn.rollback(m_savePoint);
+    //      m_savePoint = null;
+    //    } catch (SQLException e) {
+    //      getLog().error("BEGIN TRAN Error {}", e.getMessage());
+    //    }
   }
 
-  private int trovaLastRowid() {
-    if (null == stmtLastRowId) {
-      try {
-        Connection conn = dbconn.getConn();
-        stmtLastRowId = conn.prepareStatement(getQryLASTROWID());
-      } catch (SQLException e) {
-        getLog().error("Errore prep statement Last RowID with err={}", e.getMessage());
-        return -1;
-      }
-    }
-    lastRowid = 0;
-    try {
-      ResultSet res = stmtLastRowId.executeQuery();
-      while (res.next()) {
-        lastRowid = res.getInt(1);
-      }
-    } catch (SQLException e) {
-      getLog().error("Errore Last Row ID with err={}", e.getMessage());
-    }
-    return lastRowid;
-  }
+  //  private int trovaLastRowid() {
+  //    if (null == stmtLastRowId) {
+  //      try {
+  //        Connection conn = dbconn.getConn();
+  //        stmtLastRowId = conn.prepareStatement(getQryLASTROWID());
+  //      } catch (SQLException e) {
+  //        getLog().error("Errore prep statement Last RowID with err={}", e.getMessage());
+  //        return -1;
+  //      }
+  //    }
+  //    lastRowid = 0;
+  //    try {
+  //      ResultSet res = stmtLastRowId.executeQuery();
+  //      while (res.next()) {
+  //        lastRowid = res.getInt(1);
+  //      }
+  //    } catch (SQLException e) {
+  //      getLog().error("Errore Last Row ID with err={}", e.getMessage());
+  //    }
+  //    return lastRowid;
+  //  }
 
   @Override
   public List<String> getListTipoCard() {

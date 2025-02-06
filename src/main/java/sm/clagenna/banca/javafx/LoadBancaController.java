@@ -525,7 +525,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     stageResults.setHeight(600);
     stageResults.initOwner(primaryStage);
     stageResults.initModality(Modality.NONE);
-    stageResults.setTitle("Visualizzazione dei dati del DB");
+    stageResults.setTitle(String.format("Visualizzazione dei dati del DB di tipo %s Name %s", cntrlr.getDBType(),
+        props.getProperty(AppProperties.CSZ_PROP_DB_name)));
     // verifica che nel FXML ci sia la dichiarazione:
     // <userData> <fx:reference source="controller" /> </userData>
     if (cntrResultView != null) {

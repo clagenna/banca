@@ -130,6 +130,7 @@ public class RigaBanca {
   }
 
   public boolean isValido() {
+    // FIXIT Perche' per validita testo il RigaId ?
     if ( !Utils.isValue(rigaid) || !Utils.isValue(dtmov) || !Utils.isValue(dtval))
       return false;
     if (null == dare || null == avere || dare == 0 && avere == 0)

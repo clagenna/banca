@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import com.opencsv.exceptions.CsvException;
 
+import sm.clagenna.banca.dati.ConvertCsv2RigaBanca;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsCols;
@@ -19,7 +20,7 @@ import sm.clagenna.stdcla.utils.Utils;
 public class ProvaConvCsv2RigaBanca {
 
   private List<RigaBanca> liRibanca;
-  private ConvRB          crb;
+  private ConvertCsv2RigaBanca          crb;
 
   public ProvaConvCsv2RigaBanca() {
     //
@@ -27,7 +28,7 @@ public class ProvaConvCsv2RigaBanca {
 
   @Test
   public void provalo() {
-    crb = new ConvRB("amzn");
+    crb = new ConvertCsv2RigaBanca("amzn");
     crb.readConvProperties(Paths.get("src/test/resources/prova/files/amzn_data.properties"));
 
     Path pthFi = Paths.get("F:\\Google Drive\\gennari\\Banche\\Amazon\\estratto_amzn_2412_cla.csv");

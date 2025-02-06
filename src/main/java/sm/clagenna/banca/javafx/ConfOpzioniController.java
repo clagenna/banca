@@ -400,6 +400,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     m_mainProps.setProperty(AppProperties.CSZ_PROP_DB_user, userName);
     m_mainProps.setProperty(AppProperties.CSZ_PROP_DB_passwd, password);
     s_log.info("Salvato le properties per il Data Base");
+    DataController.getInst().firePropertyChange(DataController.EVT_DBCHANGE, "null", nomeDB);
   }
 
   private Path settaFileIn(Path p_fi, boolean p_setTx, boolean bForce) {

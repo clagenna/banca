@@ -23,6 +23,12 @@ public interface ISQLGest {
 
   void rollBackTrans();
 
+  int getLastRowid();
+  
+  Map<String, String> getListDBViews();
+  
+  // specifiche per il progetto "Banca"
+
   boolean existMovimento(RigaBanca rig);
 
   boolean updateMovimento(RigaBanca rig);
@@ -47,8 +53,7 @@ public interface ISQLGest {
 
   String getDescrCausABI(String causABI);
 
-  int getLastRowid();
+  
 
-  Map<String, String> getListDBViews();
 
 }

@@ -180,7 +180,10 @@ public class CodStat implements Comparable<CodStat> {
 
   public void somma(String pCdsCodice, Double dare, Double avere) {
     CodStat nodo = find(pCdsCodice);
-    nodo.somma(dare, avere);
+    if (Utils.isValue(nodo))
+      nodo.somma(dare, avere);
+    else
+      s_log.error("Non trovo cod. stat = {}", pCdsCodice);
   }
 
   public void somma(Double dare, Double avere) {

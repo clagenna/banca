@@ -35,16 +35,17 @@ public class DataController implements IStartApp, PropertyChangeListener {
   private static final String CSZ_PROP_EXCLUDEDCOLS = "excludedcols";
   private static final String CSZ_FLAG_FILTRI       = "FLAG_FILTRI";
   private static final String CSZ_QTA_THREADS       = "QTA_THREADS";
-  private static final String CSZ_PERC_INDOV       = "PERC_INDOV";
+  private static final String CSZ_PERC_INDOV        = "PERC_INDOV";
   public static final String  CSZ_FILTER_FILES      = "filter_files";
 
+  public static final String EVT_DBCHANGE            = "dbchange";
   public static final String EVT_CODSTAT             = "codstat";
   public static final String EVT_NEW_QUERY_RESULT    = "dtsresult";
   public static final String EVT_TOTCODSTAT          = "totcodstats";
   public static final String EVT_TREECODSTAT_CHANGED = "treeCodstat";
   public static final String EVT_FILTER_CODSTAT      = "filterCodstat";
   public static final String EVT_DATASET_CREATED     = "datasetCreated";
-  public static final String EVT_GUESSDATA_CREATED     = "guessdataCreated";
+  public static final String EVT_GUESSDATA_CREATED   = "guessdataCreated";
 
   //  public static final String  FILE_CODSTAT    = "CodStat.properties";
   private static final String QRY_TOT_CODSTAT = //
