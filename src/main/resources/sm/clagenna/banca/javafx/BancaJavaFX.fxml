@@ -41,17 +41,26 @@
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator></MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#mnuSovrapposizioniClick" text="Mostra Sovrapposizioni" />
+                  <MenuItem mnemonicParsing="false" onAction="#mnuSovrapposizioniClick" text="Mostra Sovrapposizioni">
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
                   <MenuItem fx:id="mnuGEstDati" mnemonicParsing="false" onAction="#mnuConfMostraDatiClick" text="Mostra Dati">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="D" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator></MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#mnuConfMostraCodStatClick" text="Codici Statistici" />
+                  <MenuItem mnemonicParsing="false" onAction="#mnuConfMostraCodStatClick" text="Codici Statistici">
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="T" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
                   <MenuItem mnemonicParsing="false" onAction="#mnuMostraViewContantiClick" text="Gestione Contanti">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
                      </accelerator></MenuItem>
-                  <MenuItem mnemonicParsing="false" onAction="#mnuConfMostraGuessCodStatClick" text="Indovina Cod.Stat." />
+                  <MenuItem mnemonicParsing="false" onAction="#mnuConfMostraGuessCodStatClick" text="Indovina Cod.Stat.">
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="I" control="UP" meta="UP" shift="DOWN" shortcut="UP" />
+                     </accelerator></MenuItem>
               </items>
             </Menu>
 	        <Menu mnemonicParsing="false" text="Help">

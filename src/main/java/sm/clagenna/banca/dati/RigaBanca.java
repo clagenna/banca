@@ -41,6 +41,8 @@ public class RigaBanca {
   private String        cardid;
   @Getter @Setter
   private String        codstat;
+  @Getter @Setter
+  private String        cdsdescr;
   @Getter
   private String        localCardIdent;
 
@@ -127,6 +129,7 @@ public class RigaBanca {
     abicaus = null;
     cardid = null;
     codstat = null;
+    cdsdescr = null;
   }
 
   public boolean isValido() {

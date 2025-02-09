@@ -27,6 +27,7 @@ import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
+import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class AnalizzaCodStats extends Task<String> implements ChangeListener<String> {
@@ -71,6 +72,10 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   private ObservableList<GuessCodStat> dati;
   @Getter @Setter
   private String                       parola;
+  @Getter @Setter
+  private LocalDateTime                dtDa;
+  @Getter @Setter
+  private LocalDateTime                dtA;
 
   private ISQLGest m_db;
 
@@ -116,11 +121,17 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   private void scanUnknown() {
     listGuess = new ArrayList<GuessCodStat>();
     double dblPercIndovina = dataCntrl.getPercIndov() / 100.;
-    String qry = String.format(CSZ_QRY_UNKNOWN, "");
-    if (Utils.isValue(parola)) {
-      String whe = String.format(" AND descr LIKE('%%%s%%')", parola);
-      qry = String.format(CSZ_QRY_UNKNOWN, whe);
-    }
+
+    StringBuilder whe = new StringBuilder();
+    if (Utils.isValue(parola))
+      whe.append(String.format(" AND descr LIKE('%%%s%%')", parola));
+
+    if (null != dtDa)
+      whe.append(String.format(" AND dtmov >= '%s'", ParseData.s_fmtTsT.format(dtDa)));
+    if (null != dtA)
+      whe.append(String.format(" AND dtmov <= '%s'", ParseData.s_fmtTsT.format(dtA)));
+    String qry = String.format(CSZ_QRY_UNKNOWN, whe.toString());
+
     s_log.debug("Cerca Training con: {}", qry);
     try (PreparedStatement stmt = conn.prepareStatement(qry); ResultSet res = stmt.executeQuery()) {
       if (null == res || res.isClosed())

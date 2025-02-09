@@ -19,6 +19,10 @@ public class SqlGestFactory {
       s_log.error("Non capisco il tipo di DB: {}", p_type);
       throw new UnsupportedOperationException("Non capisco il tipo di DB:" + p_type);
     }
+    return get(tip);
+  }
+
+  public static ISQLGest get(EServerId tip) {
     ISQLGest conn = null;
     switch (tip) {
       case HSqlDB:

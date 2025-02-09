@@ -13,20 +13,19 @@ import lombok.Getter;
 import lombok.Setter;
 import opennlp.tools.tokenize.SimpleTokenizer;
 
-
 public class Phrase implements Comparable<Phrase> {
   @SuppressWarnings("unused")
   private static final Logger  s_log = LogManager.getLogger(Phrase.class);
   private static List<Simplyf> allRegex;
 
   @Getter @Setter
-  private String   key;
+  private String     key;
   @Getter @Setter
-  private String   phrase;
+  private String     phrase;
   @Getter
-  private String[] toks;
+  private String[]   toks;
   @Getter
-  RealVector       vector;
+  private RealVector vector;
 
   static {
     allRegex = new ArrayList<>();
@@ -37,7 +36,7 @@ public class Phrase implements Comparable<Phrase> {
     allRegex.add(new Simplyf("d   +[0-9\\-\\/]+", " "));
     allRegex.add(new Simplyf("[0-9/]+", " "));
     allRegex.add(new Simplyf("\\* *[a-z]+", " "));
-    allRegex.add(new Simplyf("pag.pos circuito inter +a", "pos "));
+    allRegex.add(new Simplyf("pag.pos circuito inter .+a", "pos "));
     allRegex.add(new Simplyf("pag.to cartazzurra +", "pos "));
     allRegex.add(new Simplyf("pagamento tramite pos +", "pos "));
     allRegex.add(new Simplyf("pag.to pos +", "pos "));
@@ -108,4 +107,9 @@ public class Phrase implements Comparable<Phrase> {
     return -1;
   }
 
+  @Override
+  public String toString() {
+    String sz = String.format("%-40s %s ", phrase, key);
+    return sz;
+  }
 }

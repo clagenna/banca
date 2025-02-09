@@ -1,0 +1,15 @@
+
+.button {
+	-fx-text-fill: black;
+	/* background-color: #7AECC6; */  
+	-fx-background-radius: 10 10 10 10;
+	-fx-padding: 5 10 5 10;
+	padding: 5 10 5 10;
+}
+
+.button:disabled {
+	-fx-text-fill: #333;
+	-fx-background-color: darkgray;
+	background-color: darkgray;
+}
+

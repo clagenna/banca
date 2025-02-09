@@ -28,6 +28,7 @@ import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.AppProperties;
+import sm.clagenna.stdcla.utils.Utils;
 
 public class DataController implements IStartApp, PropertyChangeListener {
   private static final Logger s_log                 = LogManager.getLogger(DataController.class);
@@ -195,9 +196,11 @@ public class DataController implements IStartApp, PropertyChangeListener {
     qtaThreads = props.getIntProperty(CSZ_QTA_THREADS, 1);
     percIndov = props.getIntProperty(CSZ_PERC_INDOV, 40);
     scartaVoci = new ArrayList<String>();
-    lastDir = Paths.get(props.getLastDir());
-    String sz = props.getProperty(CSZ_PROP_SCARTA);
-    if (null != sz && sz.length() > 0) {
+    String sz = props.getLastDir();
+    if (Utils.isValue(sz))
+      lastDir = Paths.get(sz);
+    sz = props.getProperty(CSZ_PROP_SCARTA);
+    if (Utils.isValue(sz)) {
       String sep = ";";
       if ( !sz.contains(sep))
         sep = ",";

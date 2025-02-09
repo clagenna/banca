@@ -1,0 +1,12 @@
+Ho aggiornato l'applicativo "Banca", però ho cambiato un tot di cose ! la struttura del DB fra le quali
+
+Se volete installare la nuova versione sotto il vostro di "banca", seguite questi passi: 
+1) Tirate giu la nuova installazione da : https://drive.google.com/file/d/1B8_Cs5C0fM9crWd8jcuLXsIKjT8SbnCc/view?usp=drive_link
+2) Spacchettate "Banca_inst.zip" in un dir a piacimento (es: "inst")
+3) nel dir "banca" rinominate Banca.db con un nome a piacere. Poi, se serve, ricopieremo i dati che avete aggiornato
+4) copiate da "inst\BancaNuovo.db" in "banca\BancaNuovo.db"
+5) copiate da "banca\BancaNuovo.db" in "banca\Banca.db"
+6) sovrascrivete da "inst\Banca.jar" in "banca\banca.jar"
+7) SOLO SE se non l'avete ! copiate  da "inst\CodStat.properties" in "banca\inst\CodStat.properties"
+
+Et voilà ! avete la nuova versione funzionante

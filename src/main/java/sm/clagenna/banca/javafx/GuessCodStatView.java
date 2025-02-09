@@ -4,6 +4,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URL;
 import java.text.NumberFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -24,6 +25,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -70,6 +72,10 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
 
   @FXML
   protected TextField                        txParola;
+  @FXML
+  protected DatePicker                       txDtDa;
+  @FXML
+  protected DatePicker                       txDtA;
   @FXML
   private Button                             btCerca;
   @FXML
@@ -136,6 +142,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     impostaForma(mainProps);
     buildTableView();
     // txParola.textProperty().addListener((obj, old, nv) -> txParolaSel(obj, old, nv));
+    
 
     if (lstage != null)
       lstage.setOnCloseRequest(e -> {
@@ -417,6 +424,10 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     System.out.println("creaTableResultThread()");
     m_tbvf = new AnalizzaCodStats(m_appmain);
     m_tbvf.setParola(txParola.getText());
+    LocalDateTime dtDa = txDtDa.getValue() != null ?  txDtDa.getValue().atStartOfDay() : null;
+    LocalDateTime dtA = txDtA.getValue() != null ?    txDtA.getValue().atStartOfDay() : null;
+    m_tbvf.setDtDa(dtDa);
+    m_tbvf.setDtA(dtA);
     ExecutorService backGrService = Executors.newFixedThreadPool(1);
     Platform.runLater(() -> {
       lstage.getScene().setCursor(Cursor.WAIT);

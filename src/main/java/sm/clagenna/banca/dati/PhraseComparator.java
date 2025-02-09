@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import lombok.Getter;
+import sm.clagenna.stdcla.utils.Utils;
 
 public class PhraseComparator {
   @SuppressWarnings("unused")
@@ -22,6 +23,11 @@ public class PhraseComparator {
   private int                  index = 0;
 
   public record Similarity(double percent, Phrase phrase) {
+    @Override
+    public final String toString() {
+      String sz = String.format("%8s %s", Utils.formatDouble(percent * 100.), phrase.toString());
+      return sz;
+    }
   }
 
   public PhraseComparator() {
@@ -79,8 +85,8 @@ public class PhraseComparator {
     Phrase best = null;
     for (Phrase kno : knowns) {
       // aggiorno il vector delle frasi conosciute col nuovo vocabolario (se è cresciuto)
-      if (bAdded)
-        kno.creaVector(wordIndex);
+      // if (bAdded)
+      kno.creaVector(wordIndex);
       RealVector vec2 = kno.getVector();
       //           vec1 * vec2
       // prod = ----------------
@@ -92,5 +98,42 @@ public class PhraseComparator {
       }
     }
     return new Similarity(ddbest, best);
+  }
+
+  public List<GuessCodStat> listSimilarity(RigaBanca row) {
+    Phrase phr = new Phrase(row.getDescr());
+    phr.analyse();
+    // aggiorno vocabolario con eventuali parole sconosciute
+    int oldSize = wordIndex.size();
+    for (String tok : phr.getToks()) {
+      if ( !wordIndex.containsKey(tok))
+        wordIndex.put(tok, index++);
+    }
+    boolean bAdded = oldSize != wordIndex.size();
+    // creo il vector della frase entrante
+    phr.creaVector(wordIndex);
+    RealVector vec1 = phr.getVector();
+    double ddbest = -2_000d;
+    List<GuessCodStat> retli = new ArrayList<GuessCodStat>();
+    for (Phrase kno : knowns) {
+      // aggiorno il vector delle frasi conosciute col nuovo vocabolario (se è cresciuto)
+      if (bAdded)
+        kno.creaVector(wordIndex);
+      RealVector vec2 = kno.getVector();
+      //           vec1 * vec2
+      // prod = ----------------
+      //         |vec1| * |vec2|
+      double prod = vec1.dotProduct(vec2) / (vec1.getNorm() * vec2.getNorm());
+      if (prod > 0.01d) {
+        GuessCodStat ribr = new GuessCodStat();
+        ribr.setRank(prod);
+        ribr.setDescr(kno.getPhrase());
+        retli.add(ribr);
+      }
+      if (prod > ddbest) {
+        ddbest = prod;
+      }
+    }
+    return retli;
   }
 }

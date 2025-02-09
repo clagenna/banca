@@ -11,10 +11,12 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import lombok.Getter;
+import lombok.Setter;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class GuessCodStat {
+public class GuessCodStat implements Comparable<GuessCodStat> {
 
   public static final String COL_ID       = "id";
   public static final String COL_TIPO     = "tipo";
@@ -38,6 +40,8 @@ public class GuessCodStat {
   private SimpleStringProperty                descrcds;
   private SimpleBooleanProperty               assigned;
   private String                              codstatOrig;
+  @Getter @Setter
+  private Double                              rank;
 
   public GuessCodStat() {
     init();
@@ -70,6 +74,21 @@ public class GuessCodStat {
     codstatOrig = codstat;
     setDescrCds(descrcds);
     setAssigned(assigned);
+  }
+
+  public GuessCodStat(RigaBanca rb) {
+    init();
+    setId(rb.getRigaid());
+    setTipo(rb.getTiporec());
+    setDtmov(rb.getDtmov());
+    setDare(rb.getDare());
+    setAvere(rb.getAvere());
+    setCardid(rb.getCardid());
+    setDescr(rb.getDescr());
+    setCodstat(rb.getCodstat());
+    codstatOrig = rb.getCodstat();
+    setDescrCds(rb.getCdsdescr());
+    setAssigned(false);
   }
 
   public SimpleIntegerProperty propertyId() {
@@ -173,12 +192,12 @@ public class GuessCodStat {
   }
 
   public void setCodstat(String ii) {
-    if ( null == ii) {
+    if (null == ii) {
       codstat.set(null);
       return;
     }
     CodStat cds = CodStat.parse(ii);
-    if ( null == cds)
+    if (null == cds)
       return;
     codstat.set(cds.getCodice());
 
@@ -230,7 +249,19 @@ public class GuessCodStat {
     sb.append(String.format("%s%s=%s", vir, COL_CODSTAT, getCodstat()));
     sb.append(String.format("%s%s=%s", vir, COL_CDSDESCR, getDescrcds()));
     sb.append(String.format("%s%s=%s", vir, COL_ASSIGNED, isAssigned()));
-    
+
     return sb.toString();
   }
+
+  @Override
+  public int compareTo(GuessCodStat o) {
+    if (null == o)
+      return -1;
+    int ret = Double.compare(rank, o.rank);
+    if (0 == ret)
+      if (Utils.isValue(getDescr()) && Utils.isValue(o.getDescr()))
+        ret = getDescr().compareTo(o.getDescr());
+    return ret;
+  }
+
 }

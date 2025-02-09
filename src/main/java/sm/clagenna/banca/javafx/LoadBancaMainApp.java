@@ -39,7 +39,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   private static final Logger s_log            = LogManager.getLogger(LoadBancaMainApp.class);
   private static final String CSZ_MAIN_APP_CSS = "LoadBancaFX.css";
   public static final String  CSZ_MAIN_ICON    = "sm/clagenna/banca/javafx/banca-100.png";
-  private static final String CSZ_MAIN_PROPS   = "Banca.properties";
+  public static final String CSZ_MAIN_PROPS   = "Banca.properties";
 
   @Getter
   private static LoadBancaMainApp inst;
