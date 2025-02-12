@@ -1,5 +1,7 @@
 package prova.javafx;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -28,6 +30,9 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import sm.clagenna.banca.dati.CodStat;
@@ -48,7 +53,7 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class ProvaGuess extends Application {
+public class ProvaGuess extends Application implements PropertyChangeListener {
 
   private static final Logger s_log = LogManager.getLogger(ProvaGuess.class);
 
@@ -237,6 +242,7 @@ public class ProvaGuess extends Application {
       System.exit(1957);
     }
     data.initApp(props);
+    data.addPropertyChangeListener(this);
   }
 
   private void buildForm() {
@@ -464,6 +470,37 @@ public class ProvaGuess extends Application {
         tblRiga.getItems().addAll(li);
     });
     tblRiga.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+    tblRiga.setOnKeyPressed(e -> tblRigaKeyPressed(e));
+  }
+
+  private Object tblRigaKeyPressed(KeyEvent e) {
+    System.out.printf("ProvaGuess.tblRigaKeyPressed(%s)\n", e.toString());
+    switch (e.getCode()) {
+      case KeyCode.SPACE:
+        e.consume();
+        loadCercaCodStat();
+        break;
+      default:
+        break;
+    }
+    return null;
+  }
+
+  private void loadCercaCodStat() {
+    try {
+      FXMLLoader fxmll = new FXMLLoader(getClass().getResource("CercaCodStat.fxml"));
+      Parent radice = fxmll.load();
+      Scene scene = new Scene(radice);
+      Stage stage = new Stage();
+      stage.setScene(scene);
+      stage.initModality(Modality.WINDOW_MODAL);
+      stage.initOwner(primaryStage);
+      stage.show();
+      CercaCodStat figlio = fxmll.getController();
+      figlio.initApp(props);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   private List<RigaBanca> leggiKnownCodstat() {
@@ -513,6 +550,8 @@ public class ProvaGuess extends Application {
   }
 
   private void rigaBancaSelected(RigaBanca row) {
+    if (null == row)
+      return;
     List<GuessCodStat> liGuess = new ArrayList<GuessCodStat>();
     for (RigaBanca rb : liKnown) {
       GuessCodStat gue = new GuessCodStat(rb);
@@ -558,74 +597,17 @@ public class ProvaGuess extends Application {
     caricaTblUnknownCodstat();
   }
 
-  //  private void eseguiConversioneRunTask() {
-  //    ObservableList<ImpFile> sels = tblvRiga.getSelectionModel().getSelectedItems();
-  //    s_log.debug("conversione di {} CSV in background con {} threads", sels.size(), 1);
-  //    ExecutorService backGrService = Executors.newFixedThreadPool(1);
-  //    for (ImpFile impf : sels) {
-  //      try {
-  //        CsvImportBanca cvsimp = new CsvImportBanca();
-  //        cvsimp.setSkipSaveDB(true);
-  //        cvsimp.setCsvFile(impf.fullPath(Paths.get(CSZ_START_DIR)));
-  //        progb.setProgress(0.);
-  //        progb.progressProperty().unbind();
-  //        progb.progressProperty().bind(cvsimp.progressProperty());
-  //        cvsimp.setOnRunning(ev -> {
-  //          setSemafore(1);
-  //        });
-  //        cvsimp.setOnSucceeded(ev -> {
-  //          setSemafore(0);
-  //          s_log.info("Fine del Task Background per {}", impf.toString());
-  //        });
-  //        cvsimp.setOnFailed(ev -> {
-  //          setSemafore(0);
-  //          Throwable ex = ev.getSource().getException();
-  //          s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
-  //        });
-  //        DBConn connSQL = LoadBancaMainApp.getInst().getConnSQL();
-  //        cvsimp.setConnSql(connSQL);
-  //        backGrService.execute(cvsimp);
-  //      } catch (Exception e) {
-  //        progb.progressProperty().unbind();
-  //        s_log.error("Errore {} su file {}", e.getMessage(), impf.toString(), e);
-  //      }
-  //    }
-  //    backGrService.shutdown();
-  //    initData();
-  //  }
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    Object obj = evt.getNewValue();
+    if (evt.getPropertyName().equals(DataController.EVT_SELCODSTAT))
+      if (obj instanceof CodStat cds) {
+        // System.out.printf("ProvaGuess.propertyChange(%s)\n", cds.toString());
+        RigaBanca itm = tblRiga.getSelectionModel().getSelectedItem();
+        itm.setCodstat(cds.getCodice());
+        Platform.runLater(() -> tblRiga.refresh());
+      }
 
-  //  private synchronized void setSemafore(int nTask) {
-  //    // nTask : 1 - start, 0 - finish
-  //    switch (nTask) {
-  //      case 0:
-  //        if (qtaActiveTasks > 0)
-  //          qtaActiveTasks--;
-  //        else
-  //          System.err.println("Active Tasks < 0 !");
-  //        if (qtaActiveTasks == 0) {
-  //          Platform.runLater(new Runnable() {
-  //            @Override
-  //            public void run() {
-  //              primStage.getScene().setCursor(Cursor.DEFAULT);
-  //              btStart.setDisable(false);
-  //              btStop.setDisable(true);
-  //            }
-  //          });
-  //        }
-  //        break;
-  //      case 1:
-  //        qtaActiveTasks++;
-  //        if (qtaActiveTasks == 1) {
-  //          Platform.runLater(new Runnable() {
-  //            @Override
-  //            public void run() {
-  //              btStart.setDisable(true);
-  //              btStop.setDisable(false);
-  //            }
-  //          });
-  //        }
-  //        break;
-  //    }
-  //  }
+  }
 
 }

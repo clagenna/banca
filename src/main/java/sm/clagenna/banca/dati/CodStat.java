@@ -226,6 +226,42 @@ public class CodStat implements Comparable<CodStat> {
     return figli;
   }
 
+  public List<CodStat> getList() {
+    return getList(null);
+  }
+
+  /**
+   * torna tutti i nodi sottostanti sotto forma di un {@link List}. Se il
+   * parametro <code>p_descr</code> e' diverso da null esegue un filtro dei soli
+   * elementi nella cui descrizione sia inclusa la stringa <code>p_descr</code>
+   *
+   * @param p_descr
+   * @return
+   */
+  public List<CodStat> getList(String p_descr) {
+    List<CodStat> li = new ArrayList<CodStat>();
+    String szDes = null;
+    if (Utils.isValue(p_descr))
+      szDes = p_descr.toLowerCase();
+    li = getList(li, this, szDes);
+    return li;
+  }
+
+  private List<CodStat> getList(List<CodStat> p_li, CodStat nod, String p_descr) {
+    CodStat cdst = null;
+    if (Utils.isValue(getDescr()) && Utils.isValue(p_descr)) {
+      if (getDescr().toLowerCase().contains(p_descr))
+        cdst = this;
+    }
+    if (null != cdst && Utils.isValue(cdst.getDescr()))
+      p_li.add(cdst);
+    if (null == figli)
+      return p_li;
+    for (CodStat cds : figli)
+      p_li = cds.getList(p_li, cds, p_descr);
+    return p_li;
+  }
+
   public StringBuilder printAll(StringBuilder p_sb) {
     return printAll(p_sb, 0);
   }

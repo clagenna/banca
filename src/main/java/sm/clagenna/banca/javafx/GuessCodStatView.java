@@ -20,8 +20,10 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -37,10 +39,12 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.AnalizzaCodStats;
+import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.GuessCodStat;
 import sm.clagenna.banca.sql.ISQLGest;
@@ -142,7 +146,6 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     impostaForma(mainProps);
     buildTableView();
     // txParola.textProperty().addListener((obj, old, nv) -> txParolaSel(obj, old, nv));
-    
 
     if (lstage != null)
       lstage.setOnCloseRequest(e -> {
@@ -187,6 +190,36 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       btCercaClick(null);
     }
     return null;
+  }
+
+  private Object tblRigaKeyPressed(KeyEvent e) {
+    // System.out.printf("ProvaGuess.tblRigaKeyPressed(%s)\n", e.toString());
+    switch (e.getCode()) {
+      case KeyCode.SPACE:
+        e.consume();
+        caricaCercaCodStat();
+        break;
+      default:
+        break;
+    }
+    return null;
+  }
+
+  private void caricaCercaCodStat() {
+    try {
+      FXMLLoader fxmll = new FXMLLoader(getClass().getResource("CercaCodStat.fxml"));
+      Parent radice = fxmll.load();
+      Scene scene = new Scene(radice);
+      Stage stage = new Stage();
+      stage.setScene(scene);
+      stage.initModality(Modality.WINDOW_MODAL);
+      stage.initOwner(lstage);
+      stage.show();
+      CercaCodStat figlio = fxmll.getController();
+      figlio.initApp(mainProps);
+    } catch (Exception e) {
+      s_log.error("Errore caricamento CercaCodStat, msg = {}", e.getMessage(), e);
+    }
   }
 
   private void buildTableView() {
@@ -424,8 +457,8 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     System.out.println("creaTableResultThread()");
     m_tbvf = new AnalizzaCodStats(m_appmain);
     m_tbvf.setParola(txParola.getText());
-    LocalDateTime dtDa = txDtDa.getValue() != null ?  txDtDa.getValue().atStartOfDay() : null;
-    LocalDateTime dtA = txDtA.getValue() != null ?    txDtA.getValue().atStartOfDay() : null;
+    LocalDateTime dtDa = txDtDa.getValue() != null ? txDtDa.getValue().atStartOfDay() : null;
+    LocalDateTime dtA = txDtA.getValue() != null ? txDtA.getValue().atStartOfDay() : null;
     m_tbvf.setDtDa(dtDa);
     m_tbvf.setDtA(dtA);
     ExecutorService backGrService = Executors.newFixedThreadPool(1);
@@ -490,6 +523,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       }
     });
     tblview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    tblview.setOnKeyPressed(e -> tblRigaKeyPressed(e));
   }
 
   private void accettaTutti_click(Object object) {
@@ -623,6 +657,14 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
         }
         buildTableView();
         break;
+
+      case DataController.EVT_SELCODSTAT:
+        if (evt.getNewValue() instanceof CodStat cds) {
+          m_codStatSel = cds.getCodice();
+          btAssignCodStatClick(null);
+        }
+        break;
+
     }
 
   }

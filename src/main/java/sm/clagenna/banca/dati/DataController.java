@@ -41,6 +41,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
 
   public static final String EVT_DBCHANGE            = "dbchange";
   public static final String EVT_CODSTAT             = "codstat";
+  public static final String EVT_SELCODSTAT          = "selcodstat";
   public static final String EVT_NEW_QUERY_RESULT    = "dtsresult";
   public static final String EVT_TOTCODSTAT          = "totcodstats";
   public static final String EVT_TREECODSTAT_CHANGED = "treeCodstat";

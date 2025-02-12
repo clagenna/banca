@@ -74,11 +74,16 @@ public class CodStatTreeData {
     root.add(cds);
     mapCodStat.put(cds.getCodice(), cds);
   }
-  
+
   public CodStat decodeCodStat(String p_cod) {
-    if ( p_cod == null || null==mapCodStat)
+    if (p_cod == null || null == mapCodStat)
       return null;
     return mapCodStat.get(p_cod);
+  }
+
+  public List<CodStat> getList(String p_descr) {
+    List<CodStat> li = getRoot().getList(p_descr);
+    return li;
   }
 
   public void refreshTreeItems() {

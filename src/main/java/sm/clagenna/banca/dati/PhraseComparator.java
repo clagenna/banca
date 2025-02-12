@@ -77,6 +77,7 @@ public class PhraseComparator {
       if ( !wordIndex.containsKey(tok))
         wordIndex.put(tok, index++);
     }
+    @SuppressWarnings("unused")
     boolean bAdded = oldSize != wordIndex.size();
     // creo il vector della frase entrante
     phr.creaVector(wordIndex);

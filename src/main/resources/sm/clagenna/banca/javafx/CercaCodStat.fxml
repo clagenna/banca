@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.CercaCodStat">
+   <top>
+      <AnchorPane prefHeight="59.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+         <children>
+            <Label layoutX="35.0" layoutY="21.0" text="Parola" />
+            <TextField fx:id="txParola" layoutX="78.0" layoutY="17.0" onKeyPressed="#keyPressEvent" prefHeight="25.0" prefWidth="292.0" />
+         </children>
+      </AnchorPane>
+   </top>
+   <center>
+      <TableView fx:id="tblCodstat" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <columns>
+          <TableColumn id="codice" fx:id="colCode" prefWidth="75.0" text="Codice" />
+          <TableColumn id="descr" fx:id="colDescr" prefWidth="400.0" text="Desrizione" />
+        </columns>
+      </TableView>
+   </center>
+</BorderPane>

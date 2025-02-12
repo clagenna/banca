@@ -29,8 +29,10 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -46,6 +48,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
@@ -270,11 +273,12 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     int dx = p_props.getIntProperty(CSZ_PROP_DIMRESVIEW_X);
     int dy = p_props.getIntProperty(CSZ_PROP_DIMRESVIEW_Y);
     var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
       lstage.setX(mm.poxX());
       lstage.setY(mm.posY());
       lstage.setWidth(mm.width());
       lstage.setHeight(mm.height());
+      
     }
     myScene.addEventFilter(KeyEvent.KEY_PRESSED, ev -> gestKey(ev));
     URL url = m_appmain.getUrlCSS();
@@ -282,11 +286,41 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       myScene.getStylesheets().add(url.toExternalForm());
   }
 
+  private void caricaCercaCodStat() {
+    try {
+      FXMLLoader fxmll = new FXMLLoader(getClass().getResource(CercaCodStat.CSZ_FXMLNAME));
+      Parent radice = fxmll.load();
+      Scene scene = new Scene(radice);
+      Stage stage = new Stage();
+      stage.setScene(scene);
+      stage.initModality(Modality.WINDOW_MODAL);
+      stage.initOwner(lstage);
+      stage.show();
+      CercaCodStat figlio = fxmll.getController();
+      figlio.initApp(mainProps);
+    } catch (Exception e) {
+      s_log.error("Errore caricamento CercaCodStat, msg = {}", e.getMessage(),e);
+    }
+  }
+
   private Object gestKey(KeyEvent ev) {
     // System.out.printf("ResultView.gestKey(%s)\n", ev.toString());
     if (/* ev.isControlDown() && */ ev.getCode() == KeyCode.ENTER) {
       ev.consume();
       btCercaClick(null);
+    }
+    return null;
+  }
+
+  private Object tblRigaKeyPressed(KeyEvent e) {
+    // System.out.printf("ProvaGuess.tblRigaKeyPressed(%s)\n", e.toString());
+    switch (e.getCode()) {
+      case KeyCode.SPACE:
+        e.consume();
+        caricaCercaCodStat();
+        break;
+      default:
+        break;
     }
     return null;
   }
@@ -612,6 +646,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       }
     });
     tblview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    tblview.setOnKeyPressed(e -> tblRigaKeyPressed(e));
   }
 
   @Override
@@ -647,6 +682,13 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
           var fmt = NumberFormat.getInstance(Locale.getDefault());
           String szMsg = String.format("Letti %s recs", fmt.format(nv));
           Platform.runLater(() -> lbMsg.setText(szMsg));
+        }
+        break;
+
+      case DataController.EVT_SELCODSTAT:
+        if (evt.getNewValue() instanceof CodStat cds) {
+          m_codStatSel = cds.getCodice();
+          btAssignCodStatClick(null);
         }
         break;
     }
