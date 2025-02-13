@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.logging.log4j.Logger;
 
@@ -477,7 +478,7 @@ public abstract class SqlGest implements ISQLGest {
   @Override
   public Map<String, String> getListDBViews() {
     Connection conn = dbconn.getConn();
-    Map<String, String> liViews = new HashMap<>();
+    Map<String, String> liViews = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     // liViews.put((String)null, null);
     try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(getQryListVIEWS())) {
       while (rs.next()) {

@@ -6,14 +6,16 @@
 
 for /F %%a in ('echo prompt $E ^| cmd') do @set "ESC=%%a["
 setlocal ENABLEEXTENSIONS
+if "%DEBUG%" == "1" echo on
 if "%1" == "" goto noOpt
 if "%1" == "-?" goto help
 if "%1" == "-help" goto help
-if "%1" == "-updVer"  goto second
+if "%1" == "-updVers"  goto second
 if "%1" == "-buildStd"  goto second
 goto help
 :second
-if "%2" == "-updVer"  goto noOpt
+if "%2" == ""  goto noOpt
+if "%2" == "-updVers"  goto noOpt
 if "%2" == "-buildStd"  goto noOpt
 goto help
 
@@ -29,7 +31,7 @@ if "%DEBUG%" == "1" @echo 0=%0 1=%1 2=%2 3=%3
 if /i "%1" EQU "-updVers" (
   	set updVers=1
 	shift /1
-	goto testp
+	rem goto testp
 )
 if /i "%1" EQU "-buildStd" (
   	set buildStd=1
@@ -115,7 +117,7 @@ goto :eof
 :help
 @echo Usage : %0 [-updVers] [-buildStd]
 @echo dove:
-@echo       %ESC%7m-updVer%ESC%0m 	incrementa la versione del prodotto (anche in Pom.xml)
+@echo       %ESC%7m-updVers%ESC%0m 	incrementa la versione del prodotto (anche in Pom.xml)
 @echo       %ESC%7m-buildStd%ESC%0m 	costruisce gli std prima di creare il build dell'applicazione
 goto fine
 

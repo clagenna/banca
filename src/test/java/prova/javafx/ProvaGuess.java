@@ -53,7 +53,7 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class ProvaGuess extends Application implements PropertyChangeListener {
+public class ProvaGuess<CercaCodStat> extends Application implements PropertyChangeListener {
 
   private static final Logger s_log = LogManager.getLogger(ProvaGuess.class);
 
@@ -497,7 +497,7 @@ public class ProvaGuess extends Application implements PropertyChangeListener {
       stage.initOwner(primaryStage);
       stage.show();
       CercaCodStat figlio = fxmll.getController();
-      figlio.initApp(props);
+      ((DataController) figlio).initApp(props);
     } catch (IOException e) {
       e.printStackTrace();
     }

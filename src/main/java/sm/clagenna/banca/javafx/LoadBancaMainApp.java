@@ -4,7 +4,12 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,18 +33,22 @@ import javafx.stage.Window;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.sql.ConvDBBanca;
+import sm.clagenna.stdcla.enums.EServerId;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.DBConnFactory;
 import sm.clagenna.stdcla.utils.AppProperties;
+import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class LoadBancaMainApp extends Application implements IStartApp, PropertyChangeListener {
   private static final Logger s_log            = LogManager.getLogger(LoadBancaMainApp.class);
   private static final String CSZ_MAIN_APP_CSS = "LoadBancaFX.css";
+  private static final String PROP_CHECK_CONV  = "check.convdb";
   public static final String  CSZ_MAIN_ICON    = "sm/clagenna/banca/javafx/banca-100.png";
-  public static final String CSZ_MAIN_PROPS   = "Banca.properties";
+  public static final String  CSZ_MAIN_PROPS   = "Banca.properties";
 
   @Getter
   private static LoadBancaMainApp inst;
@@ -61,6 +70,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   private ViewContanti     m_viewContanti;
   private CodStatView      m_viewCodStat;
   private GuessCodStatView m_viewGuessCodStat;
+  private boolean          bCheckConvDb;
 
   public LoadBancaMainApp() {
     //
@@ -155,7 +165,31 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
       System.exit(1957);
     }
     data.addPropertyChangeListener(this);
+    checkConvDB();
     scegliDB();
+  }
+
+  private void checkConvDB() {
+    bCheckConvDb = props.getBooleanProperty(PROP_CHECK_CONV, true);
+    if ( !bCheckConvDb)
+      return;
+    String szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
+    EServerId srvty = EServerId.parse(szDbType);
+    if (srvty != EServerId.SQLite3)
+      return;
+    String szDbFile = props.getProperty(AppProperties.CSZ_PROP_DB_name);
+    s_log.warn("Verifico convertibilita del \"{}\" al nuovo formato", szDbFile);
+    int n = szDbFile.lastIndexOf(".");
+    String szBak = szDbFile.substring(0, n) + ParseData.s_fmtDtFile.format(LocalDateTime.now()) + ".db";
+    try {
+      Files.copy(Paths.get(szDbFile), Paths.get(szBak), StandardCopyOption.REPLACE_EXISTING);
+      s_log.info("Eseguito copia di backup di {} su {}", szDbType, szBak);
+    } catch (IOException e) {
+      s_log.error("Errore crea BAckup DB {} su {}, err={}", szDbFile, szBak, e.getMessage(), e);
+    }
+    ConvDBBanca cnv = new ConvDBBanca();
+    cnv.checkConversione(szDbFile);
+
   }
 
   public void scegliDB() {
@@ -205,6 +239,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     if (data != null)
       data.closeApp(prop);
 
+    prop.setBooleanProperty(PROP_CHECK_CONV, bCheckConvDb);
     prop.salvaSuProperties();
 
   }

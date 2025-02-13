@@ -316,10 +316,10 @@ public class CsvImportBanca extends Task<String> implements Closeable {
   private void discerniSqlTable(String p_sz) {
     sqlTableName = null;
     String szFil = p_sz.toLowerCase().replace("conto_", "_");
-    Pattern pat = Pattern.compile(".*_([a-z_]+)[_\\- ][0-9\\-]+.+", Pattern.CASE_INSENSITIVE);
+    Pattern pat = Pattern.compile(".*_([a-z]+)[_\\- ][0-9\\-]+.+", Pattern.CASE_INSENSITIVE);
     Matcher mat = pat.matcher(szFil);
     if ( !mat.find()) {
-      pat = Pattern.compile(".*_([a-z_]+).+", Pattern.CASE_INSENSITIVE);
+      pat = Pattern.compile(".*_([a-z]+)_.+", Pattern.CASE_INSENSITIVE);
       mat = pat.matcher(szFil);
       if ( !mat.find())
         throw new UnsupportedOperationException("Non trovo il nome Tabella; Il nome file mal formato?");
