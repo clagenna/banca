@@ -204,15 +204,14 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   private void cercaCurrCodStat() {
     cdsPadre = null;
-    // System.out.printf("ModTreeCodStat.cercaCurrCodStat(for \"%s\")\n", cdsCurr.getCodice());
     CodStat2 root = codStatData.getRoot();
     // ---- descrizione Nodo corrente (se c'è)
     String sz = "";
     cdsTree = root.find(cdsLavoro.getCodice());
     if (null != cdsTree)
       sz = cdsTree.getDescr();
-    System.out.printf("ModTreeCodStat.cercaCurrCodStat(for \"%s\")\n",
-        cdsTree != null ? cdsTree.toStringEx() : "Nuovo:" + cdsLavoro.getCodice());
+    //    System.out.printf("ModTreeCodStat.cercaCurrCodStat(for \"%s\")\n",
+    //        cdsTree != null ? cdsTree.toStringEx() : "Nuovo:" + cdsLavoro.getCodice());
     final String szDescr = sz;
     Platform.runLater(() -> txDescr.setText(szDescr));
     btSalva.setDisable( !cdsLavoro.isValid());
@@ -232,15 +231,15 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     if (btSalva.isDisabled())
       return;
     CodStat2 root = codStatData.getRoot();
-    cdsTree = root.find(cdsLavoro.getCodice());
+    cdsTree = root.find(cdsLavoro);
     if (null != cdsTree)
       cdsTree.setDescr(cdsLavoro.getDescr());
     else {
       cdsTree = new CodStat2();
       cdsTree.assign(cdsLavoro);
       codStatData.add(cdsTree);
-      codStatData.refreshTreeItems(cdsTree);
     }
+    codStatData.refreshTreeItems(cdsTree);
     codStatData.updateCodStat(cdsTree);
     codStatData.saveAll();
     dataCntr.firePropertyChange(DataController.EVT_TREECODSTAT_CHANGED, null, cdsTree);

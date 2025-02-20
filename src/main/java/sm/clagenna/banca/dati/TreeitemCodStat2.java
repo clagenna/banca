@@ -31,13 +31,37 @@ public class TreeitemCodStat2 extends TreeCodStat2 {
   }
 
   public void refreshTreeItems(CodStat2 cdsCurr) { // ??
-    if (null == cdsCurr)
-      return;
     treeItemRoot = buildTree(getRoot()); // ??
     expandNodes(treeItemRoot, cdsCurr);
   }
 
+  public Object expandNode(CodStat2 cds) {
+    TreeItem<CodStat2> exp = treeFind(treeItemRoot, cds);
+    if ( null != exp)
+      exp.getValue().setMatched(true);
+    while(  null != exp ) {
+      exp.setExpanded(true);
+      exp = exp.getParent();
+    }
+    return exp;
+  }
+
+  private TreeItem<CodStat2> treeFind(TreeItem<CodStat2> treeI, CodStat2 cds) {
+    CodStat2 no = treeI.getValue();
+    if (no.equals(cds))
+      return treeI;
+    TreeItem<CodStat2> ret = null;
+    for (TreeItem<CodStat2> lno : treeI.getChildren()) {
+      ret = treeFind(lno, cds);
+      if (null != ret)
+        break;
+    }
+    return ret;
+  }
+
   private boolean expandNodes(TreeItem<CodStat2> treeItem, CodStat2 cdsCurr) {
+    if (null == cdsCurr)
+      return false;
     CodStat2 lCds = treeItem.getValue();
     if (lCds.equals(cdsCurr)) {
       if ( !treeItem.isLeaf())

@@ -10,9 +10,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -381,7 +381,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
       case EVT_FILECODSTATS:
         String szFil = (String) evt.getNewValue();
         props.setProperty(CSZ_PROP_FILECODSTATS, szFil);
-        String sz = ParseData.s_fmtDtDate.format(LocalDateTime.now());
+        String sz = ParseData.s_fmtDtDate.format(new Date());
         props.setProperty(CSZ_PROP_DATAFILECDS, sz);
         break;
     }

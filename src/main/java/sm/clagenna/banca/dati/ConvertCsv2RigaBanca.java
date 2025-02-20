@@ -40,7 +40,8 @@ public class ConvertCsv2RigaBanca {
   public void readConvProperties(Path p_pth) {
     try {
       convProps = new AppProperties();
-      convProps.leggiPropertyFile(p_pth.toFile(), true, false);
+      final boolean FROM_JAR = true;
+      convProps.leggiPropertyFile(p_pth.toFile(), true, FROM_JAR);
       parseProps();
     } catch (AppPropsException e) {
       // e.printStackTrace();

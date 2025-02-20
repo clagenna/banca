@@ -469,6 +469,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
     String szEvtId = evt.getPropertyName();
+    Object obj = evt.getNewValue();
+    TreeitemCodStat2 treeItems = datacntrlr.getCodStatData();
     switch (szEvtId) {
       case DataController.EVT_NEW_QUERY_RESULT:
         // m_szQryResulView = evt.getNewValue().toString();
@@ -481,16 +483,22 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         //        treeview.refresh();
         //        break;
         // fall down ...
-
-      case DataController.EVT_TREECODSTAT_CHANGED:
         Platform.runLater(() -> {
           // treeview.setRoot(datacntrlr.getCodStatData().getTreeItemRoot());
-          TreeitemCodStat2 datactr = datacntrlr.getCodStatData();
-          var root = datactr.getRoot();
-          datactr.refreshTreeItems(root);
-          treeview.setRoot(datactr.getTreeItemRoot());
+          treeItems.refreshTreeItems();
+          treeview.setRoot(treeItems.getTreeItemRoot());
           treeview.refresh();
         });
+        break;
+
+      case DataController.EVT_TREECODSTAT_CHANGED:
+        if (obj instanceof CodStat2 cds) {
+          Platform.runLater(() -> {
+            treeItems.expandNode(cds);
+            treeview.setRoot(treeItems.getTreeItemRoot());
+            treeview.refresh();
+          });
+        }
         break;
     }
   }
