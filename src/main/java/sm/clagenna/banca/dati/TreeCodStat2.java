@@ -131,7 +131,7 @@ public class TreeCodStat2 {
     codstats.salvaSuProperties();
     if (null != datac)
       datac.firePropertyChange(DataController.EVT_FILECODSTATS, "*null*", fileCodStats.toString());
-    s_log.info("Salvato il file Codici Statistici {}", codstats.getPropertyFile().toString());
+    // s_log.info("Salvato il file Codici Statistici {}", codstats.getPropertyFile().toString());
   }
 
   @Override
