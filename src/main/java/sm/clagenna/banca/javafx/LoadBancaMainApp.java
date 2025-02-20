@@ -135,7 +135,6 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   @Override
   public void initApp(AppProperties p_props) {
     try {
-      data = new DataController();
       AppProperties.setSingleton(false);
       DBConnFactory.setSingleton(false);
       props = p_props;
@@ -143,6 +142,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
         props = new AppProperties();
         props.leggiPropertyFile(new File(LoadBancaMainApp.CSZ_MAIN_PROPS), false, false);
       }
+      data = new DataController();
       data.initApp(props);
       skin = props.getProperty(AppProperties.CSZ_PROP_SKIN);
       if (null == skin)

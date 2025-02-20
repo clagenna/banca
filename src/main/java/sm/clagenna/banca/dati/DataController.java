@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,12 +29,15 @@ import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.AppProperties;
+import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class DataController implements IStartApp, PropertyChangeListener {
   private static final Logger s_log                 = LogManager.getLogger(DataController.class);
   private static final String CSZ_PROP_SCARTA       = "voci.scarta";
   private static final String CSZ_PROP_EXCLUDEDCOLS = "excludedcols";
+  public static final String  CSZ_PROP_FILECODSTATS = "filecodstats.path";
+  public static final String  CSZ_PROP_DATAFILECDS  = "filecodstats.date";
   private static final String CSZ_FLAG_FILTRI       = "FLAG_FILTRI";
   private static final String CSZ_QTA_THREADS       = "QTA_THREADS";
   private static final String CSZ_PERC_INDOV        = "PERC_INDOV";
@@ -43,6 +47,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
   public static final String EVT_CODSTAT             = "codstat";
   public static final String EVT_SELCODSTAT          = "selcodstat";
   public static final String EVT_NEW_QUERY_RESULT    = "dtsresult";
+  public static final String EVT_FILECODSTATS        = "filecodstats";
   public static final String EVT_TOTCODSTAT          = "totcodstats";
   public static final String EVT_TREECODSTAT_CHANGED = "treeCodstat";
   public static final String EVT_FILTER_CODSTAT      = "filterCodstat";
@@ -78,17 +83,8 @@ public class DataController implements IStartApp, PropertyChangeListener {
   private CsvFileContainer      contCsv;
   private AppProperties         props;
   private List<String>          scartaVoci;
-  /** il file properties con tutti i Codstat gestiti */
-  //  @Getter @Setter
-  //  private Path                  fileCodStats;
-  //  @Getter
-  //  private AppProperties         codstats;
-  //  @Getter
-  //  private String                codStat;
-  //  @Getter @Setter
-  //  private CodStat               codStatTree;
   @Getter @Setter
-  private CodStatTreeData       codStatData;
+  private TreeitemCodStat2      codStatData;
   @Getter @Setter
   private String                qryResulView;
   @SuppressWarnings("unused")
@@ -104,8 +100,8 @@ public class DataController implements IStartApp, PropertyChangeListener {
     s_inst = this;
     propsChange = new PropertyChangeSupport(this);
     filtriQuery = ESqlFiltri.AllSets.getFlag();
-    codStatData = new CodStatTreeData();
-    codStatData.readTree();
+    codStatData = new TreeitemCodStat2();
+    codStatData.readTreeCodStats();
     addPropertyChangeListener(this);
   }
 
@@ -321,7 +317,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
   }
 
   public void azzeraTotaliCodStat() {
-    codStatData.clear();
+    codStatData.clearTotali();
   }
 
   public void aggiornaTotaliCodStat2(String szCodStat, Number dareX, Number avereX) {
@@ -358,7 +354,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
       s_log.error("Errore open dataset con query {}, err={}", szQry2, e.getMessage());
     }
     qryResulView = null;
-    codStatData.clear();
+    codStatData.clearTotali();
     if (null == dts || dts.size() == 0)
       return;
     for (DtsRow riga : dts.getRighe()) {
@@ -382,12 +378,12 @@ public class DataController implements IStartApp, PropertyChangeListener {
   public void propertyChange(PropertyChangeEvent evt) {
     String szEvtId = evt.getPropertyName();
     switch (szEvtId) {
-      // meglio se l'evento lo lancia la CodStatView (perche aperta)
-      //      case DataController.EVT_NEW_QUERY_RESULT:
-      //        // m_szQryResulView = evt.getNewValue().toString();
-      //        setQryResulView(evt.getNewValue().toString());
-      //        Platform.runLater(() -> aggiornaTotaliCodStat());
-      //        break;
+      case EVT_FILECODSTATS:
+        String szFil = (String) evt.getNewValue();
+        props.setProperty(CSZ_PROP_FILECODSTATS, szFil);
+        String sz = ParseData.s_fmtDtDate.format(LocalDateTime.now());
+        props.setProperty(CSZ_PROP_DATAFILECDS, sz);
+        break;
     }
   }
 

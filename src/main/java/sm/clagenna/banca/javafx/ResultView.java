@@ -52,7 +52,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.CodStat;
+import sm.clagenna.banca.dati.CodStat2;
 import sm.clagenna.banca.dati.CsvFileContainer;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.IRigaBanca;
@@ -420,6 +420,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   private void abilitaBottoni() {
     boolean bv = Utils.isValue(m_qry);
+    bSemaf = false;
     btCerca.setDisable( !bv);
     btExportCsv.setDisable( !bv);
     btAssignCodStat.setDisable( !Utils.isValue(m_codStatSel));
@@ -450,13 +451,19 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     } finally {
       // bSemaf = false;
     }
-    String szQryFltr = creaQuery();
-    // test validita query
-    DBConn dbc = m_db.getDbconn();
-    if ( !dbc.testQuery(szQryFltr))
-      return;
-    creaTableResultThread(szQryFltr);
-    abilitaBottoni();
+    try {
+      String szQryFltr = creaQuery();
+      // test validita query
+      DBConn dbc = m_db.getDbconn();
+      if ( !dbc.testQuery(szQryFltr))
+        return;
+      creaTableResultThread(szQryFltr);
+      abilitaBottoni();
+    } catch (Exception e) {
+      e.printStackTrace();
+    } finally {
+      bSemaf = false;
+    }
   }
 
   @SuppressWarnings("unused")
@@ -622,6 +629,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     } catch (Exception e) {
       s_log.error("Errore task TableViewFiller");
     }
+    bSemaf = false;
     backGrService.shutdown();
 
     // Context menu open document
@@ -659,7 +667,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         m_codStatSel = evt.getNewValue().toString();
         Platform.runLater(() -> {
           DataController data = m_appmain.getData();
-          CodStat cds = data.getCodStatData().decodeCodStat(m_codStatSel);
+          CodStat2 cds = data.getCodStatData().find(m_codStatSel);
           String szLb = "...";
           if (null != cds)
             szLb = cds.getDescr();
@@ -670,7 +678,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         break;
 
       case DataController.EVT_FILTER_CODSTAT:
-        if (evt.getNewValue() instanceof CodStat cds) {
+        if (evt.getNewValue() instanceof CodStat2 cds) {
           String szFltrCodstat = cds.getCodice();
           ActionEvent nevt = new ActionEvent(szFltrCodstat, null);
           Platform.runLater(() -> btCercaClick(nevt));
@@ -686,7 +694,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         break;
 
       case DataController.EVT_SELCODSTAT:
-        if (evt.getNewValue() instanceof CodStat cds) {
+        if (evt.getNewValue() instanceof CodStat2 cds) {
           m_codStatSel = cds.getCodice();
           btAssignCodStatClick(null);
         }

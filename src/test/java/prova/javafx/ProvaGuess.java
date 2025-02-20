@@ -35,13 +35,13 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import sm.clagenna.banca.dati.CodStat;
-import sm.clagenna.banca.dati.CodStatTreeData;
+import sm.clagenna.banca.dati.CodStat2;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.GuessCodStat;
 import sm.clagenna.banca.dati.IRigaBanca;
 import sm.clagenna.banca.dati.PhraseComparator;
 import sm.clagenna.banca.dati.RigaBanca;
+import sm.clagenna.banca.dati.TreeCodStat2;
 import sm.clagenna.stdcla.enums.EServerId;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.sql.DBConn;
@@ -53,7 +53,7 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class ProvaGuess<CercaCodStat> extends Application implements PropertyChangeListener {
+public class ProvaGuess extends Application implements PropertyChangeListener {
 
   private static final Logger s_log = LogManager.getLogger(ProvaGuess.class);
 
@@ -385,7 +385,7 @@ public class ProvaGuess<CercaCodStat> extends Application implements PropertyCha
     tblRiga.getColumns().add(colDescr);
 
     colCodstat = new TableColumn<RigaBanca, String>("Cod. Stat.");
-    colCodstat.setCellValueFactory(new PropertyValueFactory<RigaBanca, String>("codstat"));
+    colCodstat.setCellValueFactory(new PropertyValueFactory<RigaBanca, String>("CodStat2"));
     tblRiga.getColumns().add(colCodstat);
 
     tblRiga.setOnMouseClicked(evt -> {
@@ -425,7 +425,7 @@ public class ProvaGuess<CercaCodStat> extends Application implements PropertyCha
     tblGuess.getColumns().add(colGuesRank);
 
     colGuesCodstat = new TableColumn<GuessCodStat, String>("Cod. Stat.");
-    colGuesCodstat.setCellValueFactory(new PropertyValueFactory<GuessCodStat, String>("codstat"));
+    colGuesCodstat.setCellValueFactory(new PropertyValueFactory<GuessCodStat, String>("CodStat2"));
     tblGuess.getColumns().add(colGuesCodstat);
 
   }
@@ -497,23 +497,23 @@ public class ProvaGuess<CercaCodStat> extends Application implements PropertyCha
       stage.initOwner(primaryStage);
       stage.show();
       CercaCodStat figlio = fxmll.getController();
-      ((DataController) figlio).initApp(props);
+      figlio.initApp(props);
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
   private List<RigaBanca> leggiKnownCodstat() {
-    String szQry = "SELECT id,tipo,idfile,dtmov,dtval,dare,avere,descr,abicaus,cardid,codstat" //
+    String szQry = "SELECT id,tipo,idfile,dtmov,dtval,dare,avere,descr,abicaus,cardid,CodStat2" //
         + " FROM movimenti" //
-        + " WHERE codstat IS NOT NULL";
+        + " WHERE CodStat2 IS NOT NULL";
     return leggiDb(szQry);
   }
 
   private List<RigaBanca> leggiUnknownCodstat() {
-    StringBuilder szQry = new StringBuilder("SELECT id,tipo,idfile,dtmov,dtval,dare,avere,descr,abicaus,cardid,codstat" //
+    StringBuilder szQry = new StringBuilder("SELECT id,tipo,idfile,dtmov,dtval,dare,avere,descr,abicaus,cardid,CodStat2" //
     ).append(" FROM movimenti" //
-    ).append(" WHERE codstat IS NULL");
+    ).append(" WHERE CodStat2 IS NULL");
     if (Utils.isValue(parolaFiltro)) {
       szQry.append(String.format(" AND descr LIKE '%%%s%%'", parolaFiltro));
     }
@@ -522,7 +522,7 @@ public class ProvaGuess<CercaCodStat> extends Application implements PropertyCha
 
   private List<RigaBanca> leggiDb(String szQry) {
     List<RigaBanca> li = new ArrayList<RigaBanca>();
-    CodStatTreeData cdss = data.getCodStatData();
+    TreeCodStat2 cdss = data.getCodStatData();
     try (Dataset dts = new Dataset(connSQL)) {
       dts.executeQuery(szQry);
       for (DtsRow row : dts.getRighe()) {
@@ -537,7 +537,7 @@ public class ProvaGuess<CercaCodStat> extends Application implements PropertyCha
         rb.setDescr((String) row.get(IRigaBanca.DESCR.getColNam()));
         rb.setCodstat((String) row.get(IRigaBanca.CODSTAT.getColNam()));
         if (Utils.isValue(rb.getCodstat())) {
-          CodStat cds = cdss.decodeCodStat(rb.getCodstat());
+          CodStat2 cds = cdss.find(rb.getCodstat());
           rb.setCdsdescr(cds.getDescr());
         }
         li.add(rb);
@@ -601,7 +601,7 @@ public class ProvaGuess<CercaCodStat> extends Application implements PropertyCha
   public void propertyChange(PropertyChangeEvent evt) {
     Object obj = evt.getNewValue();
     if (evt.getPropertyName().equals(DataController.EVT_SELCODSTAT))
-      if (obj instanceof CodStat cds) {
+      if (obj instanceof CodStat2 cds) {
         // System.out.printf("ProvaGuess.propertyChange(%s)\n", cds.toString());
         RigaBanca itm = tblRiga.getSelectionModel().getSelectedItem();
         itm.setCodstat(cds.getCodice());

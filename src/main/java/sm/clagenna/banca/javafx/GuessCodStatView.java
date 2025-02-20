@@ -44,7 +44,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.AnalizzaCodStats;
-import sm.clagenna.banca.dati.CodStat;
+import sm.clagenna.banca.dati.CodStat2;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.GuessCodStat;
 import sm.clagenna.banca.sql.ISQLGest;
@@ -444,6 +444,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
 
   private void abilitaBottoni() {
     boolean bv = true;
+    bSemaf = false;
     btCerca.setDisable( !bv);
     btAssignCodStat.setDisable( !Utils.isValue(m_codStatSel));
     if (bv) {
@@ -659,7 +660,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
         break;
 
       case DataController.EVT_SELCODSTAT:
-        if (evt.getNewValue() instanceof CodStat cds) {
+        if (evt.getNewValue() instanceof CodStat2 cds) {
           m_codStatSel = cds.getCodice();
           btAssignCodStatClick(null);
         }

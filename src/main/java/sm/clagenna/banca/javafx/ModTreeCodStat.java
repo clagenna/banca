@@ -19,9 +19,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.CodStat;
-import sm.clagenna.banca.dati.CodStatTreeData;
+import sm.clagenna.banca.dati.CodStat2;
 import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.TreeitemCodStat2;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -55,11 +55,11 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   private Scene            myScene;
   private LoadBancaMainApp m_appmain;
   private DataController   dataCntr;
-  private CodStatTreeData  codStatData;
+  private TreeitemCodStat2 codStatData;
   @Getter @Setter
-  private CodStat          cdsPadre;
-  private CodStat          cdsLavoro;
-  private CodStat          cdsTree;
+  private CodStat2         cdsPadre;
+  private CodStat2         cdsLavoro;
+  private CodStat2         cdsTree;
 
   private boolean bSemaf;
 
@@ -73,7 +73,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     codStatData = dataCntr.getCodStatData();
     m_appmain = LoadBancaMainApp.getInst();
     m_mainProps = m_appmain.getProps();
-    cdsLavoro = new CodStat();
+    cdsLavoro = new CodStat2();
     impostaForma(m_mainProps);
   }
 
@@ -98,7 +98,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     int dx = p_props.getIntProperty(CSZ_PROP_DIMVIEW_X, 427);
     int dy = p_props.getIntProperty(CSZ_PROP_DIMVIEW_Y, 150);
     var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
       lstage.setX(mm.poxX());
       lstage.setY(mm.posY());
       lstage.setWidth(mm.width());
@@ -205,7 +205,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   private void cercaCurrCodStat() {
     cdsPadre = null;
     // System.out.printf("ModTreeCodStat.cercaCurrCodStat(for \"%s\")\n", cdsCurr.getCodice());
-    CodStat root = codStatData.getRoot();
+    CodStat2 root = codStatData.getRoot();
     // ---- descrizione Nodo corrente (se c'è)
     String sz = "";
     cdsTree = root.find(cdsLavoro.getCodice());
@@ -217,7 +217,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     Platform.runLater(() -> txDescr.setText(szDescr));
     btSalva.setDisable( !cdsLavoro.isValid());
     // ---- descrizione del padre
-    cdsPadre = cdsLavoro.getCodiceUpLevel();
+    cdsPadre = cdsLavoro.getPadre();
     if (null != cdsPadre)
       cdsPadre = root.find(cdsPadre.getCodice());
     sz = "** nessun nodo **";
@@ -229,16 +229,16 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   @FXML
   void btSalvaClick(ActionEvent event) {
-    if ( btSalva.isDisabled())
+    if (btSalva.isDisabled())
       return;
-    CodStat root = codStatData.getRoot();
+    CodStat2 root = codStatData.getRoot();
     cdsTree = root.find(cdsLavoro.getCodice());
     if (null != cdsTree)
       cdsTree.setDescr(cdsLavoro.getDescr());
     else {
-      cdsTree = new CodStat();
+      cdsTree = new CodStat2();
       cdsTree.assign(cdsLavoro);
-      codStatData.addNode(cdsTree);
+      codStatData.add(cdsTree);
       codStatData.refreshTreeItems(cdsTree);
     }
     codStatData.updateCodStat(cdsTree);

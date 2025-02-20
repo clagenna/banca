@@ -18,9 +18,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
-import sm.clagenna.banca.dati.CodStat;
-import sm.clagenna.banca.dati.CodStatTreeData;
+import sm.clagenna.banca.dati.CodStat2;
 import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.TreeCodStat2;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -28,20 +28,20 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class CercaCodStat implements Initializable, IStartApp, PropertyChangeListener {
 
-  private static final String          KEY_POS = "cercacdst";
+  private static final String           KEY_POS = "cercacdst";
   @FXML
-  private TextField                    txParola;
+  private TextField                     txParola;
   @FXML
-  private TableView<CodStat>           tblCodstat;
+  private TableView<CodStat2>           tblCodstat;
   @FXML
-  private TableColumn<CodStat, String> colCode;
+  private TableColumn<CodStat2, String> colCode;
   @FXML
-  private TableColumn<CodStat, String> colDescr;
+  private TableColumn<CodStat2, String> colDescr;
 
-  private AppProperties   props;
-  private DataController  dataCntrl;
-  private CodStatTreeData treeData;
-  private Stage           primStage;
+  private AppProperties  props;
+  private DataController dataCntrl;
+  private TreeCodStat2   treeData;
+  private Stage          primStage;
 
   public CercaCodStat() {
     //
@@ -72,7 +72,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
     }
     txParola.textProperty().addListener((obj, old, nv) -> txParolaSel(obj, old, nv));
     tblCodstat.getColumns().clear();
-    colCode = new TableColumn<CodStat, String>("Cod. Stat.");
+    colCode = new TableColumn<CodStat2, String>("Cod. Stat.");
     colCode.setCellValueFactory(param -> {
       String sz = param.getValue().getCodice();
       var cel = new SimpleStringProperty();
@@ -81,7 +81,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
     });
     tblCodstat.getColumns().add(colCode);
 
-    colDescr = new TableColumn<CodStat, String>("Descrizione");
+    colDescr = new TableColumn<CodStat2, String>("Descrizione");
     colDescr.setCellValueFactory(param -> {
       String sz = param.getValue().getDescr();
       var cel = new SimpleStringProperty();
@@ -90,12 +90,12 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
     });
     tblCodstat.getColumns().add(colDescr);
 
-    tblCodstat.getSelectionModel().selectedItemProperty().addListener((ob,ov,nv) -> rowSelecion(ob,ov,nv));
-        
+    tblCodstat.getSelectionModel().selectedItemProperty().addListener((ob, ov, nv) -> rowSelecion(ob, ov, nv));
+
     JFXUtils.readPosStage(primStage, p_props, KEY_POS);
   }
 
-  private Object rowSelecion(ObservableValue<? extends CodStat> ob, CodStat ov, CodStat nv) {
+  private Object rowSelecion(ObservableValue<? extends CodStat2> ob, CodStat2 ov, CodStat2 nv) {
     dataCntrl.firePropertyChange(DataController.EVT_SELCODSTAT, ov, nv);
     return null;
   }
@@ -104,7 +104,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
     String szDesc = txParola.getText();
     if (Utils.isValue(szDesc) && szDesc.length() >= 2) {
       Platform.runLater(() -> {
-        List<CodStat> li = treeData.getList(szDesc);
+        List<CodStat2> li = treeData.getList(szDesc);
         tblCodstat.getItems().clear();
         tblCodstat.getItems().addAll(li);
       });
