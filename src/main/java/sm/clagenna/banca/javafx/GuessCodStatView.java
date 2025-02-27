@@ -199,6 +199,10 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
         e.consume();
         caricaCercaCodStat();
         break;
+      case KeyCode.V :
+        e.consume();
+        tblview.getSelectionModel().getSelectedItems().stream().forEach(s -> s.setAssigned(true));
+        break;
       default:
         break;
     }

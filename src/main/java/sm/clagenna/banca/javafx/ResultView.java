@@ -246,6 +246,11 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     cbQuery.getItems().clear();
     cbQuery.getItems().add((String) null);
     cbQuery.getItems().addAll(liQry);
+    if ( null != liQry && liQry.size() == 1) { 
+      cbQuery.getSelectionModel().select(1);
+      cbQuerySel(null);
+    }
+     
   }
 
   private void caricaComboQueriesFromDB() {
@@ -255,6 +260,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     cbQuery.getItems().clear();
     cbQuery.getItems().add((String) null);
     cbQuery.getItems().addAll(liNam);
+    if ( null != liNam && liNam.size() == 1) 
+      cbQuery.getSelectionModel().select(1);
+      cbQuerySel(null);
   }
 
   private void impostaForma(AppProperties p_props) {
