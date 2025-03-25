@@ -109,6 +109,8 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
         return;
       while (res.next()) {
         String descr = res.getString(GuessCodStat.COL_DESCR);
+        if (dataCntrl.isDoScartaDescr())
+          descr = dataCntrl.getScartaDescr().convert(descr);
         String codstat = res.getString(GuessCodStat.COL_CODSTAT);
         compr.addKnownPhrase(descr, codstat);
       }
@@ -145,6 +147,8 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
         Double avere = res.getDouble(GuessCodStat.COL_AVERE);
         String cardid = res.getString(GuessCodStat.COL_CARDID);
         String descr = res.getString(GuessCodStat.COL_DESCR);
+        if (dataCntrl.isDoScartaDescr())
+          descr = dataCntrl.getScartaDescr().convert(descr);
         PhraseComparator.Similarity sim = compr.similarity(descr);
         Phrase phr = sim.phrase();
         GuessCodStat gcds = new GuessCodStat(id, tipo, dtmov, dare, avere, cardid, descr, null, null, false);

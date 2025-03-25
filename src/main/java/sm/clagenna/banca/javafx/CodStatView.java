@@ -160,8 +160,10 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     treeview.setOnMouseClicked(evt -> {
       if (/* evt.isPrimaryButtonDown() && */ evt.getClickCount() == 2) {
         var row = treeview.getSelectionModel().getSelectedItem();
-        CodStat2 cds = row.getValue();
-        System.out.println("Doppio click su:" + cds.getCodice());
+        if (null != row) {
+          CodStat2 cds = row.getValue();
+          System.out.println("Doppio click su:" + cds.getCodice());
+        }
       }
     });
 

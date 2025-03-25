@@ -78,6 +78,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
       if (null != scene)
         setStage((Stage) scene.getWindow());
     }
+    primStage.setTitle("Cerca il codice statistico in base al contenuto");
     txParola.textProperty().addListener((obj, old, nv) -> txParolaSel(obj, old, nv));
     tblCodstat.getColumns().clear();
     colCode = new TableColumn<CodStat2, String>("Cod. Stat.");

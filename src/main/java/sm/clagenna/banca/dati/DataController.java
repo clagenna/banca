@@ -33,6 +33,7 @@ import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class DataController implements IStartApp, PropertyChangeListener {
+  // FIXME Creare una classe che trasformi le 'descr' tranciando i valori presi da propr:descr.scrta.nn.x
   private static final Logger s_log                 = LogManager.getLogger(DataController.class);
   private static final String CSZ_PROP_SCARTA       = "voci.scarta";
   private static final String CSZ_PROP_EXCLUDEDCOLS = "excludedcols";
@@ -83,6 +84,10 @@ public class DataController implements IStartApp, PropertyChangeListener {
   private CsvFileContainer      contCsv;
   private AppProperties         props;
   private List<String>          scartaVoci;
+  @Getter @Setter
+  private boolean               doScartaDescr;
+  @Getter @Setter
+  private ScartaDescr           scartaDescr;
   @Getter @Setter
   private TreeitemCodStat2      codStatData;
   @Getter @Setter
@@ -203,6 +208,8 @@ public class DataController implements IStartApp, PropertyChangeListener {
         sep = ",";
       scartaVoci.addAll(Arrays.asList(sz.toLowerCase().split(sep)));
     }
+    scartaDescr = new ScartaDescr();
+    scartaDescr.readProp(props);
     sz = props.getProperty(CSZ_PROP_EXCLUDEDCOLS);
     if (null != sz && sz.length() > 0) {
       String sep = ";";

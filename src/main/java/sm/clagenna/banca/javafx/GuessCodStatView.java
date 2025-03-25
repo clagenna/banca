@@ -26,6 +26,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -80,6 +81,8 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   protected DatePicker                       txDtDa;
   @FXML
   protected DatePicker                       txDtA;
+  @FXML
+  protected CheckBox                         ckScartaDescr;
   @FXML
   private Button                             btCerca;
   @FXML
@@ -194,12 +197,14 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
 
   private Object tblRigaKeyPressed(KeyEvent e) {
     // System.out.printf("ProvaGuess.tblRigaKeyPressed(%s)\n", e.toString());
+    if ( e.isShiftDown() || e.isControlDown() || e.isAltDown())
+      return null;
     switch (e.getCode()) {
       case KeyCode.SPACE:
         e.consume();
         caricaCercaCodStat();
         break;
-      case KeyCode.V :
+      case KeyCode.V:
         e.consume();
         tblview.getSelectionModel().getSelectedItems().stream().forEach(s -> s.setAssigned(true));
         break;
@@ -221,6 +226,13 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       stage.show();
       CercaCodStat figlio = fxmll.getController();
       figlio.initApp(mainProps);
+
+      ObservableList<GuessCodStat> li = tblview.getSelectionModel().getSelectedItems();
+      if (null == li || li.size() == 0) {
+        s_log.warn("Sparita la selezione per l'assegnamento di {}", m_codStatSel);
+        return;
+      }
+
     } catch (Exception e) {
       s_log.error("Errore caricamento CercaCodStat, msg = {}", e.getMessage(), e);
     }
@@ -446,6 +458,21 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     btCercaClick(null);
   }
 
+  @FXML
+  private void ckScartaDescrClick(ActionEvent event) {
+    if (bSemaf)
+      return;
+    try {
+      datacntrlr.setDoScartaDescr(ckScartaDescr.isSelected());
+      bSemaf = true;
+      Platform.runLater(() -> lbMsg.setText("Cerco di indovinare i Codici Statistici ..."));
+      saveDimCols(mainProps);
+      creaTableResultThread();
+    } finally {
+      bSemaf = false;
+    }
+  }
+
   private void abilitaBottoni() {
     boolean bv = true;
     bSemaf = false;
@@ -560,7 +587,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   void btAssignCodStatClick(ActionEvent event) {
     if ( !Utils.isValue(m_codStatSel))
       return;
-    System.out.println("GuessCodStatView.btAssignCodStatClick()");
+    // System.out.println("GuessCodStatView.btAssignCodStatClick()");
 
     ObservableList<GuessCodStat> li = tblview.getSelectionModel().getSelectedItems();
     if (null == li || li.size() == 0) {

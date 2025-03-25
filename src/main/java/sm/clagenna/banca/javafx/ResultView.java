@@ -46,6 +46,8 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
@@ -187,6 +189,13 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       lstage.setOnCloseRequest(e -> {
         closeApp(mainProps);
       });
+    
+    Image img = new Image("sm/clagenna/banca/javafx/magic-hat.png");
+    ImageView view = new ImageView(img);
+    view.setFitHeight(40);
+    view.setPreserveRatio(true);
+    btIndovinaCodStat.setGraphic(view);
+    
     abilitaBottoni();
   }
 
@@ -523,7 +532,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       return;
     ObservableList<List<Object>> li = tblview.getSelectionModel().getSelectedItems();
     if (null == li || li.size() == 0) {
-      s_log.warn("Nessun record selezionato per l'assegnamento di {}", m_codStatSel);
+      s_log.debug("Nessun record selezionato per l'assegnamento di {}", m_codStatSel);
       return;
     }
     Platform.runLater(() -> {
