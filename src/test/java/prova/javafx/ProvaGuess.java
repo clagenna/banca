@@ -38,17 +38,18 @@ import javafx.stage.WindowEvent;
 import sm.clagenna.banca.dati.CodStat2;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.GuessCodStat;
-import sm.clagenna.banca.dati.IRigaBanca;
+
 import sm.clagenna.banca.dati.PhraseComparator;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.dati.TreeCodStat2;
-import sm.clagenna.stdcla.enums.EServerId;
+
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.DBConnFactory;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsRow;
-import sm.clagenna.stdcla.sys.ex.AppPropsException;
+import sm.clagenna.stdcla.sql.EServerId;
+import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
@@ -134,7 +135,7 @@ public class ProvaGuess extends Application implements PropertyChangeListener {
 
   private void caricaFXML() throws IOException {
     primaryStage.setTitle("Studio il Ranking di approssimazione della descrizione");
-    primaryStage.onCloseRequestProperty().setValue(e -> Platform.exit());
+    primaryStage.onCloseRequestProperty().setValue(_ -> Platform.exit());
     URL url = getClass().getResource(CSZ_FXMLNAME);
     if (url == null)
       url = getClass().getClassLoader().getResource(CSZ_FXMLNAME);
@@ -527,15 +528,15 @@ public class ProvaGuess extends Application implements PropertyChangeListener {
       dts.executeQuery(szQry);
       for (DtsRow row : dts.getRighe()) {
         RigaBanca rb = new RigaBanca();
-        rb.setRigaid((Integer) row.get(IRigaBanca.ID.getColNam()));
-        rb.setTiporec((String) row.get(IRigaBanca.TIPO.getColNam()));
-        rb.setDtmov(ParseData.toLocalDateTime((Timestamp) row.get(IRigaBanca.DTMOV.getColNam())));
-        rb.setDtval(ParseData.toLocalDateTime((Timestamp) row.get(IRigaBanca.DTVAL.getColNam())));
-        rb.setDare((Double) row.get(IRigaBanca.DARE.getColNam()));
-        rb.setAvere((Double) row.get(IRigaBanca.AVERE.getColNam()));
-        rb.setCardid((String) row.get(IRigaBanca.CARDID.getColNam()));
-        rb.setDescr((String) row.get(IRigaBanca.DESCR.getColNam()));
-        rb.setCodstat((String) row.get(IRigaBanca.CODSTAT.getColNam()));
+        rb.setRigaid((Integer) row.get(GuessCodStat.COL_ID));
+        rb.setTiporec((String) row.get(GuessCodStat.COL_TIPO));
+        rb.setDtmov(ParseData.toLocalDateTime((Timestamp) row.get(GuessCodStat.COL_DTMOV )));
+        rb.setDtval(ParseData.toLocalDateTime((Timestamp) row.get(GuessCodStat.COL_DTVAL)));
+        rb.setDare((Double) row.get(GuessCodStat.COL_DARE));
+        rb.setAvere((Double) row.get(GuessCodStat.COL_AVERE));
+        rb.setCardid((String) row.get(GuessCodStat.COL_CARDID));
+        rb.setDescr((String) row.get(GuessCodStat.COL_DESCR));
+        rb.setCodstat((String) row.get(GuessCodStat.COL_CODSTAT));
         if (Utils.isValue(rb.getCodstat())) {
           CodStat2 cds = cdss.find(rb.getCodstat());
           rb.setCdsdescr(cds.getDescr());

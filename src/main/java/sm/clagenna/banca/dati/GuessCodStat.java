@@ -21,6 +21,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
   public static final String COL_ID       = "id";
   public static final String COL_TIPO     = "tipo";
   public static final String COL_DTMOV    = "dtmov";
+  public static final String COL_DTVAL    = "dtval";
   public static final String COL_DARE     = "dare";
   public static final String COL_AVERE    = "avere";
   public static final String COL_CARDID   = "cardid";

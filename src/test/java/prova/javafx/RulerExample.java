@@ -30,8 +30,8 @@ public class RulerExample extends Application {
     drawRuler(pane, STRT_X, END_X, WI_X, DLT_X);
 
     Scene scene = new Scene(pane, END_X, 100);
-    scene.widthProperty().addListener(s -> resized());
-    scene.heightProperty().addListener(s -> resized());
+    scene.widthProperty().addListener(_ -> resized());
+    scene.heightProperty().addListener(_ -> resized());
     primaryStage.setTitle("Ruler Example");
     primaryStage.setScene(scene);
     primaryStage.show();

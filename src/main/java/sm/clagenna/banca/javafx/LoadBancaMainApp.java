@@ -34,7 +34,7 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.sql.ConvDBBanca;
-import sm.clagenna.stdcla.enums.EServerId;
+import sm.clagenna.stdcla.sql.EServerId;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.sql.DBConn;

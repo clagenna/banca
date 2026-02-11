@@ -78,7 +78,7 @@ public class SovrapposView implements Initializable, IStartApp {
     m_mainProps = m_appmain.getProps();
     impostaForma(m_mainProps);
     if (lstage != null)
-      lstage.setOnCloseRequest(e -> {
+      lstage.setOnCloseRequest(_ -> {
         closeApp(m_mainProps);
       });
     drawImpFiles();
@@ -88,8 +88,8 @@ public class SovrapposView implements Initializable, IStartApp {
     lstage = null;
     if (myScene == null)
       myScene = pane.getScene();
-    myScene.widthProperty().addListener(s -> resized());
-    myScene.heightProperty().addListener(s -> resized());
+    myScene.widthProperty().addListener(_ -> resized());
+    myScene.heightProperty().addListener(_ -> resized());
 
     if (lstage == null && myScene != null)
       lstage = (Stage) myScene.getWindow();

@@ -44,7 +44,7 @@ public class TableCellColorExample extends Application {
     // by updating the value of the looked-up color cell-selection-color for the cell when the item changes:
     Callback<TableColumn<Item, Integer>, TableCell<Item, Integer>> cellFactory = col -> {
       TableCell<Item, Integer> cell = defaultCellFactory.call(col);
-      cell.itemProperty().addListener((obs, oldValue, newValue) -> {
+      cell.itemProperty().addListener((_, _, newValue) -> {
         if (newValue == null) {
           cell.setStyle("cell-selection-color: -fx-selection-bar ;");
         } else {

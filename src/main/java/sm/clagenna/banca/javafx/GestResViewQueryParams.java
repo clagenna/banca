@@ -18,9 +18,9 @@ import javafx.scene.control.ComboBox;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.stdcla.javafx.IStartApp;
-import sm.clagenna.stdcla.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
+import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 
 public class GestResViewQueryParams implements IStartApp {
   private static final Logger s_log = LogManager.getLogger(GestResViewQueryParams.class);

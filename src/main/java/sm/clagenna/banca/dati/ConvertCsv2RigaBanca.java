@@ -12,8 +12,8 @@ import org.apache.logging.log4j.Logger;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.stdcla.sql.DtsRow;
-import sm.clagenna.stdcla.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
+import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 
 public class ConvertCsv2RigaBanca {
   static final Logger s_log = LogManager.getLogger(ConvertCsv2RigaBanca.class);

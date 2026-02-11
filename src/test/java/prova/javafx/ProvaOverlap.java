@@ -42,10 +42,10 @@ public class ProvaOverlap extends Application {
     pane = new Pane();
     fillFiles();
     Scene scene = new Scene(pane, 500, 200);
-    scene.widthProperty().addListener(s -> resized());
-    scene.heightProperty().addListener(s -> resized());
+    scene.widthProperty().addListener(_ -> resized());
+    scene.heightProperty().addListener(_ -> resized());
 
-    primaryStage.setOnShown(s -> drawImpFiles());
+    primaryStage.setOnShown(_ -> drawImpFiles());
 
     primaryStage.setTitle("Ruler Example");
     primaryStage.setScene(scene);

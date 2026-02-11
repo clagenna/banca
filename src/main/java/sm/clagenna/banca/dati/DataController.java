@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 import javafx.collections.ObservableList;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.stdcla.javafx.IStartApp;
@@ -77,7 +78,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
   @Getter @Setter
   private CardidAssoc           associd;
   @Getter @Setter
-  private List<IRigaBanca>      excludeCols;
+  private List<EColsTableView>  excludeCols;
   @Getter
   private boolean               overwrite;
   @Getter
@@ -218,7 +219,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
       excludeCols = new ArrayList<>();
       List<String> li = Arrays.asList(sz.toLowerCase().split(sep));
       for (String coln : li)
-        excludeCols.add(IRigaBanca.parse(coln));
+        excludeCols.add(EColsTableView.parse(coln));
     }
     associd = new CardidAssoc();
     associd.load(p_props);
@@ -251,7 +252,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
       prop.setProperty(CSZ_PROP_SCARTA, sz);
     }
     if (null != excludeCols) {
-      sz = excludeCols.stream().map(s -> s.getColNam()).collect(Collectors.joining(","));
+      sz = excludeCols.stream().map(s -> s.toString()).collect(Collectors.joining(","));
       prop.setProperty(CSZ_PROP_EXCLUDEDCOLS, sz);
     }
   }
@@ -271,7 +272,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
     System.out.printf("DataController.setOverwrite(%s)\n", Boolean.valueOf(bv).toString());
   }
 
-  public void addExcludeCol(IRigaBanca p_colNam, boolean bv) {
+  public void addExcludeCol(EColsTableView p_colNam, boolean bv) {
     if (null == excludeCols)
       excludeCols = new ArrayList<>();
     if (bv) {
@@ -291,7 +292,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
    *
    * @param p_colNam
    */
-  public void addExcludeCol(IRigaBanca p_colNam) {
+  public void addExcludeCol(EColsTableView p_colNam) {
     if (null == excludeCols)
       excludeCols = new ArrayList<>();
     excludeCols.add(p_colNam);

@@ -18,15 +18,20 @@ public enum EColsTableView {
   abicaus(11), // "16" (id=215)
   descrcaus(12), // "Comissioni su pagamenti" (id=216)
   costo(13), // Integer  (id=168)
-  codstat(14); //  null
+  codstat(14), //  null
+  flag(15); // confronto tra dare/avere consecutivi
 
   private int                                 colNo;
   private static final String                 s_elencoCols;
   private static Map<Integer, EColsTableView> s_map;
+  private static Map<String, EColsTableView>  s_mapNam;
   static {
     s_map = new TreeMap<Integer, EColsTableView>();
-    for (EColsTableView cc : EColsTableView.values())
+    s_mapNam = new TreeMap<String, EColsTableView>();
+    for (EColsTableView cc : EColsTableView.values()) {
       s_map.put(cc.getColNo(), cc);
+      s_mapNam.put(cc.toString(), cc);
+    }
     StringBuilder sb = new StringBuilder();
     for (Integer key : s_map.keySet()) {
       sb.append(sb.length() > 0 ? "," : "");
@@ -49,6 +54,12 @@ public enum EColsTableView {
 
   public static String allColumns() {
     return s_elencoCols;
+  }
+
+  public static EColsTableView parse(String coln) {
+    if (null == coln)
+      return null;
+    return s_mapNam.get(coln);
   }
 
 }

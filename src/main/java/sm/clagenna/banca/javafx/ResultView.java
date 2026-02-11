@@ -57,7 +57,6 @@ import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat2;
 import sm.clagenna.banca.dati.CsvFileContainer;
 import sm.clagenna.banca.dati.DataController;
-import sm.clagenna.banca.dati.IRigaBanca;
 import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.sql.ISQLGest;
@@ -68,10 +67,11 @@ import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.javafx.TableViewFiller;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
-import sm.clagenna.stdcla.sys.ex.DatasetException;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
+import sm.clagenna.stdcla.utils.sys.StackViewer;
+import sm.clagenna.stdcla.utils.sys.ex.DatasetException;
 
 public class ResultView implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(ResultView.class);
@@ -153,6 +153,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private boolean              csvBlankOnZero;
   private String               m_codStatSel;
   private boolean              bSemaf;
+  private Double               precDare;
+  private Double               precAvere;
 
   @SuppressWarnings("unused")
   private AutoCompleteComboBoxListener<String> autoCbComp;
@@ -186,16 +188,16 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     caricaComboQrySalvate();
     impostaForma(mainProps);
     if (lstage != null)
-      lstage.setOnCloseRequest(e -> {
+      lstage.setOnCloseRequest(_ -> {
         closeApp(mainProps);
       });
-    
+
     Image img = new Image("sm/clagenna/banca/javafx/magic-hat.png");
     ImageView view = new ImageView(img);
     view.setFitHeight(40);
     view.setPreserveRatio(true);
     btIndovinaCodStat.setGraphic(view);
-    
+
     abilitaBottoni();
   }
 
@@ -255,11 +257,11 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     cbQuery.getItems().clear();
     cbQuery.getItems().add((String) null);
     cbQuery.getItems().addAll(liQry);
-    if ( null != liQry && liQry.size() == 1) { 
+    if (null != liQry && liQry.size() == 1) {
       cbQuery.getSelectionModel().select(1);
       cbQuerySel(null);
     }
-     
+
   }
 
   private void caricaComboQueriesFromDB() {
@@ -269,9 +271,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     cbQuery.getItems().clear();
     cbQuery.getItems().add((String) null);
     cbQuery.getItems().addAll(liNam);
-    if ( null != liNam && liNam.size() == 1) 
+    if (null != liNam && liNam.size() == 1)
       cbQuery.getSelectionModel().select(1);
-      cbQuerySel(null);
+    cbQuerySel(null);
   }
 
   private void impostaForma(AppProperties p_props) {
@@ -295,7 +297,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       lstage.setY(mm.posY());
       lstage.setWidth(mm.width());
       lstage.setHeight(mm.height());
-      
+
     }
     myScene.addEventFilter(KeyEvent.KEY_PRESSED, ev -> gestKey(ev));
     URL url = m_appmain.getUrlCSS();
@@ -316,7 +318,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       CercaCodStat figlio = fxmll.getController();
       figlio.initApp(mainProps);
     } catch (Exception e) {
-      s_log.error("Errore caricamento CercaCodStat, msg = {}", e.getMessage(),e);
+      s_log.error("Errore caricamento CercaCodStat, msg = {}", e.getMessage(), e);
     }
   }
 
@@ -602,6 +604,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   private void creaTableResultThread(String szQryFltr) {
     // System.out.println("ResultView.creaTableResultThread()");
+    System.out.println(StackViewer.viewStackTrace("ResultView.creaTableResultThread()"));
     TableViewFiller.setNullRetValue("");
 
     m_tbvf = new TableViewFillerBanca(tblview, m_appmain.getConnSQL());
@@ -621,10 +624,10 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     });
 
     try {
-      m_tbvf.setOnRunning(ev -> {
+      m_tbvf.setOnRunning(_ -> {
         s_log.debug("TableViewFiller task running...");
       });
-      m_tbvf.setOnSucceeded(ev -> {
+      m_tbvf.setOnSucceeded(_ -> {
         s_log.debug("TableViewFiller task Finished!");
         Platform.runLater(() -> {
           lstage.getScene().setCursor(Cursor.DEFAULT);
@@ -633,7 +636,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
           bSemaf = false;
         });
       });
-      m_tbvf.setOnFailed(ev -> {
+      m_tbvf.setOnFailed(_ -> {
         s_log.debug("TableViewFiller task failure");
         Platform.runLater(() -> {
           lstage.getScene().setCursor(Cursor.DEFAULT);
@@ -651,7 +654,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
     // Context menu open document
     MenuItem mi1 = new MenuItem("Vedi Documento");
-    mi1.setOnAction((ActionEvent ev) -> {
+    mi1.setOnAction((ActionEvent _) -> {
       tableRow_dblclick(null);
     });
     ContextMenu menu = new ContextMenu();
@@ -659,7 +662,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     // liBanca.setContextMenu(menu);
     tblview.setContextMenu(menu);
 
-    tblview.setRowFactory(tbl -> new TableRow<List<Object>>() {
+    tblview.setRowFactory(_ -> new TableRow<List<Object>>() {
       {
         setOnMouseClicked(ev -> {
           if (isEmpty())
@@ -723,14 +726,14 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     //    System.out.println("ResultView.tableRow_dblclick(row):" + (null != row ? row.getClass().getSimpleName() : "**null**"));
     List<Object> r = tblview.getSelectionModel().getSelectedItem();
     Dataset dts = m_tbvf.getDataset();
-    int nCol = dts.getColumNo(IRigaBanca.IDFILE.getColNam());
+    int nCol = dts.getColumNo(EColsTableView.idfile.toString());
     if (nCol < 0 || r.size() <= nCol) {
-      s_log.warn("Non trovo la colonna {} sulla Table", IRigaBanca.IDFILE.getColNam());
+      s_log.warn("Non trovo la colonna {} sulla Table", EColsTableView.idfile.toString());
       return;
     }
     Integer iidFil = (Integer) r.get(nCol);
     if (null == iidFil) {
-      s_log.warn("IdFile = {} sulla Table", IRigaBanca.IDFILE.getColNam());
+      s_log.warn("IdFile = {} sulla Table", EColsTableView.idfile.toString());
       return;
     }
     Path lastd = dataCntrl.getLastDir();
@@ -811,6 +814,33 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     }
     if (rc != 0)
       throw new RuntimeException("Start Excel failed rc=" + rc);
+  }
+
+  @SuppressWarnings("unused")
+  private void checkDareValues(List<Object> item, TableRow<List<Object>> tableRow) {
+    StringBuilder cssBackgSty = new StringBuilder();
+    String styMod = "gold";
+    Dataset dts = m_tbvf.getDataset();
+    int nColDare = dts.getColumNo(EColsTableView.dare.toString());
+    int nColAvere = dts.getColumNo(EColsTableView.avere.toString());
+    if (item.size() > nColDare) {
+      double currDare = (double) item.get(nColDare);
+      double currAvere = (double) item.get(nColAvere);
+      if (null != precDare && precDare.doubleValue() == currDare) {
+        cssBackgSty.append("-fx-background-color: ") //
+            .append(styMod) //
+            .append(";");
+      }
+      if (null != precAvere && precAvere.doubleValue() == currAvere) {
+        cssBackgSty.append("-fx-background-color: ") //
+            .append(styMod) //
+            .append(";");
+      }
+      precDare = currDare;
+      precAvere = currAvere;
+      if (cssBackgSty.length() > 0)
+        tableRow.setStyle(cssBackgSty.toString());
+    }
   }
 
 }

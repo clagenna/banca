@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.stdcla.sys.ex.AppPropsException;
+import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class TreeCodStat2 {

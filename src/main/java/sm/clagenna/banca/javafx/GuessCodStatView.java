@@ -151,7 +151,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     // txParola.textProperty().addListener((obj, old, nv) -> txParolaSel(obj, old, nv));
 
     if (lstage != null)
-      lstage.setOnCloseRequest(e -> {
+      lstage.setOnCloseRequest(_ -> {
         closeApp(mainProps);
       });
 
@@ -324,7 +324,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     tblview.getColumns().add(colAssigned);
 
     colCodstat.setCellFactory(TextFieldTableCell.forTableColumn());
-    colAssigned.setCellFactory(celldata -> new CheckBoxTableCell<>());
+    colAssigned.setCellFactory(_ -> new CheckBoxTableCell<>());
     colCodstat.setEditable(true);
     colAssigned.setEditable(true);
 
@@ -340,7 +340,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     });
 
     tblview.setEditable(true);
-    tblview.setRowFactory(row -> new TableRow<GuessCodStat>() {
+    tblview.setRowFactory(_ -> new TableRow<GuessCodStat>() {
       @Override
       public void updateItem(GuessCodStat item, boolean empty) {
         super.updateItem(item, empty);
@@ -500,10 +500,10 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     });
 
     try {
-      m_tbvf.setOnRunning(ev -> {
+      m_tbvf.setOnRunning(_ -> {
         s_log.debug("Cerca CodStat task running...");
       });
-      m_tbvf.setOnSucceeded(ev -> {
+      m_tbvf.setOnSucceeded(_ -> {
         s_log.debug("Cerca CodStat task Finished!");
         Platform.runLater(() -> {
           lstage.getScene().setCursor(Cursor.DEFAULT);
@@ -511,7 +511,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
           bSemaf = false;
         });
       });
-      m_tbvf.setOnFailed(ev -> {
+      m_tbvf.setOnFailed(_ -> {
         s_log.debug("Cerca CodStat task failure");
         Platform.runLater(() -> {
           lstage.getScene().setCursor(Cursor.DEFAULT);
@@ -527,15 +527,15 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
 
     // Context menu accetta tutti
     MenuItem mi1 = new MenuItem("Accetta Tutti");
-    mi1.setOnAction((ActionEvent ev) -> {
+    mi1.setOnAction((ActionEvent _) -> {
       accettaTutti_click(null);
     });
     MenuItem mi2 = new MenuItem("Rifiuta Tutti");
-    mi2.setOnAction((ActionEvent ev) -> {
+    mi2.setOnAction((ActionEvent _) -> {
       rifiutaTutti_click(null);
     });
     MenuItem mi3 = new MenuItem("Accetta Selezione");
-    mi3.setOnAction((ActionEvent ev) -> {
+    mi3.setOnAction((ActionEvent _) -> {
       accettaSel_click(null);
     });
     ContextMenu menu = new ContextMenu();
@@ -543,7 +543,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     // liBanca.setContextMenu(menu);
     tblview.setContextMenu(menu);
 
-    tblview.setRowFactory(tbl -> new TableRow<GuessCodStat>() {
+    tblview.setRowFactory(_ -> new TableRow<GuessCodStat>() {
       {
         setOnMouseClicked(ev -> {
           if (isEmpty())

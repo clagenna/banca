@@ -185,33 +185,33 @@ public class ViewContanti implements Initializable, IStartApp {
   }
 
   private void addChangeListeners() {
-    txId.textProperty().addListener((ob, old, nv) -> {
+    txId.textProperty().addListener((_, _, nv) -> {
       contante.setRigaid(Integer.parseInt(nv));
       // updateRowList();
     });
-    txDtmov.textProperty().addListener((ob, old, nv) -> {
+    txDtmov.textProperty().addListener((_, _, nv) -> {
       contante.setDtmov(ParseData.guessData(nv));
       if (null == contante.getDtval()) {
         if (null != nv && nv.length() >= 10)
           txDtval.setText(nv);
       }
     });
-    txDtval.textProperty().addListener((ob, old, nv) -> {
+    txDtval.textProperty().addListener((_, _, nv) -> {
       contante.setDtval(ParseData.guessData(nv));
     });
-    txDare.textProperty().addListener((ob, old, nv) -> {
+    txDare.textProperty().addListener((_, _, nv) -> {
       contante.setDare(Utils.parseDouble(nv));
     });
-    txAvere.textProperty().addListener((ob, old, nv) -> {
+    txAvere.textProperty().addListener((_, _, nv) -> {
       contante.setAvere(Utils.parseDouble(nv));
     });
-    txDescr.textProperty().addListener((ob, old, nv) -> {
+    txDescr.textProperty().addListener((_, _, nv) -> {
       contante.setDescr(nv);
     });
-    cbProprietario.getSelectionModel().selectedItemProperty().addListener((opt, old, nv) -> {
+    cbProprietario.getSelectionModel().selectedItemProperty().addListener((_, _, nv) -> {
       contante.setCardid(nv);
     });
-    cbCausABI.getSelectionModel().selectedItemProperty().addListener((opt, old, nv) -> {
+    cbCausABI.getSelectionModel().selectedItemProperty().addListener((_, _, nv) -> {
       contante.setAbicaus(estraiCausABI(nv));
     });
   }
@@ -409,14 +409,14 @@ public class ViewContanti implements Initializable, IStartApp {
     });
 
     try {
-      m_tbvf.setOnRunning(ev -> {
+      m_tbvf.setOnRunning(_ -> {
         s_log.debug("TableViewFiller(2) task running...");
       });
-      m_tbvf.setOnSucceeded(ev -> {
+      m_tbvf.setOnSucceeded(_ -> {
         s_log.debug("TableViewFiller(2) task Finished!");
         endTask();
       });
-      m_tbvf.setOnFailed(ev -> {
+      m_tbvf.setOnFailed(_ -> {
         s_log.debug("TableViewFiller(2) task failure");
         endTask();
       });
@@ -425,7 +425,7 @@ public class ViewContanti implements Initializable, IStartApp {
       s_log.error("Errore task TableViewFiller(2)");
     }
     backGrService.shutdown();
-    tblview.setRowFactory(tbl -> new TableRow<List<Object>>() {
+    tblview.setRowFactory(_ -> new TableRow<List<Object>>() {
       {
         setOnMouseClicked(ev -> {
           if (isEmpty())

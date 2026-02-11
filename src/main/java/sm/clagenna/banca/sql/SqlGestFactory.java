@@ -3,7 +3,7 @@ package sm.clagenna.banca.sql;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import sm.clagenna.stdcla.enums.EServerId;
+import sm.clagenna.stdcla.sql.EServerId;
 
 public class SqlGestFactory {
 

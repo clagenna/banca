@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import org.junit.Test;
 
-import sm.clagenna.stdcla.sys.ex.AppPropsException;
+import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class ProvaPathMatcher {

@@ -31,9 +31,8 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.DataController;
-import sm.clagenna.banca.dati.IRigaBanca;
 import sm.clagenna.banca.sql.ESqlFiltri;
-import sm.clagenna.stdcla.enums.EServerId;
+import sm.clagenna.stdcla.sql.EServerId;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -196,7 +195,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     cbServerId.getItems().addAll(Arrays.asList(EServerId.values()));
     if (null != serverId)
       cbServerId.getSelectionModel().select(serverId);
-    cbServerId.valueProperty().addListener((old, ov, nv) -> cbServerIdClick(nv));
+    cbServerId.valueProperty().addListener((_, _, nv) -> cbServerIdClick(nv));
 
     nomeDB = p_props.getProperty(AppProperties.CSZ_PROP_DB_name);
     txDBname.setText(nomeDB);
@@ -249,110 +248,110 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   }
 
   private void preparaExcludeCols() {
-    ckExclId.selectedProperty().addListener((obs, o, n) -> {
+    ckExclId.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.ID, n);
+        dataCntr.addExcludeCol(EColsTableView.id, n);
     });
-    ckExclIdfile.selectedProperty().addListener((obs, o, n) -> {
+    ckExclIdfile.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.IDFILE, n);
+        dataCntr.addExcludeCol(EColsTableView.idfile, n);
     });
-    ckExclDtmov.selectedProperty().addListener((obs, o, n) -> {
+    ckExclDtmov.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.DTMOV, n);
+        dataCntr.addExcludeCol(EColsTableView.dtmov, n);
     });
-    ckExclDtval.selectedProperty().addListener((obs, o, n) -> {
+    ckExclDtval.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.DTVAL, n);
+        dataCntr.addExcludeCol(EColsTableView.dtval, n);
     });
-    ckExclDtmovstr.selectedProperty().addListener((obs, o, n) -> {
+    ckExclDtmovstr.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.DTMOVSTR, n);
+        dataCntr.addExcludeCol(EColsTableView.movstr, n);
     });
-    ckExclDtvalstr.selectedProperty().addListener((obs, o, n) -> {
+    ckExclDtvalstr.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.DTVALSTR, n);
+        dataCntr.addExcludeCol(EColsTableView.valstr, n);
     });
-    ckExclDare.selectedProperty().addListener((obs, o, n) -> {
+    ckExclDare.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.DARE, n);
+        dataCntr.addExcludeCol(EColsTableView.dare, n);
     });
-    ckExclAvere.selectedProperty().addListener((obs, o, n) -> {
+    ckExclAvere.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.AVERE, n);
+        dataCntr.addExcludeCol(EColsTableView.avere, n);
     });
-    ckExclCardid.selectedProperty().addListener((obs, o, n) -> {
+    ckExclCardid.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.CARDID, n);
+        dataCntr.addExcludeCol(EColsTableView.cardid, n);
     });
-    ckExclDescr.selectedProperty().addListener((obs, o, n) -> {
+    ckExclDescr.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.DESCR, n);
+        dataCntr.addExcludeCol(EColsTableView.descr, n);
     });
-    ckExclAbicaus.selectedProperty().addListener((obs, o, n) -> {
+    ckExclAbicaus.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.CAUS, n);
+        dataCntr.addExcludeCol(EColsTableView.abicaus, n);
     });
-    ckExclDescrcaus.selectedProperty().addListener((obs, o, n) -> {
+    ckExclDescrcaus.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.DESCRCAUS, n);
+        dataCntr.addExcludeCol(EColsTableView.descrcaus, n);
     });
-    ckExclCosto.selectedProperty().addListener((obs, o, n) -> {
+    ckExclCosto.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.COSTO, n);
+        dataCntr.addExcludeCol(EColsTableView.costo, n);
     });
-    ckExclCodstat.selectedProperty().addListener((obs, o, n) -> {
+    ckExclCodstat.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(IRigaBanca.CODSTAT, n);
+        dataCntr.addExcludeCol(EColsTableView.codstat, n);
     });
 
-    List<IRigaBanca> excl = dataCntr.getExcludeCols();
+    List<EColsTableView> excl = dataCntr.getExcludeCols();
     try {
       if (null != excl) {
         bSema =  ROSSO; //    true;
 
-        for (IRigaBanca ir : excl) {
+        for (EColsTableView ir : excl) {
           switch (ir) {
-            case AVERE:
+            case avere:
               ckExclAvere.setSelected(true);
               break;
-            case CARDID:
+            case cardid:
               ckExclCardid.setSelected(true);
               break;
-            case CAUS:
+            case abicaus:
               ckExclAbicaus.setSelected(true);
               break;
-            case CODSTAT:
+            case codstat:
               ckExclCodstat.setSelected(true);
               break;
-            case COSTO:
+            case costo:
               ckExclCosto.setSelected(true);
               break;
-            case DARE:
+            case dare:
               ckExclDare.setSelected(true);
               break;
-            case DESCR:
+            case descr:
               ckExclDescr.setSelected(true);
               break;
-            case DESCRCAUS:
+            case descrcaus:
               ckExclDescrcaus.setSelected(true);
               break;
-            case DTMOV:
+            case dtmov:
               ckExclDtmov.setSelected(true);
               break;
-            case DTMOVSTR:
+            case movstr:
               ckExclDtmovstr.setSelected(true);
               break;
-            case DTVAL:
+            case dtval:
               ckExclDtval.setSelected(true);
               break;
-            case DTVALSTR:
+            case valstr:
               ckExclDtvalstr.setSelected(true);
               break;
-            case ID:
+            case id:
               ckExclId.setSelected(true);
               break;
-            case IDFILE:
+            case idfile:
               ckExclId.setSelected(true);
               break;
             default:
@@ -479,52 +478,52 @@ public class ConfOpzioniController implements Initializable, IStartApp {
       return;
     }
 
-    ckoverwrite.selectedProperty().addListener((obs, o, n) -> {
+    ckoverwrite.selectedProperty().addListener((_, _, n) -> {
       if (bSema) // VERDE
         dataCntr.setOverwrite(n);
     });
     int qtaTh = dataCntr.getQtaThreads();
     int percIndov = dataCntr.getPercIndov();
     spinQtaThread.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, qtaTh, 1));
-    spinQtaThread.valueProperty().addListener((obj, ov, nv) -> changeQtaThreads(nv));
+    spinQtaThread.valueProperty().addListener((_, _, nv) -> changeQtaThreads(nv));
     spinPercIndovina.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(5, 100, percIndov, 1));
-    spinPercIndovina.valueProperty().addListener((obj, ov, nv) -> changePercIndov(nv));
+    spinPercIndovina.valueProperty().addListener((_, _, nv) -> changePercIndov(nv));
     caricaCbSkins();
-    cbSkins.valueProperty().addListener((obj, ov, nv) -> cbSkinsSel(nv));
+    cbSkins.valueProperty().addListener((_, _, nv) -> cbSkinsSel(nv));
     if (null != m_appmain.getSkin())
       cbSkins.getSelectionModel().select(m_appmain.getSkin());
     txFilesFiltro.setText(p_props.getProperty(DataController.CSZ_FILTER_FILES));
-    txFilesFiltro.textProperty().addListener((obj, ov, nv) -> changedFiltroFiles(nv));
+    txFilesFiltro.textProperty().addListener((_, _, nv) -> changedFiltroFiles(nv));
 
-    ckTipo.selectedProperty().addListener((obs, o, n) -> {
+    ckTipo.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
         dataCntr.mettiFiltro(ESqlFiltri.tipo, n);
     });
-    ckDtmov.selectedProperty().addListener((obs, o, n) -> {
+    ckDtmov.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
         dataCntr.mettiFiltro(ESqlFiltri.Dtmov, n);
     });
-    ckDtval.selectedProperty().addListener((obs, o, n) -> {
+    ckDtval.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
         dataCntr.mettiFiltro(ESqlFiltri.Dtval, n);
     });
-    ckImpdare.selectedProperty().addListener((obs, o, n) -> {
+    ckImpdare.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
         dataCntr.mettiFiltro(ESqlFiltri.Dare, n);
     });
-    ckImpavere.selectedProperty().addListener((obs, o, n) -> {
+    ckImpavere.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
         dataCntr.mettiFiltro(ESqlFiltri.Avere, n);
     });
-    ckDescr.selectedProperty().addListener((obs, o, n) -> {
+    ckDescr.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
         dataCntr.mettiFiltro(ESqlFiltri.Descr, n);
     });
-    ckCausABI.selectedProperty().addListener((obs, o, n) -> {
+    ckCausABI.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
         dataCntr.mettiFiltro(ESqlFiltri.ABICaus, n);
     });
-    ckcredhold.selectedProperty().addListener((obs, o, n) -> {
+    ckcredhold.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
         dataCntr.mettiFiltro(ESqlFiltri.Cardid, n);
     });
@@ -539,7 +538,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
       lstage.setWidth(mm.width());
       lstage.setHeight(mm.height());
     }
-    lstage.setOnHiding(ev -> {
+    lstage.setOnHiding(_ -> {
       closeApp(m_mainProps);
     });
     URL url = m_appmain.getUrlCSS();

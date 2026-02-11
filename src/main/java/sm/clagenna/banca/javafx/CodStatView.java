@@ -50,6 +50,7 @@ import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
+import sm.clagenna.stdcla.utils.sys.StackViewer;
 
 public class CodStatView implements Initializable, IStartApp, PropertyChangeListener {
   // FIXME aggiungere bottone refresh da file di properties
@@ -127,7 +128,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     impostaTreeView(mainProps);
     impostaForma(mainProps);
     if (lstage != null)
-      lstage.setOnCloseRequest(e -> {
+      lstage.setOnCloseRequest(_ -> {
         closeApp(mainProps);
       });
   }
@@ -167,7 +168,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       }
     });
 
-    treeview.setRowFactory(row -> new TreeTableRow<CodStat2>() {
+    treeview.setRowFactory(_ -> new TreeTableRow<CodStat2>() {
 
       //      @Override
       //      void setOnMouseClicked(MouseEvent evt) {
@@ -196,7 +197,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         super.updateItem(item, empty);
       }
     });
-    treeview.getSelectionModel().selectedItemProperty().addListener((obj, old, nv) -> {
+    treeview.getSelectionModel().selectedItemProperty().addListener((_, _, nv) -> {
       if (null != nv && nv.getValue().getCod1() != 0) {
         String sel = nv.getValue().getCodice();
         datacntrlr.setCodStat(sel);
@@ -206,12 +207,12 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
     // Context menu open document
     MenuItem mi1 = new MenuItem("Filtra Movimenti");
-    mi1.setOnAction((ActionEvent ev) -> {
+    mi1.setOnAction((ActionEvent _) -> {
       treeView_filtra(null);
     });
 
     MenuItem mi2 = new MenuItem("Aggiung/modifica");
-    mi2.setOnAction((ActionEvent ev) -> {
+    mi2.setOnAction((ActionEvent _) -> {
       treeView_modTree(null);
     });
     ContextMenu menu = new ContextMenu();
@@ -478,7 +479,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         // m_szQryResulView = evt.getNewValue().toString();
         //        datacntrlr.setQryResulView(evt.getNewValue().toString());
         //        Platform.runLater(() -> datacntrlr.aggiornaTotaliCodStat());
-        System.out.printf("CodStatView.propertyChange(%s)\n", szEvtId);
+        System.out.println(StackViewer.viewStackTrace("CodStatView prop_change:" + szEvtId.toString()));
+        // System.out.printf("CodStatView.propertyChange(%s)\n", szEvtId);
         break;
 
       case DataController.EVT_TOTCODSTAT:
@@ -504,5 +506,27 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         break;
     }
   }
+  //
+  //  private void viewStackTrace(String szId) {
+  //    StackTraceElement[] stck = Thread.currentThread().getStackTrace();
+  //    StringBuilder sb = new StringBuilder();
+  //    String[] scarta = { "java.", "javafx." };
+  //    int coda = 0;
+  //    for (StackTraceElement ste : stck) {
+  //      if (coda++ < 2)
+  //        continue;
+  //      String sz = ste.toString();
+  //      boolean bGood = true;
+  //      for (String sc : scarta) {
+  //        if (sz.startsWith(sc)) {
+  //          bGood = false;
+  //          break;
+  //        }
+  //      }
+  //      if (bGood)
+  //        sb.append("\t").append(sz).append("\n");
+  //    }
+  //    System.out.printf("Stack id:%s\n%s", szId, sb.toString());
+  //  }
 
 }

@@ -113,7 +113,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
     if (vv > 0)
       colDescr.setPrefWidth(vv);
 
-    getStage().setOnHiding(e -> closeApp(p_props));
+    getStage().setOnHiding( _ -> closeApp(p_props));
   }
 
   private Object rowSelecion(ObservableValue<? extends CodStat2> ob, CodStat2 ov, CodStat2 nv) {

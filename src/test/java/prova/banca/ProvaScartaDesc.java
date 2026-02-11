@@ -13,8 +13,8 @@ import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.DBConnFactory;
-import sm.clagenna.stdcla.sys.TimerMeter;
-import sm.clagenna.stdcla.sys.ex.AppPropsException;
+import sm.clagenna.stdcla.utils.sys.TimerMeter;
+import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 

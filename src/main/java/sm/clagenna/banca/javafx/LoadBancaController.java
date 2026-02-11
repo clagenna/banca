@@ -191,7 +191,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     main.setController(this);
     impostaTitolo();
     // vedi: https://stackoverflow.com/questions/27160951/javafx-open-another-fxml-in-the-another-window-with-button
-    getStage().onCloseRequestProperty().setValue(e -> Platform.exit());
+    getStage().onCloseRequestProperty().setValue(_ -> Platform.exit());
 
     // -------- combo level -------
     if (props != null) {
@@ -211,7 +211,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       Stage stage = getStage();
       spltDivPos = Double.valueOf(szPos);
       // spltPane.setDividerPositions(dbl);
-      stage.showingProperty().addListener((obj, ov, nv) -> {
+      stage.showingProperty().addListener((_, _, nv) -> {
         if (nv && spltDivPos != 0) {
           spltPane.setDividerPositions(spltDivPos);
           spltDivPos = 0;
@@ -280,7 +280,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
 
     tblvFiles.getColumns().addAll(colId, colName, colRelDir, colCardHold, colSize, colQtaRecs, colDtmin, colDtmax, colUltagg);
 
-    tblvFiles.setRowFactory(row -> new TableRow<ImpFile>() {
+    tblvFiles.setRowFactory(_ -> new TableRow<ImpFile>() {
       @Override
       public void updateItem(ImpFile item, boolean empty) {
         super.updateItem(item, empty);
@@ -311,7 +311,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private void initTblLogs() {
     tblLogs.setPlaceholder(new Label("Nessun messaggio da mostrare" + ""));
     tblLogs.setFixedCellSize(21.0);
-    tblLogs.setRowFactory(row -> new TableRow<Log4jRow>() {
+    tblLogs.setRowFactory(_ -> new TableRow<Log4jRow>() {
       @Override
       public void updateItem(Log4jRow item, boolean empty) {
         super.updateItem(item, empty);
@@ -676,11 +676,11 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         prgrb.progressProperty().unbind();
         prgrb.progressProperty().bind(csvimp.progressProperty());
 
-        csvimp.setOnRunning(ev -> {
+        csvimp.setOnRunning(_ -> {
           // System.out.println("LoadBancaController.eseguiConversioneRunTask() RUNNING");
           setSemafore(1);
         });
-        csvimp.setOnSucceeded(ev -> {
+        csvimp.setOnSucceeded(_ -> {
           // System.out.println("LoadBancaController.eseguiConversioneRunTask() SUCCEDED");
           setSemafore(0);
           //          try {
@@ -794,12 +794,12 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     });
 
     MenuItem mi2 = new MenuItem("Vedi Documento");
-    mi2.setOnAction((ActionEvent ev) -> {
+    mi2.setOnAction((ActionEvent _) -> {
       showFileDoc();
     });
 
     MenuItem mi3 = new MenuItem("Vai sul dir.");
-    mi3.setOnAction((ActionEvent ev) -> {
+    mi3.setOnAction((ActionEvent _) -> {
       vaiAlDir();
     });
 
@@ -809,7 +809,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     });
 
     MenuItem mi5 = new MenuItem("Elimina Registrazioni");
-    mi5.setOnAction((ActionEvent ev) -> {
+    mi5.setOnAction((ActionEvent _) -> {
       eliminaRegistrazioni();
     });
 
@@ -852,7 +852,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     // Cell factory implementation that uses default cell factory above, and augments the implementation
     Callback<TableColumn<ImpFile, String>, TableCell<ImpFile, String>> cellFactory = col -> {
       TableCell<ImpFile, String> cell = defaultCellFactory.call(col);
-      cell.itemProperty().addListener((obs, oldValue, newValue) -> {
+      cell.itemProperty().addListener((_, _, newValue) -> {
         String value = "-fx-alignment: center-right;";
         StringBuilder szCss = new StringBuilder().append(value);
         if ( !Utils.isValue(newValue))

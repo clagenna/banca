@@ -102,7 +102,7 @@ public class ProvaProgrBarCla extends Application {
 
   private void caricaFXML() throws IOException {
     primStage.setTitle("Provo la ProgressBar e colori TableView");
-    primStage.onCloseRequestProperty().setValue(e -> Platform.exit());
+    primStage.onCloseRequestProperty().setValue(_ -> Platform.exit());
     URL url = getClass().getResource(CSZ_FXMLNAME);
     if (url == null)
       url = getClass().getClassLoader().getResource(CSZ_FXMLNAME);
@@ -189,7 +189,7 @@ public class ProvaProgrBarCla extends Application {
     // Cell factory implementation that uses default cell factory above, and augments the implementation
     Callback<TableColumn<ImpFile, String>, TableCell<ImpFile, String>> cellFactory = col -> {
       TableCell<ImpFile, String> cell = defaultCellFactory.call(col);
-      cell.itemProperty().addListener((obs, oldValue, newValue) -> {
+      cell.itemProperty().addListener((_, _, newValue) -> {
         //        String szNa = obs.getClass().getSimpleName();
         //        String ov = "ov=*null*";
         //        String nv = "nv=*null*";
@@ -245,10 +245,10 @@ public class ProvaProgrBarCla extends Application {
         progb.setProgress(0.);
         progb.progressProperty().unbind();
         progb.progressProperty().bind(cvsimp.progressProperty());
-        cvsimp.setOnRunning(ev -> {
+        cvsimp.setOnRunning(_ -> {
           setSemafore(1);
         });
-        cvsimp.setOnSucceeded(ev -> {
+        cvsimp.setOnSucceeded(_ -> {
           setSemafore(0);
           s_log.info("Fine del Task Background per {}", impf.toString());
         });

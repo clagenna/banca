@@ -88,10 +88,10 @@ public class ModTreeCodStat implements Initializable, IStartApp {
       return;
     }
 
-    txCd1.textProperty().addListener((obj, ov, nv) -> changedCd1(nv));
-    txCd2.textProperty().addListener((obj, ov, nv) -> changedCd2(nv));
-    txCd3.textProperty().addListener((obj, ov, nv) -> changedCd3(nv));
-    txDescr.textProperty().addListener((obj, ov, nv) -> changedDescr(nv));
+    txCd1.textProperty().addListener((_, _, nv) -> changedCd1(nv));
+    txCd2.textProperty().addListener((_, _, nv) -> changedCd2(nv));
+    txCd3.textProperty().addListener((_, _, nv) -> changedCd3(nv));
+    txDescr.textProperty().addListener((_, _, nv) -> changedDescr(nv));
 
     int px = p_props.getIntProperty(CSZ_PROP_POSVIEW_X, 10);
     int py = p_props.getIntProperty(CSZ_PROP_POSVIEW_Y, 10);
@@ -104,7 +104,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
       lstage.setWidth(mm.width());
       lstage.setHeight(mm.height());
     }
-    lstage.setOnHiding(ev -> {
+    lstage.setOnHiding(_ -> {
       closeApp(m_mainProps);
     });
     myScene.addEventFilter(KeyEvent.KEY_PRESSED, ev -> gestKey(ev));
