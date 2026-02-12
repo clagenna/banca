@@ -19,8 +19,8 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class ProvaConvCsv2RigaBanca {
 
-  private List<RigaBanca> liRibanca;
-  private ConvertCsv2RigaBanca          crb;
+  private List<RigaBanca>      liRibanca;
+  private ConvertCsv2RigaBanca crb;
 
   public ProvaConvCsv2RigaBanca() {
     //
@@ -29,9 +29,14 @@ public class ProvaConvCsv2RigaBanca {
   @Test
   public void provalo() {
     crb = new ConvertCsv2RigaBanca("amzn");
-    crb.readConvProperties(Paths.get("src/test/resources/prova/files/amzn_data.properties"));
+    Path pthProps;
+    // pthProps = Paths.get("src/test/resources/prova/files/amzn_data.properties");
+    pthProps = Paths.get("src/main/resources/amzn_cols.properties");
+    crb.readConvProperties(pthProps);
 
     Path pthFi = Paths.get("F:\\Google Drive\\gennari\\Banche\\Amazon\\estratto_amzn_2412_cla.csv");
+    pthFi = Paths.get("F:\\Google Drive\\gennari\\Banche\\Amazon\\estratto_amzn_2510.csv");
+
     try (Dataset dts = new Dataset()) {
       dts.setCsvdelim(crb.getCsvDelim());
       dts.setCsvBlankOnZero(crb.isBlankOnZero());
@@ -40,7 +45,10 @@ public class ProvaConvCsv2RigaBanca {
       System.out.println("Rec letti:" + qta);
       System.out.printf("QtaCols:%d\n%s\n", dts.getColumns().size(), dts.getColumns());
       liRibanca = convertiDataSet(dts);
-      liRibanca.stream().filter(s -> Utils.isValue(s.getDare())).forEach(s -> System.out.println(s.toString()));
+      System.out.println("\n------------ Recs Estratti-------------------");
+      liRibanca.stream() //
+          .filter(s -> Utils.isValue(s.getDare())) //
+          .forEach(s -> System.out.println(s.toString()));
     } catch (IOException | CsvException e) {
       e.printStackTrace();
     }
@@ -49,12 +57,16 @@ public class ProvaConvCsv2RigaBanca {
 
   private List<RigaBanca> convertiDataSet(Dataset dts) {
     List<RigaBanca> retli = new ArrayList<>();
-    @SuppressWarnings("unused")
-    DtsCols cols = dts.getColumns();
+    @SuppressWarnings("unused") DtsCols cols = dts.getColumns();
     for (DtsRow riga : dts.getRighe()) {
       RigaBanca rb = new RigaBanca();
+      // amazon non ha rigaId
+      rb.setRigaid(1);
       crb.assign(rb, riga);
-      retli.add(rb);
+      if (rb.isValido())
+        retli.add(rb);
+      else
+        System.out.println("Scarto riga:" + rb.toString());
     }
     return retli;
   }

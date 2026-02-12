@@ -1,9 +1,10 @@
 package sm.clagenna.banca.dati;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.sql.SqlTypes;
@@ -11,23 +12,17 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
+@Data
 public class Convert2CsvCol {
 
   private final ConvertCsv2RigaBanca convRB;
-  @Getter @Setter
   private RigaBanca                  rbRef;
-  @Getter
   private String                     name;
   private EColsTableView             rbCol;
-  @Getter @Setter
   private String                     defVal;
-  @Getter @Setter
   private SqlTypes                   type;
-  @Getter @Setter
-  private String                     colFrom;
-  @Getter @Setter
+  private ArrayList<String>          colFrom;
   private String                     ifNull;
-  @Getter @Setter
   private String                     envval;
 
   public Convert2CsvCol(ConvertCsv2RigaBanca convRB) {
@@ -71,8 +66,13 @@ public class Convert2CsvCol {
     }
 
     sz = p_prop.getProperty(szKey + "colfrom", null);
+    colFrom = new ArrayList<String>();
     if (null != sz) {
-      setColFrom(sz);
+      if (sz.contains(";")) {
+        String[] arr = sz.split(";");
+        colFrom.addAll(Arrays.asList(arr));
+      } else
+        colFrom.add(sz);
     }
 
     sz = p_prop.getProperty(szKey + "ifnull", null);
@@ -89,8 +89,15 @@ public class Convert2CsvCol {
 
   public RigaBanca assign(RigaBanca rb, DtsRow riga) {
     Object vv = null;
-    if (null != colFrom)
-      vv = riga.get(colFrom);
+    // scandisco i vari nomi di colonna da cui prelevare
+    if (null != colFrom) {
+      //  vv = riga.get(colFrom);
+      for (String szCol : colFrom) {
+        vv = riga.get(szCol);
+        if (Utils.isValue(vv))
+          break;
+      }
+    }
     if ( !Utils.isValue(vv) && null != ifNull)
       vv = riga.get(ifNull);
     if ( !Utils.isValue(vv))
@@ -166,6 +173,19 @@ public class Convert2CsvCol {
       ConvertCsv2RigaBanca.s_log.error(szMsg);
       throw new UnsupportedOperationException(szMsg);
     }
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Name=").append(name);
+    sb.append("\n\t").append("Tipo=").append(null == rbCol ? "-" : rbCol.toString());
+    sb.append("\n\t").append("Defv=").append(defVal);
+    sb.append("\n\t").append("SqlT=").append(null == type ? "-" : type.toString());
+    sb.append("\n\t").append("ColF=").append(colFrom);
+    sb.append("\n\t").append("Ifnl=").append(ifNull);
+    sb.append("\n\t").append("EnvV=").append(envval);
+    return sb.toString();
   }
 
 }
