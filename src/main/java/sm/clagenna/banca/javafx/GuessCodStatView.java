@@ -125,6 +125,8 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   private String           m_codStatSel;
   private AnalizzaCodStats m_tbvf;
 
+  private Parent cercaCodStatForm;
+
   public GuessCodStatView() {
     //
   }
@@ -197,17 +199,20 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
 
   private Object tblRigaKeyPressed(KeyEvent e) {
     // System.out.printf("ProvaGuess.tblRigaKeyPressed(%s)\n", e.toString());
-    if ( e.isShiftDown() || e.isControlDown() || e.isAltDown())
-      return null;
+    // if ( e.isShiftDown() || e.isControlDown() || e.isAltDown())
+    //   return null;
     switch (e.getCode()) {
-      case KeyCode.SPACE:
+
+      case KeyCode.PLUS:
         e.consume();
         caricaCercaCodStat();
         break;
+
       case KeyCode.V:
         e.consume();
         tblview.getSelectionModel().getSelectedItems().stream().forEach(s -> s.setAssigned(true));
         break;
+
       default:
         break;
     }
@@ -215,14 +220,22 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   }
 
   private void caricaCercaCodStat() {
+    System.out.println("GuessCodStatView.caricaCercaCodStat(init)");
+    if (null != cercaCodStatForm)
+      return;
     try {
-      FXMLLoader fxmll = new FXMLLoader(getClass().getResource("CercaCodStat.fxml"));
-      Parent radice = fxmll.load();
-      Scene scene = new Scene(radice);
+      System.out.println("GuessCodStatView.caricaCercaCodStat(create)");
+      FXMLLoader fxmll = new FXMLLoader(getClass().getResource(CercaCodStat.CSZ_FXMLNAME));
+      cercaCodStatForm = fxmll.load();
+      Scene scene = new Scene(cercaCodStatForm);
       Stage stage = new Stage();
       stage.setScene(scene);
       stage.initModality(Modality.WINDOW_MODAL);
       stage.initOwner(lstage);
+      stage.setOnCloseRequest(_ -> {
+        cercaCodStatForm = null;
+        System.out.println("GuessCodStatView.caricaCercaCodStat(destroy)");
+      });
       stage.show();
       CercaCodStat figlio = fxmll.getController();
       figlio.initApp(mainProps);
@@ -555,7 +568,9 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       }
     });
     tblview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-    tblview.setOnKeyPressed(e -> tblRigaKeyPressed(e));
+    // passo al eventHandler per avere la KEY_TYPED che e' indipendente dalla tastiera in uso
+    // tblview.setOnKeyPressed(e -> tblRigaKeyPressed(e));
+    tblview.addEventHandler(KeyEvent.KEY_PRESSED, e -> tblRigaKeyPressed(e));
   }
 
   private void accettaTutti_click(Object object) {

@@ -66,6 +66,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private static final String CSZ_PROP_DIM_COL2   = "cdstt.col2";
   private static final String CSZ_PROP_DIM_DARE   = "cdstt.dare";
   private static final String CSZ_PROP_DIM_AVERE  = "cdstt.avere";
+  private static final String CSZ_PROP_DIM_SALDO  = "cdstt.saldo";
 
   private static final AlertType AlertType = null;
 
@@ -89,6 +90,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private TreeTableColumn<CodStat2, String> colTotDare;
   @FXML
   private TreeTableColumn<CodStat2, String> colTotAvere;
+  @FXML
+  private TreeTableColumn<CodStat2, String> colSaldo;
 
   @Getter
   private AppProperties    mainProps;
@@ -157,6 +160,13 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       colTotAvere.setPrefWidth(vv);
     colTotAvere.setStyle("-fx-alignment: center-right;");
     colTotAvere.setCellValueFactory(param -> new SimpleObjectProperty<String>(formattaCella("avere", param.getValue())));
+
+    colSaldo.setCellValueFactory(new TreeItemPropertyValueFactory<>("saldo"));
+    vv = p_props.getDoubleProperty(CSZ_PROP_DIM_SALDO);
+    if (vv > 0)
+      colSaldo.setPrefWidth(vv);
+    colSaldo.setStyle("-fx-alignment: center-right;");
+    colSaldo.setCellValueFactory(param -> new SimpleObjectProperty<String>(formattaCella("saldo", param.getValue())));
 
     treeview.setOnMouseClicked(evt -> {
       if (/* evt.isPrimaryButtonDown() && */ evt.getClickCount() == 2) {
@@ -284,6 +294,10 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         break;
       case "avere":
         dbl = value.getValue().getTotavere();
+        break;
+      case "saldo":
+        dbl = value.getValue().getTotavere() - //
+            value.getValue().getTotdare();
         break;
     }
     if (dbl == 0)
@@ -449,6 +463,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     p_props.setProperty(CSZ_PROP_DIM_DARE, Integer.valueOf((int) vv));
     vv = colTotAvere.getWidth();
     p_props.setProperty(CSZ_PROP_DIM_AVERE, Integer.valueOf((int) vv));
+    vv = colSaldo.getWidth();
+    p_props.setProperty(CSZ_PROP_DIM_SALDO, Integer.valueOf((int) vv));
 
   }
 

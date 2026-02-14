@@ -9,7 +9,7 @@
 <?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="689.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.CodStatView">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="689.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.CodStatView">
 	<children>
 		<AnchorPane layoutX="2.0" layoutY="1.0" prefHeight="89.0" prefWidth="689.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<children>
@@ -47,6 +47,7 @@
             <TreeTableColumn fx:id="colDescr" prefWidth="75.0" text="Descrizione" />
             <TreeTableColumn fx:id="colTotDare" prefWidth="75.0" text="Dare" />
             <TreeTableColumn fx:id="colTotAvere" prefWidth="75.0" text="Avere" />
+            <TreeTableColumn fx:id="colSaldo" editable="false" prefWidth="75.0" text="Saldo" />
          </columns>
 		</TreeTableView>
 	</children>

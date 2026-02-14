@@ -334,7 +334,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private Object tblRigaKeyPressed(KeyEvent e) {
     // System.out.printf("ProvaGuess.tblRigaKeyPressed(%s)\n", e.toString());
     switch (e.getCode()) {
-      case KeyCode.SPACE:
+      case KeyCode.PLUS:
         e.consume();
         caricaCercaCodStat();
         break;
@@ -604,7 +604,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   private void creaTableResultThread(String szQryFltr) {
     // System.out.println("ResultView.creaTableResultThread()");
-    System.out.println(StackViewer.viewStackTrace("ResultView.creaTableResultThread()"));
+    // System.out.println(StackViewer.viewStackTrace("ResultView.creaTableResultThread()"));
     TableViewFiller.setNullRetValue("");
 
     m_tbvf = new TableViewFillerBanca(tblview, m_appmain.getConnSQL());
