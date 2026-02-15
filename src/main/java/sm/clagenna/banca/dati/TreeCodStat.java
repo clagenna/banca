@@ -14,34 +14,34 @@ import lombok.Setter;
 import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
 
-public class TreeCodStat2 {
-  private static final Logger s_log        = LogManager.getLogger(TreeCodStat2.class);
+public class TreeCodStat {
+  private static final Logger s_log        = LogManager.getLogger(TreeCodStat.class);
   public static final String  FILE_CODSTAT = "CodStat.properties";
 
   @Getter @Setter
-  private Path     fileCodStats;
+  private Path    fileCodStats;
   @Getter @Setter
-  private CodStat2 root;
+  private CodStat root;
   @Getter @Setter
-  private String   codStat;
+  private String  codStat;
 
-  private DataController        datac;
-  private AppProperties         props;
-  private AppProperties         codstats;
+  private DataController       datac;
+  private AppProperties        props;
+  private AppProperties        codstats;
   @Getter
-  private Map<String, CodStat2> mapCodStat;
+  private Map<String, CodStat> mapCodStat;
 
-  public TreeCodStat2() {
+  public TreeCodStat() {
     init();
   }
 
-  public TreeCodStat2(CodStat2 p_no) {
+  public TreeCodStat(CodStat p_no) {
     init();
     setRoot(p_no);
   }
 
   private void init() {
-    setRoot(new CodStat2());
+    setRoot(new CodStat());
     datac = DataController.getInst();
     String szficds = null;
     if (null != datac) {
@@ -51,13 +51,13 @@ public class TreeCodStat2 {
     if (null == szficds)
       szficds = FILE_CODSTAT;
     setFileCodStats(Paths.get(szficds));
-    mapCodStat = new TreeMap<String, CodStat2>(String.CASE_INSENSITIVE_ORDER);
+    mapCodStat = new TreeMap<String, CodStat>(String.CASE_INSENSITIVE_ORDER);
   }
 
-  public CodStat2 readTreeCodStats() {
+  public CodStat readTreeCodStats() {
     if (null != root)
       root.clear();
-    root = new CodStat2();
+    root = new CodStat();
     try {
       if (null == fileCodStats)
         setFileCodStats(Paths.get(FILE_CODSTAT));
@@ -71,19 +71,19 @@ public class TreeCodStat2 {
     for (Object szKey : codstats.getProperties().keySet()) {
       String szVal = codstats.getProperty(szKey.toString());
       // System.out.println("Add:" + szKey);
-      CodStat2 nuovo = CodStat2.parse(szKey.toString());
+      CodStat nuovo = CodStat.parse(szKey.toString());
       nuovo.setDescr(szVal);
       add(nuovo);
     }
     return root;
   }
 
-  public void add(CodStat2 p_cds) {
+  public void add(CodStat p_cds) {
     // System.out.printf("\n---------- %s -----------\n", p_cds.getCodice());
-    CodStat2 start = root;
+    CodStat start = root;
     for (int liv = 1; liv <= p_cds.getLivello() || liv <= 3; liv++) {
-      CodStat2 trova = p_cds.getCodice(liv);
-      CodStat2 trovato = start.find(trova);
+      CodStat trova = p_cds.getCodice(liv);
+      CodStat trovato = start.find(trova);
       if (null == trovato) {
         start.add(trova);
         mapCodStat.put(trova.getCodice(), trova);
@@ -100,7 +100,7 @@ public class TreeCodStat2 {
     }
   }
 
-  public CodStat2 find(String string) {
+  public CodStat find(String string) {
     if (null == root || null == mapCodStat)
       return null;
     var cds = mapCodStat.get(string);
@@ -113,15 +113,15 @@ public class TreeCodStat2 {
     root.clearTotali();
   }
 
-  public List<CodStat2> getList(String p_sz) {
-    List<CodStat2> li = null;
+  public List<CodStat> getList(String p_sz) {
+    List<CodStat> li = null;
     if (null == root)
       return li;
     li = root.getList(p_sz);
     return li;
   }
 
-  public void updateCodStat(CodStat2 cdsCurr) {
+  public void updateCodStat(CodStat cdsCurr) {
     if (null == cdsCurr)
       return;
     codstats.setProperty(cdsCurr.getCodice(), cdsCurr.getDescr());
@@ -139,7 +139,7 @@ public class TreeCodStat2 {
     StringBuilder sb = new StringBuilder();
     if (null == root)
       return "*null tree*";
-    for (CodStat2 cds : root.toList()) {
+    for (CodStat cds : root.toList()) {
       String tab = "   ".repeat(cds.getLivello());
       sb.append(tab).append(cds.toString()).append("\n");
     }

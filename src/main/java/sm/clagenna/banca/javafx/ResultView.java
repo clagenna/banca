@@ -54,7 +54,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.CodStat2;
+import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.CsvFileContainer;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.ImpFile;
@@ -687,7 +687,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         m_codStatSel = evt.getNewValue().toString();
         Platform.runLater(() -> {
           DataController data = m_appmain.getData();
-          CodStat2 cds = data.getCodStatData().find(m_codStatSel);
+          CodStat cds = data.getCodStatData().find(m_codStatSel);
           String szLb = "...";
           if (null != cds)
             szLb = cds.getDescr();
@@ -698,7 +698,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         break;
 
       case DataController.EVT_FILTER_CODSTAT:
-        if (evt.getNewValue() instanceof CodStat2 cds) {
+        if (evt.getNewValue() instanceof CodStat cds) {
           String szFltrCodstat = cds.getCodice();
           ActionEvent nevt = new ActionEvent(szFltrCodstat, null);
           Platform.runLater(() -> btCercaClick(nevt));
@@ -714,7 +714,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         break;
 
       case DataController.EVT_SELCODSTAT:
-        if (evt.getNewValue() instanceof CodStat2 cds) {
+        if (evt.getNewValue() instanceof CodStat cds) {
           m_codStatSel = cds.getCodice();
           btAssignCodStatClick(null);
         }

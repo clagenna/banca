@@ -41,9 +41,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.CodStat2;
+import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.DataController;
-import sm.clagenna.banca.dati.TreeitemCodStat2;
+import sm.clagenna.banca.dati.TreeitemCodStat;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
@@ -81,17 +81,17 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   @FXML
   private TextField                         txDescr;
   @FXML
-  private TreeTableView<CodStat2>           treeview;
+  private TreeTableView<CodStat>           treeview;
   @FXML
-  private TreeTableColumn<CodStat2, String> colCodStat;
+  private TreeTableColumn<CodStat, String> colCodStat;
   @FXML
-  private TreeTableColumn<CodStat2, String> colDescr;
+  private TreeTableColumn<CodStat, String> colDescr;
   @FXML
-  private TreeTableColumn<CodStat2, String> colTotDare;
+  private TreeTableColumn<CodStat, String> colTotDare;
   @FXML
-  private TreeTableColumn<CodStat2, String> colTotAvere;
+  private TreeTableColumn<CodStat, String> colTotAvere;
   @FXML
-  private TreeTableColumn<CodStat2, String> colSaldo;
+  private TreeTableColumn<CodStat, String> colSaldo;
 
   @Getter
   private AppProperties    mainProps;
@@ -172,21 +172,16 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       if (/* evt.isPrimaryButtonDown() && */ evt.getClickCount() == 2) {
         var row = treeview.getSelectionModel().getSelectedItem();
         if (null != row) {
-          CodStat2 cds = row.getValue();
+          CodStat cds = row.getValue();
           System.out.println("Doppio click su:" + cds.getCodice());
         }
       }
     });
 
-    treeview.setRowFactory(_ -> new TreeTableRow<CodStat2>() {
-
-      //      @Override
-      //      void setOnMouseClicked(MouseEvent evt) {
-      //
-      //      }
+    treeview.setRowFactory(_ -> new TreeTableRow<CodStat>() {
 
       @Override
-      protected void updateItem(CodStat2 item, boolean empty) {
+      protected void updateItem(CodStat item, boolean empty) {
         // super.updateItem(item, empty);
         if (null == item || empty) {
           setStyle("");
@@ -232,15 +227,15 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
     //    CodStatTreeData cdst = new CodStatTreeData();
     //    CodStat2 radice = cdst.readTree();
-    TreeitemCodStat2 treeData = datacntrlr.getCodStatData();
-    TreeItem<CodStat2> root = treeData.getTreeItemRoot();
+    TreeitemCodStat treeData = datacntrlr.getCodStatData();
+    TreeItem<CodStat> root = treeData.getTreeItemRoot();
     treeview.setRoot(root);
   }
 
   private void treeView_filtra(Object object) {
     // System.out.println("CodStatView.treeView_filtra()");
-    TreeItem<CodStat2> tricds = treeview.getSelectionModel().getSelectedItem();
-    CodStat2 cds = null;
+    TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
+    CodStat cds = null;
     if (null != tricds)
       cds = tricds.getValue();
     datacntrlr.firePropertyChange(DataController.EVT_FILTER_CODSTAT, null, cds);
@@ -275,9 +270,9 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     // verifica che nel FXML ci sia la dichiarazione:
     // <userData> <fx:reference source="controller" /> </userData>
     if (modTreeView != null) {
-      TreeItem<CodStat2> tricds = treeview.getSelectionModel().getSelectedItem();
+      TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
       if (null != tricds) {
-        CodStat2 cds = tricds.getValue();
+        CodStat cds = tricds.getValue();
         modTreeView.setCdsPadre(cds);
       }
       modTreeView.setMyScene(scene);
@@ -286,7 +281,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     stageModCodStat.show();
   }
 
-  private String formattaCella(String colNam, TreeItem<CodStat2> value) {
+  private String formattaCella(String colNam, TreeItem<CodStat> value) {
     Double dbl = 0.;
     switch (colNam) {
       case "dare":
@@ -340,21 +335,21 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     // System.out.printf("CodStatView.txDescrSel(\"%s\")\n", nv);
     searchTree(treeview.getRoot(), nv);
     treeview.refresh();
-    TreeItem<CodStat2> ro = treeview.getRoot();
+    TreeItem<CodStat> ro = treeview.getRoot();
     Platform.runLater(() -> expandMatched(ro));
     return null;
   }
 
-  private Object expandMatched(TreeItem<CodStat2> tri) {
-    CodStat2 cds = tri.getValue();
+  private Object expandMatched(TreeItem<CodStat> tri) {
+    CodStat cds = tri.getValue();
     if (cds.isMatched())
       retroExpand(tri.getParent());
-    for (TreeItem<CodStat2> no : tri.getChildren())
+    for (TreeItem<CodStat> no : tri.getChildren())
       expandMatched(no);
     return null;
   }
 
-  private void retroExpand(TreeItem<CodStat2> tri) {
+  private void retroExpand(TreeItem<CodStat> tri) {
     if (null == tri)
       return;
     if ( !tri.isLeaf()) {
@@ -364,14 +359,14 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     retroExpand(tri.getParent());
   }
 
-  private void searchTree(TreeItem<CodStat2> cdsi, String p_val) {
+  private void searchTree(TreeItem<CodStat> cdsi, String p_val) {
     if (null == cdsi)
       return;
-    CodStat2 cds = cdsi.getValue();
+    CodStat cds = cdsi.getValue();
     if (null == cds)
       return;
     cds.matchDescr(p_val);
-    for (TreeItem<CodStat2> child : cdsi.getChildren())
+    for (TreeItem<CodStat> child : cdsi.getChildren())
       searchTree(child, p_val);
   }
 
@@ -489,7 +484,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   public void propertyChange(PropertyChangeEvent evt) {
     String szEvtId = evt.getPropertyName();
     Object obj = evt.getNewValue();
-    TreeitemCodStat2 treeItems = datacntrlr.getCodStatData();
+    TreeitemCodStat treeItems = datacntrlr.getCodStatData();
     switch (szEvtId) {
       case DataController.EVT_NEW_QUERY_RESULT:
         // m_szQryResulView = evt.getNewValue().toString();
@@ -512,7 +507,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         break;
 
       case DataController.EVT_TREECODSTAT_CHANGED:
-        if (obj instanceof CodStat2 cds) {
+        if (obj instanceof CodStat cds) {
           Platform.runLater(() -> {
             treeItems.expandNode(cds);
             treeview.setRoot(treeItems.getTreeItemRoot());

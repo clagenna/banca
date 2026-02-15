@@ -21,9 +21,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
-import sm.clagenna.banca.dati.CodStat2;
+import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.DataController;
-import sm.clagenna.banca.dati.TreeCodStat2;
+import sm.clagenna.banca.dati.TreeCodStat;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -40,15 +40,15 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   @FXML
   private TextField                     txParola;
   @FXML
-  private TableView<CodStat2>           tblCodstat;
+  private TableView<CodStat>           tblCodstat;
   @FXML
-  private TableColumn<CodStat2, String> colCode;
+  private TableColumn<CodStat, String> colCode;
   @FXML
-  private TableColumn<CodStat2, String> colDescr;
+  private TableColumn<CodStat, String> colDescr;
 
   private AppProperties  props;
   private DataController dataCntrl;
-  private TreeCodStat2   treeData;
+  private TreeCodStat   treeData;
   private Stage          primStage;
 
   public CercaCodStat() {
@@ -81,7 +81,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
     primStage.setTitle("Cerca il codice statistico in base al contenuto");
     txParola.textProperty().addListener((obj, old, nv) -> txParolaSel(obj, old, nv));
     tblCodstat.getColumns().clear();
-    colCode = new TableColumn<CodStat2, String>("Cod. Stat.");
+    colCode = new TableColumn<CodStat, String>("Cod. Stat.");
     colCode.setCellValueFactory(param -> {
       String sz = param.getValue().getCodice();
       var cel = new SimpleStringProperty();
@@ -90,7 +90,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
     });
     tblCodstat.getColumns().add(colCode);
 
-    colDescr = new TableColumn<CodStat2, String>("Descrizione");
+    colDescr = new TableColumn<CodStat, String>("Descrizione");
     colDescr.setCellValueFactory(param -> {
       String sz = param.getValue().getDescr();
       var cel = new SimpleStringProperty();
@@ -116,7 +116,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
     getStage().setOnHiding( _ -> closeApp(p_props));
   }
 
-  private Object rowSelecion(ObservableValue<? extends CodStat2> ob, CodStat2 ov, CodStat2 nv) {
+  private Object rowSelecion(ObservableValue<? extends CodStat> ob, CodStat ov, CodStat nv) {
     dataCntrl.firePropertyChange(DataController.EVT_SELCODSTAT, ov, nv);
     return null;
   }
@@ -125,7 +125,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
     String szDesc = txParola.getText();
     if (Utils.isValue(szDesc) && szDesc.length() >= 2) {
       Platform.runLater(() -> {
-        List<CodStat2> li = treeData.getList(szDesc);
+        List<CodStat> li = treeData.getList(szDesc);
         tblCodstat.getItems().clear();
         tblCodstat.getItems().addAll(li);
       });

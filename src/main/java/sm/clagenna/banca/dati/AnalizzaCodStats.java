@@ -65,7 +65,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   private PhraseComparator             compr;
   private LoadBancaMainApp             mainApp;
   private DataController               dataCntrl;
-  private TreeCodStat2                 codStatData;
+  private TreeCodStat                 codStatData;
   @Getter @Setter
   private ArrayList<GuessCodStat>      listGuess;
   @Getter
@@ -156,7 +156,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
           String codstat = phr.getKey();
           // String codstDescr = codstats.getProperty(codstat);
 
-          CodStat2 cds = codStatData.find(codstat);
+          CodStat cds = codStatData.find(codstat);
           String codstDescr = "???";
           if (null != cds)
             codstDescr = cds.getDescr();
@@ -206,7 +206,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
     if (observable instanceof StringProperty szp) {
       if (szp.getName().equals(GuessCodStat.COL_CODSTAT)) {
-        CodStat2 cds = codStatData.find(newValue);
+        CodStat cds = codStatData.find(newValue);
         if (null == cds) {
           // System.out.println("CodStat.changed()=NULL");
           String szMsg = String.format("Il codice Statistico \"%s\" *NON* esiste !", newValue);

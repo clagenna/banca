@@ -19,9 +19,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.CodStat2;
+import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.DataController;
-import sm.clagenna.banca.dati.TreeitemCodStat2;
+import sm.clagenna.banca.dati.TreeitemCodStat;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -55,11 +55,11 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   private Scene            myScene;
   private LoadBancaMainApp m_appmain;
   private DataController   dataCntr;
-  private TreeitemCodStat2 codStatData;
+  private TreeitemCodStat codStatData;
   @Getter @Setter
-  private CodStat2         cdsPadre;
-  private CodStat2         cdsLavoro;
-  private CodStat2         cdsTree;
+  private CodStat         cdsPadre;
+  private CodStat         cdsLavoro;
+  private CodStat         cdsTree;
 
   private boolean bSemaf;
 
@@ -73,7 +73,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     codStatData = dataCntr.getCodStatData();
     m_appmain = LoadBancaMainApp.getInst();
     m_mainProps = m_appmain.getProps();
-    cdsLavoro = new CodStat2();
+    cdsLavoro = new CodStat();
     impostaForma(m_mainProps);
   }
 
@@ -204,7 +204,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   private void cercaCurrCodStat() {
     cdsPadre = null;
-    CodStat2 root = codStatData.getRoot();
+    CodStat root = codStatData.getRoot();
     // ---- descrizione Nodo corrente (se c'è)
     String sz = "";
     cdsTree = root.find(cdsLavoro.getCodice());
@@ -230,12 +230,12 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   void btSalvaClick(ActionEvent event) {
     if (btSalva.isDisabled())
       return;
-    CodStat2 root = codStatData.getRoot();
+    CodStat root = codStatData.getRoot();
     cdsTree = root.find(cdsLavoro);
     if (null != cdsTree)
       cdsTree.setDescr(cdsLavoro.getDescr());
     else {
-      cdsTree = new CodStat2();
+      cdsTree = new CodStat();
       cdsTree.assign(cdsLavoro);
       codStatData.add(cdsTree);
     }

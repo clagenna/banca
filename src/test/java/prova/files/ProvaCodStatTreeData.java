@@ -1,7 +1,7 @@
 package prova.files;
 
 import sm.clagenna.banca.dati.DataController;
-import sm.clagenna.banca.dati.TreeCodStat2;
+import sm.clagenna.banca.dati.TreeCodStat;
 import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
 
@@ -9,7 +9,7 @@ public class ProvaCodStatTreeData {
 
   private AppProperties props;
   DataController        datac;
-  TreeCodStat2          cdsdata;
+  TreeCodStat          cdsdata;
 
   public ProvaCodStatTreeData() {
     //
@@ -27,7 +27,7 @@ public class ProvaCodStatTreeData {
     datac = new DataController();
     datac.initApp(props);
 
-    cdsdata = new TreeCodStat2();
+    cdsdata = new TreeCodStat();
 
   }
 

@@ -12,8 +12,8 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class CodStat2 implements Comparable<CodStat2> {
-  private static final Logger s_log = LogManager.getLogger(CodStat2.class);
+public class CodStat implements Comparable<CodStat> {
+  private static final Logger s_log = LogManager.getLogger(CodStat.class);
 
   @Getter @Setter
   private int    cod1;
@@ -32,13 +32,13 @@ public class CodStat2 implements Comparable<CodStat2> {
   @Getter @Setter
   private double totavere;
 
-  private CodStat2      father;
+  private CodStat      father;
   @Getter @Setter
   private boolean       matched;
   @Getter
-  private Set<CodStat2> figli;
+  private Set<CodStat> figli;
 
-  public CodStat2() {
+  public CodStat() {
     livello = 0;
   }
 
@@ -58,22 +58,22 @@ public class CodStat2 implements Comparable<CodStat2> {
     }
   }
 
-  public void assign(CodStat2 p_cds) {
+  public void assign(CodStat p_cds) {
     assign(p_cds.cod1, p_cds.cod2, p_cds.cod3);
     setDescr(p_cds.descr);
     if (null == figli)
-      figli = new TreeSet<CodStat2>();
+      figli = new TreeSet<CodStat>();
     if (null != p_cds.figli)
       figli.addAll(p_cds.figli);
   }
 
-  public CodStat2 getFather() {
+  public CodStat getFather() {
     if (null == father)
       System.out.printf("%s father null\n", getCodice());
     return father;
   }
 
-  public void setFather(CodStat2 p) {
+  public void setFather(CodStat p) {
     father = p;
   }
 
@@ -92,18 +92,18 @@ public class CodStat2 implements Comparable<CodStat2> {
     totavere = totdare = 0;
     if (null == figli)
       return;
-    for (CodStat2 fig : figli)
+    for (CodStat fig : figli)
       fig.clearTotali();
   }
 
-  public static CodStat2 parse(String szCod) {
+  public static CodStat parse(String szCod) {
     if (null == szCod)
       return null;
     String[] arr = szCod.split("\\.");
     int nl = arr.length;
     if (nl <= 0)
       return null;
-    CodStat2 cds = new CodStat2();
+    CodStat cds = new CodStat();
     int cd1 = 0, cd2 = 0, cd3 = 0;
     if (nl >= 1) {
       cd1 = Integer.parseInt(arr[0]);
@@ -133,7 +133,7 @@ public class CodStat2 implements Comparable<CodStat2> {
   }
 
   public void somma(String pCdsCodice, Double dare, Double avere) {
-    CodStat2 nodo = find(pCdsCodice);
+    CodStat nodo = find(pCdsCodice);
     if (Utils.isValue(nodo))
       nodo.somma(dare, avere);
     else
@@ -146,16 +146,16 @@ public class CodStat2 implements Comparable<CodStat2> {
     return true;
   }
 
-  public CodStat2 getPadre() {
-    CodStat2 ret = null;
+  public CodStat getPadre() {
+    CodStat ret = null;
     switch (livello) {
       case 3:
-        ret = new CodStat2();
+        ret = new CodStat();
         ret.assign(cod1, cod2, 0);
         break;
 
       case 2:
-        ret = new CodStat2();
+        ret = new CodStat();
         ret.assign(cod1, 0, 0);
         break;
       default:
@@ -164,24 +164,24 @@ public class CodStat2 implements Comparable<CodStat2> {
     return ret;
   }
 
-  public CodStat2 getCodice(int liv) {
-    CodStat2 ret = null;
+  public CodStat getCodice(int liv) {
+    CodStat ret = null;
     // se cerco codice di stesso livello, allora sono io stesso!
     if (liv == livello)
       return this;
     switch (liv) {
       case 3:
-        ret = new CodStat2();
+        ret = new CodStat();
         ret.assign(cod1, cod2, cod3);
         break;
 
       case 2:
-        ret = new CodStat2();
+        ret = new CodStat();
         ret.assign(cod1, cod2, 0);
         break;
 
       case 1:
-        ret = new CodStat2();
+        ret = new CodStat();
         ret.assign(cod1, 0, 0);
         break;
       default:
@@ -190,7 +190,7 @@ public class CodStat2 implements Comparable<CodStat2> {
     return ret;
   }
 
-  public List<CodStat2> getList() {
+  public List<CodStat> getList() {
     return getList(null);
   }
 
@@ -202,8 +202,8 @@ public class CodStat2 implements Comparable<CodStat2> {
    * @param p_descr
    * @return
    */
-  public List<CodStat2> getList(String p_descr) {
-    List<CodStat2> li = new ArrayList<CodStat2>();
+  public List<CodStat> getList(String p_descr) {
+    List<CodStat> li = new ArrayList<CodStat>();
     String szDes = null;
     if (Utils.isValue(p_descr))
       szDes = p_descr.toLowerCase();
@@ -211,8 +211,8 @@ public class CodStat2 implements Comparable<CodStat2> {
     return li;
   }
 
-  private List<CodStat2> getList(List<CodStat2> p_li, CodStat2 nod, String p_descr) {
-    CodStat2 cdst = null;
+  private List<CodStat> getList(List<CodStat> p_li, CodStat nod, String p_descr) {
+    CodStat cdst = null;
     if (Utils.isValue(getDescr()) && Utils.isValue(p_descr)) {
       if (getDescr().toLowerCase().contains(p_descr))
         cdst = this;
@@ -221,7 +221,7 @@ public class CodStat2 implements Comparable<CodStat2> {
       p_li.add(cdst);
     if (null == figli)
       return p_li;
-    for (CodStat2 cds : figli)
+    for (CodStat cds : figli)
       p_li = cds.getList(p_li, cds, p_descr);
     return p_li;
   }
@@ -234,20 +234,20 @@ public class CodStat2 implements Comparable<CodStat2> {
     return isMatched();
   }
 
-  public CodStat2 find(String p_cds) {
-    CodStat2 lcds = CodStat2.parse(p_cds);
+  public CodStat find(String p_cds) {
+    CodStat lcds = CodStat.parse(p_cds);
     return find(lcds);
   }
 
-  public CodStat2 find(CodStat2 cds) {
+  public CodStat find(CodStat cds) {
     if (null == cds)
       return null;
     if (this.equals(cds))
       return this;
     if (null == figli)
       return null;
-    CodStat2 trov = null;
-    for (CodStat2 lcd : figli) {
+    CodStat trov = null;
+    for (CodStat lcd : figli) {
       trov = lcd.find(cds);
       if (null != trov)
         return trov;
@@ -264,10 +264,10 @@ public class CodStat2 implements Comparable<CodStat2> {
     return size;
   }
 
-  public int add(CodStat2 elem) {
+  public int add(CodStat elem) {
     if (null == figli)
-      figli = new TreeSet<CodStat2>();
-    List<CodStat2> found = figli.stream().filter(s -> s.equals(elem)).toList();
+      figli = new TreeSet<CodStat>();
+    List<CodStat> found = figli.stream().filter(s -> s.equals(elem)).toList();
     int indx = found.size();
     if (indx <= 0) {
       figli.add(elem);
@@ -280,16 +280,16 @@ public class CodStat2 implements Comparable<CodStat2> {
     return indx;
   }
 
-  public List<CodStat2> toList() {
-    List<CodStat2> li = new ArrayList<>();
+  public List<CodStat> toList() {
+    List<CodStat> li = new ArrayList<>();
     walk(li);
     return li;
   }
 
-  private void walk(List<CodStat2> p_li) {
+  private void walk(List<CodStat> p_li) {
     p_li.add(this);
     if (getSize() > 1) {
-      for (CodStat2 el : figli) {
+      for (CodStat el : figli) {
         el.walk(p_li);
       }
     }
@@ -306,7 +306,7 @@ public class CodStat2 implements Comparable<CodStat2> {
         , Utils.formatDouble(totdare), Utils.formatDouble(totavere), getDescr()));
     p_sb.append("\n");
     if (null != figli) {
-      for (CodStat2 fi : getFigli())
+      for (CodStat fi : getFigli())
         fi.printAll(p_sb, nesting + 1);
     }
     return p_sb;
@@ -316,13 +316,13 @@ public class CodStat2 implements Comparable<CodStat2> {
   public boolean equals(Object obj) {
     if (null == this.codice || null == obj)
       return false;
-    if (obj instanceof CodStat2 o)
+    if (obj instanceof CodStat o)
       return this.codice.equals(o.codice);
     return false;
   }
 
   @Override
-  public int compareTo(CodStat2 o) {
+  public int compareTo(CodStat o) {
     if (null == o || this.cod1 < o.cod1)
       return -1;
     // livello 1
@@ -360,7 +360,7 @@ public class CodStat2 implements Comparable<CodStat2> {
     sb.append(szTab);
     sb.append(toStringEx()).append("\n");
     if (null != figli) {
-      for (CodStat2 cds : figli) {
+      for (CodStat cds : figli) {
         sb.append(cds.toExpanded(liv + 1, sb));
       }
     }

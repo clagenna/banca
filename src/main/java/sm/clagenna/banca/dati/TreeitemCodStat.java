@@ -5,18 +5,18 @@ import java.util.Set;
 import javafx.scene.control.TreeItem;
 import lombok.Getter;
 
-public class TreeitemCodStat2 extends TreeCodStat2 {
+public class TreeitemCodStat extends TreeCodStat {
 
   @Getter
-  private TreeItem<CodStat2> treeItemRoot;
+  private TreeItem<CodStat> treeItemRoot;
 
-  public TreeitemCodStat2() {
+  public TreeitemCodStat() {
     super();
   }
 
   @Override
-  public CodStat2 readTreeCodStats() {
-    CodStat2 rad = super.readTreeCodStats();
+  public CodStat readTreeCodStats() {
+    CodStat rad = super.readTreeCodStats();
     refreshTreeItems(); // ??
     return rad;
   }
@@ -30,13 +30,13 @@ public class TreeitemCodStat2 extends TreeCodStat2 {
     refreshTreeItems(getRoot()); // ??
   }
 
-  public void refreshTreeItems(CodStat2 cdsCurr) { // ??
+  public void refreshTreeItems(CodStat cdsCurr) { // ??
     treeItemRoot = buildTree(getRoot()); // ??
     expandNodes(treeItemRoot, cdsCurr);
   }
 
-  public Object expandNode(CodStat2 cds) {
-    TreeItem<CodStat2> exp = treeFind(treeItemRoot, cds);
+  public Object expandNode(CodStat cds) {
+    TreeItem<CodStat> exp = treeFind(treeItemRoot, cds);
     if ( null != exp)
       exp.getValue().setMatched(true);
     while(  null != exp ) {
@@ -46,12 +46,12 @@ public class TreeitemCodStat2 extends TreeCodStat2 {
     return exp;
   }
 
-  private TreeItem<CodStat2> treeFind(TreeItem<CodStat2> treeI, CodStat2 cds) {
-    CodStat2 no = treeI.getValue();
+  private TreeItem<CodStat> treeFind(TreeItem<CodStat> treeI, CodStat cds) {
+    CodStat no = treeI.getValue();
     if (no.equals(cds))
       return treeI;
-    TreeItem<CodStat2> ret = null;
-    for (TreeItem<CodStat2> lno : treeI.getChildren()) {
+    TreeItem<CodStat> ret = null;
+    for (TreeItem<CodStat> lno : treeI.getChildren()) {
       ret = treeFind(lno, cds);
       if (null != ret)
         break;
@@ -59,10 +59,10 @@ public class TreeitemCodStat2 extends TreeCodStat2 {
     return ret;
   }
 
-  private boolean expandNodes(TreeItem<CodStat2> treeItem, CodStat2 cdsCurr) {
+  private boolean expandNodes(TreeItem<CodStat> treeItem, CodStat cdsCurr) {
     if (null == cdsCurr)
       return false;
-    CodStat2 lCds = treeItem.getValue();
+    CodStat lCds = treeItem.getValue();
     if (lCds.equals(cdsCurr)) {
       if ( !treeItem.isLeaf())
         treeItem.setExpanded(true);
@@ -70,7 +70,7 @@ public class TreeitemCodStat2 extends TreeCodStat2 {
     }
     if (treeItem.isLeaf())
       return false;
-    for (TreeItem<CodStat2> treecds : treeItem.getChildren()) {
+    for (TreeItem<CodStat> treecds : treeItem.getChildren()) {
       boolean bRet = expandNodes(treecds, cdsCurr);
       if (bRet) {
         treecds.setExpanded(true);
@@ -80,19 +80,19 @@ public class TreeitemCodStat2 extends TreeCodStat2 {
     return false;
   }
 
-  public TreeItem<CodStat2> buildTree(CodStat2 p_cds) {
-    TreeItem<CodStat2> treeI = new TreeItem<>(p_cds);
+  public TreeItem<CodStat> buildTree(CodStat p_cds) {
+    TreeItem<CodStat> treeI = new TreeItem<>(p_cds);
     treeI.setExpanded(p_cds.getLivello() <= 0 || p_cds.isMatched());
     addTreeItems(treeI, p_cds);
     return treeI;
   }
 
-  private TreeItem<CodStat2> addTreeItems(TreeItem<CodStat2> trit, CodStat2 p_cds) {
-    Set<CodStat2> fig = p_cds.getFigli();
+  private TreeItem<CodStat> addTreeItems(TreeItem<CodStat> trit, CodStat p_cds) {
+    Set<CodStat> fig = p_cds.getFigli();
     if (null == fig || fig.size() == 0)
       return trit;
-    for (CodStat2 no : fig) {
-      TreeItem<CodStat2> it = buildTree(no);
+    for (CodStat no : fig) {
+      TreeItem<CodStat> it = buildTree(no);
       trit.getChildren().add(it);
     }
     return trit;

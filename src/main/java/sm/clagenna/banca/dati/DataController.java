@@ -90,7 +90,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
   @Getter @Setter
   private ScartaDescr           scartaDescr;
   @Getter @Setter
-  private TreeitemCodStat2      codStatData;
+  private TreeitemCodStat       codStatData;
   @Getter @Setter
   private String                qryResulView;
   @SuppressWarnings("unused")
@@ -106,7 +106,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
     s_inst = this;
     propsChange = new PropertyChangeSupport(this);
     filtriQuery = ESqlFiltri.AllSets.getFlag();
-    codStatData = new TreeitemCodStat2();
+    codStatData = new TreeitemCodStat();
     codStatData.readTreeCodStats();
     addPropertyChangeListener(this);
   }

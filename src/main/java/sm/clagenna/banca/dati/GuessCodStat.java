@@ -197,7 +197,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
       codstat.set(null);
       return;
     }
-    CodStat2 cds = CodStat2.parse(ii);
+    CodStat cds = CodStat.parse(ii);
     if (null == cds)
       return;
     codstat.set(cds.getCodice());
@@ -205,7 +205,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
     // aggiorno la nuova descr del codstat
     if ( !cds.getCodice().equals(codstatOrig)) {
       DataController cntrl = DataController.getInst();
-      TreeCodStat2 cdsCntrl = cntrl.getCodStatData();
+      TreeCodStat cdsCntrl = cntrl.getCodStatData();
       if (null != cdsCntrl) {
         cds = cdsCntrl.find(cds.getCodice());
         if (null != cds)

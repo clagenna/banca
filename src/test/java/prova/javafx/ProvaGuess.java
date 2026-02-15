@@ -35,13 +35,13 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import sm.clagenna.banca.dati.CodStat2;
+import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.DataController;
 import sm.clagenna.banca.dati.GuessCodStat;
 
 import sm.clagenna.banca.dati.PhraseComparator;
 import sm.clagenna.banca.dati.RigaBanca;
-import sm.clagenna.banca.dati.TreeCodStat2;
+import sm.clagenna.banca.dati.TreeCodStat;
 
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.sql.DBConn;
@@ -523,7 +523,7 @@ public class ProvaGuess extends Application implements PropertyChangeListener {
 
   private List<RigaBanca> leggiDb(String szQry) {
     List<RigaBanca> li = new ArrayList<RigaBanca>();
-    TreeCodStat2 cdss = data.getCodStatData();
+    TreeCodStat cdss = data.getCodStatData();
     try (Dataset dts = new Dataset(connSQL)) {
       dts.executeQuery(szQry);
       for (DtsRow row : dts.getRighe()) {
@@ -538,7 +538,7 @@ public class ProvaGuess extends Application implements PropertyChangeListener {
         rb.setDescr((String) row.get(GuessCodStat.COL_DESCR));
         rb.setCodstat((String) row.get(GuessCodStat.COL_CODSTAT));
         if (Utils.isValue(rb.getCodstat())) {
-          CodStat2 cds = cdss.find(rb.getCodstat());
+          CodStat cds = cdss.find(rb.getCodstat());
           rb.setCdsdescr(cds.getDescr());
         }
         li.add(rb);
@@ -602,7 +602,7 @@ public class ProvaGuess extends Application implements PropertyChangeListener {
   public void propertyChange(PropertyChangeEvent evt) {
     Object obj = evt.getNewValue();
     if (evt.getPropertyName().equals(DataController.EVT_SELCODSTAT))
-      if (obj instanceof CodStat2 cds) {
+      if (obj instanceof CodStat cds) {
         // System.out.printf("ProvaGuess.propertyChange(%s)\n", cds.toString());
         RigaBanca itm = tblRiga.getSelectionModel().getSelectedItem();
         itm.setCodstat(cds.getCodice());
