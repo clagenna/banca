@@ -12,7 +12,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,26 +29,25 @@ import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.AppProperties;
-import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class DataController implements IStartApp, PropertyChangeListener {
+public class DataModel implements IStartApp, PropertyChangeListener {
   // FIXME Creare una classe che trasformi le 'descr' tranciando i valori presi da propr:descr.scrta.nn.x
-  private static final Logger s_log                 = LogManager.getLogger(DataController.class);
+  private static final Logger s_log                 = LogManager.getLogger(DataModel.class);
   private static final String CSZ_PROP_SCARTA       = "voci.scarta";
   private static final String CSZ_PROP_EXCLUDEDCOLS = "excludedcols";
-  public static final String  CSZ_PROP_FILECODSTATS = "filecodstats.path";
-  public static final String  CSZ_PROP_DATAFILECDS  = "filecodstats.date";
-  private static final String CSZ_FLAG_FILTRI       = "FLAG_FILTRI";
-  private static final String CSZ_QTA_THREADS       = "QTA_THREADS";
-  private static final String CSZ_PERC_INDOV        = "PERC_INDOV";
-  public static final String  CSZ_FILTER_FILES      = "filter_files";
+  //  public static final String  CSZ_PROP_FILECODSTATS = "filecodstats.path";
+  //  public static final String  CSZ_PROP_DATAFILECDS  = "filecodstats.date";
+  private static final String CSZ_FLAG_FILTRI  = "FLAG_FILTRI";
+  private static final String CSZ_QTA_THREADS  = "QTA_THREADS";
+  private static final String CSZ_PERC_INDOV   = "PERC_INDOV";
+  public static final String  CSZ_FILTER_FILES = "filter_files";
 
-  public static final String EVT_DBCHANGE            = "dbchange";
-  public static final String EVT_CODSTAT             = "codstat";
-  public static final String EVT_SELCODSTAT          = "selcodstat";
-  public static final String EVT_NEW_QUERY_RESULT    = "dtsresult";
-  public static final String EVT_FILECODSTATS        = "filecodstats";
+  public static final String EVT_DBCHANGE         = "dbchange";
+  public static final String EVT_CODSTAT          = "codstat";
+  public static final String EVT_SELCODSTAT       = "selcodstat";
+  public static final String EVT_NEW_QUERY_RESULT = "dtsresult";
+  // public static final String EVT_FILECODSTATS        = "filecodstats";
   public static final String EVT_TOTCODSTAT          = "totcodstats";
   public static final String EVT_TREECODSTAT_CHANGED = "treeCodstat";
   public static final String EVT_FILTER_CODSTAT      = "filterCodstat";
@@ -64,8 +62,9 @@ public class DataController implements IStartApp, PropertyChangeListener {
           "  GROUP BY codstat" + //
           "  ORDER BY codstat";
 
-  private static DataController s_inst;
-
+  private static DataModel      s_inst;
+  @Getter @Setter
+  private DBConn                dbConn;
   private Path                  lastDir;
   @Getter @Setter
   private ObservableList<Path>  selPaths;
@@ -98,7 +97,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
   @Getter @Setter
   private PropertyChangeSupport propsChange;
 
-  public DataController() {
+  public DataModel() {
     if (null != s_inst) {
       s_log.error("New instance of Singleton DataController");
       throw new UnsupportedOperationException("DataController is Singleton!");
@@ -127,7 +126,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
     return lastDir;
   }
 
-  public static DataController getInst() {
+  public static DataModel getInst() {
     return s_inst;
   }
 
@@ -320,7 +319,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
   public void setCodStat(String value) {
     if (null == value || value.equals("00"))
       return;
-    firePropertyChange(DataController.EVT_CODSTAT, codStatData.getCodStat(), value);
+    firePropertyChange(DataModel.EVT_CODSTAT, codStatData.getCodStat(), value);
     codStatData.setCodStat(value);
   }
 
@@ -351,7 +350,7 @@ public class DataController implements IStartApp, PropertyChangeListener {
       szFiltro = szFiltro.substring(0, n);
     String szQry2 = String.format(QRY_TOT_CODSTAT, szFiltro);
     s_log.debug("Aggiorno i totali della resultView con filtro:{}", szFiltro);
-    DBConn connSQL = LoadBancaMainApp.getInst().getConnSQL();
+    DBConn connSQL = LoadBancaMainApp.getInst().getDbConn();
     Dataset dts = null;
     try (Dataset dtset = new Dataset(connSQL)) {
       if ( !dtset.executeQuery(szQry2))
@@ -384,15 +383,15 @@ public class DataController implements IStartApp, PropertyChangeListener {
 
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
-    String szEvtId = evt.getPropertyName();
-    switch (szEvtId) {
-      case EVT_FILECODSTATS:
-        String szFil = (String) evt.getNewValue();
-        props.setProperty(CSZ_PROP_FILECODSTATS, szFil);
-        String sz = ParseData.s_fmtDtDate.format(new Date());
-        props.setProperty(CSZ_PROP_DATAFILECDS, sz);
-        break;
-    }
+    @SuppressWarnings("unused") String szEvtId = evt.getPropertyName();
+    //    switch (szEvtId) {
+    //      case EVT_FILECODSTATS:
+    //        String szFil = (String) evt.getNewValue();
+    //        props.setProperty(CSZ_PROP_FILECODSTATS, szFil);
+    //        String sz = ParseData.s_fmtDtDate.format(new Date());
+    //        props.setProperty(CSZ_PROP_DATAFILECDS, sz);
+    //        break;
+    //    }
   }
 
 }

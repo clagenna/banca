@@ -64,7 +64,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
 
   private PhraseComparator             compr;
   private LoadBancaMainApp             mainApp;
-  private DataController               dataCntrl;
+  private DataModel               model;
   private TreeCodStat                 codStatData;
   @Getter @Setter
   private ArrayList<GuessCodStat>      listGuess;
@@ -81,9 +81,9 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
 
   public AnalizzaCodStats(LoadBancaMainApp p_main) {
     mainApp = p_main;
-    setDbconn(p_main.getConnSQL());
-    dataCntrl = p_main.getData();
-    codStatData = dataCntrl.getCodStatData();
+    setDbconn(p_main.getDbConn());
+    model = p_main.getModel();
+    codStatData = model.getCodStatData();
   }
 
   @Override
@@ -109,8 +109,8 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
         return;
       while (res.next()) {
         String descr = res.getString(GuessCodStat.COL_DESCR);
-        if (dataCntrl.isDoScartaDescr())
-          descr = dataCntrl.getScartaDescr().convert(descr);
+        if (model.isDoScartaDescr())
+          descr = model.getScartaDescr().convert(descr);
         String codstat = res.getString(GuessCodStat.COL_CODSTAT);
         compr.addKnownPhrase(descr, codstat);
       }
@@ -122,7 +122,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
 
   private void scanUnknown() {
     listGuess = new ArrayList<GuessCodStat>();
-    double dblPercIndovina = dataCntrl.getPercIndov() / 100.;
+    double dblPercIndovina = model.getPercIndov() / 100.;
 
     StringBuilder whe = new StringBuilder();
     if (Utils.isValue(parola))
@@ -147,8 +147,8 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
         Double avere = res.getDouble(GuessCodStat.COL_AVERE);
         String cardid = res.getString(GuessCodStat.COL_CARDID);
         String descr = res.getString(GuessCodStat.COL_DESCR);
-        if (dataCntrl.isDoScartaDescr())
-          descr = dataCntrl.getScartaDescr().convert(descr);
+        if (model.isDoScartaDescr())
+          descr = model.getScartaDescr().convert(descr);
         PhraseComparator.Similarity sim = compr.similarity(descr);
         Phrase phr = sim.phrase();
         GuessCodStat gcds = new GuessCodStat(id, tipo, dtmov, dare, avere, cardid, descr, null, null, false);
@@ -198,8 +198,8 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   }
 
   public void tableViewFilled() {
-    dataCntrl = DataController.getInst();
-    dataCntrl.firePropertyChange(DataController.EVT_GUESSDATA_CREATED, -1, dati.size());
+    model = DataModel.getInst();
+    model.firePropertyChange(DataModel.EVT_GUESSDATA_CREATED, -1, dati.size());
   }
 
   @Override
@@ -222,7 +222,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
       return;
     String szSQLType = mainApp.getProps().getProperty(AppProperties.CSZ_PROP_DB_Type);
     m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(mainApp.getConnSQL());
+    m_db.setDbconn(mainApp.getDbConn());
     List<RigaBanca> liRb = new ArrayList<RigaBanca>();
     for (GuessCodStat gcds : li) {
       RigaBanca rb = new RigaBanca();

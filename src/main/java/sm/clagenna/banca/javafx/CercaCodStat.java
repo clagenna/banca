@@ -22,7 +22,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import sm.clagenna.banca.dati.CodStat;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.TreeCodStat;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
@@ -47,7 +47,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   private TableColumn<CodStat, String> colDescr;
 
   private AppProperties  props;
-  private DataController dataCntrl;
+  private DataModel dataCntrl;
   private TreeCodStat   treeData;
   private Stage          primStage;
 
@@ -58,7 +58,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     // System.out.println("CercaCodStat.initialize()");
-    dataCntrl = DataController.getInst();
+    dataCntrl = DataModel.getInst();
     treeData = dataCntrl.getCodStatData();
 
     if (null == primStage) {
@@ -117,7 +117,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   }
 
   private Object rowSelecion(ObservableValue<? extends CodStat> ob, CodStat ov, CodStat nv) {
-    dataCntrl.firePropertyChange(DataController.EVT_SELCODSTAT, ov, nv);
+    dataCntrl.firePropertyChange(DataModel.EVT_SELCODSTAT, ov, nv);
     return null;
   }
 

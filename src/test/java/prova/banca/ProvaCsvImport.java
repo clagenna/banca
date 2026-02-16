@@ -8,7 +8,7 @@ import java.util.List;
 import org.junit.Test;
 
 import sm.clagenna.banca.dati.CsvImportBanca;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SQLiteGest;
@@ -24,7 +24,7 @@ public class ProvaCsvImport {
   private CsvImportBanca      csvi;
   private AppProperties       props;
   @SuppressWarnings("unused")
-  private DataController      controller;
+  private DataModel      controller;
   private DBConn              connSQL;
 
   public ProvaCsvImport() {
@@ -34,7 +34,7 @@ public class ProvaCsvImport {
   @Test
   public void provalo() throws AppPropsException {
     openProperties();
-    controller = new DataController();
+    controller = new DataModel();
     openDb();
     Path pth = Paths.get("F:\\Google Drive\\gennari\\Banche\\Banca BSI Credit\\estrattoconto_BSI_Credit 2024-11_cla.csv");
     pth = Paths.get("F:\\Google Drive\\gennari\\Banche\\banca Carisp Credit\\estrattoconto_TPay 2023-06-26_cla.csv");
@@ -82,7 +82,7 @@ public class ProvaCsvImport {
     sqlg.setOverwrite(true);
     for (RigaBanca ri : csvi.getRigheBanca()) {
       TimerMeter tm1 = new TimerMeter("Write row");
-      sqlg.write(ri);
+      sqlg.writeMovimento(ri);
       System.out.printf("ProvaCsvImport.writeDb(time=%s)\n", tm1.stop());
     }
 

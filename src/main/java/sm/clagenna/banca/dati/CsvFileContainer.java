@@ -82,7 +82,7 @@ public class CsvFileContainer {
   private List<ImpFile>         elenco;
   private Map<String, ImpFile>  mapStrToPath;
   private Map<Integer, ImpFile> mapIndxToPath;
-  private DataController        cntrl;
+  private DataModel        cntrl;
   private ISQLGest              sqlg;
   private PreparedStatement     stmtSel;
   private PreparedStatement     stmtUpd;
@@ -91,14 +91,14 @@ public class CsvFileContainer {
   private DBConn connSQL;
 
   public CsvFileContainer() {
-    cntrl = DataController.getInst();
+    cntrl = DataModel.getInst();
   }
 
   public ObservableList<ImpFile> loadListFiles() {
     elenco = new ArrayList<ImpFile>();
     AppProperties props = cntrl.getProps();
 
-    String fltrFiles = props.getProperty(DataController.CSZ_FILTER_FILES);
+    String fltrFiles = props.getProperty(DataModel.CSZ_FILTER_FILES);
     if (null == fltrFiles)
       fltrFiles = "wise,estra";
 
@@ -152,7 +152,7 @@ public class CsvFileContainer {
   }
 
   private void openDB() {
-    connSQL = LoadBancaMainApp.getInst().getConnSQL();
+    connSQL = LoadBancaMainApp.getInst().getDbConn();
     String szDbType = cntrl.getDBType();
     sqlg = SqlGestFactory.get(szDbType);
     sqlg.setDbconn(connSQL);

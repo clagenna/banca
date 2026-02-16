@@ -17,8 +17,7 @@ public class SqlServerGest extends SqlGest {
 
   private static final String QRY_INS_Mov = //
       "INSERT INTO dbo.movimenti" //
-          + "                 (tipo"
-          + "                 ,idfile" //
+          + "                 (tipo" + "                 ,idfile" //
           + "                 ,dtmov" //
           + "                 ,dtval" //
           + "                 ,dare" //
@@ -52,10 +51,37 @@ public class SqlServerGest extends SqlGest {
           + "     ,codstat=?" //
           + "  WHERE 1=1";
 
-  private static final String QRY_MOD_CodStat = //
+  private static final String QRY_MOD_Mov_CodStat = //
       "UPDATE movimenti" //
           + "  SET codstat=?" //
           + "  WHERE id=?";
+
+  private static final String QRY_INS_CodStats = """
+      INSERT INTO dbo.CodiciStat
+          (codstat
+          ,descrstat)
+      VALUES (?, ? )""";
+
+  private static final String QRY_SEL_CodStats = """
+          SELECT idCodStat
+          ,codstat
+          ,descrstat
+      FROM CodiciStat
+      WHERE 1=1
+      ORDER BY codstat
+          """;
+
+  private static final String QRY_DEL_CodStats = """
+      DELETE FROM dbo.CodiciStat
+      WHERE idCodStat = ?""";
+
+  private static final String QRY_UPD_CodStats = """
+          UPDATE CodiciStat SET
+           codstat=?
+          ,descrstat=?
+      FROM CodiciStat
+      WHERE idCodStat=?
+          """;
 
   public SqlServerGest() {
     super();
@@ -127,8 +153,28 @@ public class SqlServerGest extends SqlGest {
   }
 
   @Override
+  public String getQryMODMovCodstat() {
+    return QRY_MOD_Mov_CodStat;
+  }
+
+  @Override
+  public String getQryINSCodstat() {
+    return QRY_INS_CodStats;
+  }
+
+  @Override
+  public String getQrySELCodstat() {
+    return QRY_SEL_CodStats;
+  }
+
+  @Override
+  public String getQryDELCodstat() {
+    return QRY_DEL_CodStats;
+  }
+
+  @Override
   public String getQryMODCodstat() {
-    return QRY_MOD_CodStat;
+    return QRY_UPD_CodStats;
   }
 
 }

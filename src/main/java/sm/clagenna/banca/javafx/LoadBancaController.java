@@ -64,7 +64,7 @@ import javafx.util.Callback;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CsvImportBanca;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.dati.Versione;
 import sm.clagenna.stdcla.javafx.IStartApp;
@@ -129,7 +129,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @FXML
   private ProgressBar                   prgrb;
 
-  private DataController        cntrlr;
+  private DataModel        cntrlr;
   private AppProperties         props;
   private ConfOpzioniController cntrlConfOpz;
   private int                   qtaActiveTasks;
@@ -153,7 +153,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     MioAppender.setLogReader(this);
-    cntrlr = DataController.getInst();
+    cntrlr = DataModel.getInst();
     props = LoadBancaMainApp.getInst().getProps();
     levelMin = Level.INFO;
     initApp(props);
@@ -700,7 +700,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
           Throwable ex = ev.getSource().getException();
           s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
         });
-        DBConn connSQL = LoadBancaMainApp.getInst().getConnSQL();
+        DBConn connSQL = LoadBancaMainApp.getInst().getDbConn();
         csvimp.setConnSql(connSQL);
         //        prgrb.setProgress(0);
         //        prgrb.progressProperty().unbind();

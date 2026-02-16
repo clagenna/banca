@@ -27,7 +27,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
@@ -121,7 +121,7 @@ public class ViewContanti implements Initializable, IStartApp {
     contante = new RigaBanca(CSZ_Contanti);
     String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
     m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(LoadBancaMainApp.getInst().getConnSQL());
+    m_db.setDbconn(LoadBancaMainApp.getInst().getDbConn());
 
     impostaForma(p_props);
     caricaComboModalita();
@@ -375,7 +375,7 @@ public class ViewContanti implements Initializable, IStartApp {
 
   @SuppressWarnings("unused")
   private void creaTableResult(String szQryFltr) {
-    m_tbvf = new TableViewFiller(tblview, m_appmain.getConnSQL());
+    m_tbvf = new TableViewFiller(tblview, m_appmain.getDbConn());
     m_tbvf.setSzQry(szQryFltr);
     try {
       m_tbvf.call();
@@ -399,7 +399,7 @@ public class ViewContanti implements Initializable, IStartApp {
 
   private void creaTableResultThread(String szQryFltr) {
     TableViewFiller.setNullRetValue("");
-    m_tbvf = new TableViewFiller(tblview, m_appmain.getConnSQL());
+    m_tbvf = new TableViewFiller(tblview, m_appmain.getDbConn());
     m_tbvf.setSzQry(szQryFltr);
 
     ExecutorService backGrService = Executors.newFixedThreadPool(1);
@@ -546,14 +546,14 @@ public class ViewContanti implements Initializable, IStartApp {
   }
 
   private void updateRecord() {
-    DataController cntr = DataController.getInst();
+    DataModel cntr = DataModel.getInst();
     cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
     m_db.updateMovimento(contante);
     s_log.info("Modificato records  {}", contante.toString().replace("\t", ";"));
   }
 
   private void insertRecord() {
-    DataController cntr = DataController.getInst();
+    DataModel cntr = DataModel.getInst();
     cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
     m_db.insertMovimento(contante);
     contante.setRigaid(m_db.getLastRowid());
@@ -561,7 +561,7 @@ public class ViewContanti implements Initializable, IStartApp {
   }
 
   private void deleteRecord() {
-    DataController cntr = DataController.getInst();
+    DataModel cntr = DataModel.getInst();
     cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
     int qtaDel = m_db.deleteMovimento(contante);
     s_log.info("Cancellato {} records con {}", qtaDel, contante.toString().replace("\t", ";"));

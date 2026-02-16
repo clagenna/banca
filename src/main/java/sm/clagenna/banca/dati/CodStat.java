@@ -16,30 +16,37 @@ public class CodStat implements Comparable<CodStat> {
   private static final Logger s_log = LogManager.getLogger(CodStat.class);
 
   @Getter @Setter
-  private int    cod1;
+  private int          idCodStat;
   @Getter @Setter
-  private int    cod2;
+  private int          cod1;
   @Getter @Setter
-  private int    cod3;
+  private int          cod2;
   @Getter @Setter
-  private String codice;
+  private int          cod3;
   @Getter @Setter
-  private String descr;
+  private String       codice;
   @Getter @Setter
-  private int    livello;
+  private String       descr;
   @Getter @Setter
-  private double totdare;
+  private int          livello;
   @Getter @Setter
-  private double totavere;
-
+  private double       totdare;
+  @Getter @Setter
+  private double       totavere;
   private CodStat      father;
   @Getter @Setter
-  private boolean       matched;
+  private boolean      matched;
   @Getter
   private Set<CodStat> figli;
 
   public CodStat() {
     livello = 0;
+  }
+
+  public CodStat(int idCd, String cods, String desc) {
+    setIdCodStat(idCd);
+    assign(parse(cods));
+    setDescr(desc);
   }
 
   public void assign(int cd1, int cd2, int cd3) {
@@ -59,6 +66,7 @@ public class CodStat implements Comparable<CodStat> {
   }
 
   public void assign(CodStat p_cds) {
+    setIdCodStat(p_cds.idCodStat);
     assign(p_cds.cod1, p_cds.cod2, p_cds.cod3);
     setDescr(p_cds.descr);
     if (null == figli)
@@ -81,7 +89,7 @@ public class CodStat implements Comparable<CodStat> {
     if (null != figli)
       figli.clear();
     figli = null;
-    cod1 = cod2 = cod3 = livello = 0;
+    idCodStat = cod1 = cod2 = cod3 = livello = 0;
     descr = null;
     matched = false;
     totavere = 0d;
@@ -226,6 +234,37 @@ public class CodStat implements Comparable<CodStat> {
     return p_li;
   }
 
+  /**
+   * Verifica se e' cambiato il codice statistico oppure la descrizione del
+   * modello fornito (<code>p_ob</code>)
+   * 
+   * @param p_ob
+   *          altro {@link CodStat} di riferimento
+   * @return
+   */
+  public boolean hasChanged(CodStat p_ob) {
+    if (null == p_ob)
+      return false;
+    if (cod1 != p_ob.cod1)
+      return true;
+    if (cod2 != p_ob.cod2)
+      return true;
+    if (cod3 != p_ob.cod3)
+      return true;
+    return Utils.isChanged(descr, p_ob.descr);
+  }
+
+  /**
+   * Imposta {@link #matched} in base alla stringa parziale fornita in
+   * <code>p_sz</code>. Se la stringa e' contenuta nella nostra descrizione
+   * allora {@link #matched} = true altrimenti false.<br/>
+   * Serve per evindenziare dinamicamente i nodi del treeView quando si cerca un
+   * codice statistico in base ad una parola della sua descrizione
+   * 
+   * @param p_sz
+   *          la stringa da cercare
+   * @return true se la stringa &quot;match-a&quot; la descrizione
+   */
   public boolean matchDescr(String p_sz) {
     setMatched(false);
     if (null == p_sz || p_sz.length() < 2 || null == descr || descr.length() < 2)

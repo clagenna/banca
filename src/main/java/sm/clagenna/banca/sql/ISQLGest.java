@@ -15,8 +15,6 @@ public interface ISQLGest {
 
   void setOverwrite(boolean bv);
 
-  void write(RigaBanca ri);
-
   void beginTrans();
 
   void commitTrans();
@@ -24,22 +22,27 @@ public interface ISQLGest {
   void rollBackTrans();
 
   int getLastRowid();
-  
-  Map<String, String> getListDBViews();
-  
+
   // specifiche per il progetto "Banca"
+
+  // elenco delle Viewa sui movimenti
+  Map<String, String> getListDBViews();
 
   boolean existMovimento(RigaBanca rig);
 
-  boolean updateMovimento(RigaBanca rig);
-  
-  boolean updateCodStat(RigaBanca rig);
+  void writeMovimento(RigaBanca ri);
 
-  boolean updateCodStat(List<RigaBanca> liRb);
+  boolean updateMovimento(RigaBanca rig);
 
   int deleteMovimento(RigaBanca rig);
 
   boolean insertMovimento(RigaBanca p_rig);
+
+  // --------------  CODICI STATISTICI ------------
+
+  boolean updateCodStat(RigaBanca rig);
+
+  boolean updateCodStat(List<RigaBanca> liRb);
 
   List<String> getListTipoCard();
 
@@ -52,8 +55,5 @@ public interface ISQLGest {
   List<String> getListCausABI();
 
   String getDescrCausABI(String causABI);
-
-  
-
 
 }

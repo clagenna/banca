@@ -16,7 +16,8 @@ import org.apache.logging.log4j.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.CodStat;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.stdcla.sql.DBConn;
@@ -28,9 +29,11 @@ public abstract class SqlGest implements ISQLGest {
 
   private PreparedStatement stmtSel;
   private PreparedStatement stmtIns;
-  private PreparedStatement stmtDel;
   private PreparedStatement stmtMod;
+  private PreparedStatement stmtDel;
   // private PreparedStatement stmtLastRowId;
+  private PreparedStatement stmtInsCodStat;
+  private PreparedStatement stmtModCodStat;
 
   //  @Getter @Setter
   //  private String  tableName;
@@ -52,8 +55,8 @@ public abstract class SqlGest implements ISQLGest {
   static {
     allTables = Arrays.asList(new String[] { //
         "impFiles", //
-        "movimenti" //
-    });
+        "movimenti", //
+        "CodiciStat" });
   }
 
   public SqlGest() {
@@ -85,6 +88,8 @@ public abstract class SqlGest implements ISQLGest {
 
   public abstract String getQryLASTROWID();
 
+  // ----- gestione MOVIMENTI -----------------
+
   public abstract String getQryINSMov();
 
   public abstract String getQrySELMov();
@@ -93,10 +98,55 @@ public abstract class SqlGest implements ISQLGest {
 
   public abstract String getQryMODMov();
 
+  public abstract String getQryMODMovCodstat();
+
+  // ----- gestione CODICI STATISTICI  -----------------
+
+  public abstract String getQryINSCodstat();
+
+  public abstract String getQrySELCodstat();
+
+  public abstract String getQryDELCodstat();
+
   public abstract String getQryMODCodstat();
 
   @Override
-  public void write(RigaBanca ri) {
+  public void beginTrans() {
+    getDbconn().beginTrans();
+    //    try {
+    //      Connection conn = getDbconn().getConn();
+    //      conn.setAutoCommit(false);
+    //      m_savePoint = conn.setSavepoint();
+    //    } catch (SQLException e) {
+    //      getLog().error("BEGIN TRAN Error {}", e.getMessage());
+    //    }
+  }
+
+  @Override
+  public void commitTrans() {
+    getDbconn().commitTrans();
+    //    try {
+    //      getDbconn().getConn().setAutoCommit(true);
+    //      m_savePoint = null;
+    //    } catch (SQLException e) {
+    //      getLog().error("COMMIT TRAN Error {}", e.getMessage());
+    //    }
+  }
+
+  @Override
+  public void rollBackTrans() {
+    getDbconn().rollBackTrans();
+    //    try {
+    //      Connection conn = getDbconn().getConn();
+    //      conn.rollback(m_savePoint);
+    //      m_savePoint = null;
+    //    } catch (SQLException e) {
+    //      getLog().error("BEGIN TRAN Error {}", e.getMessage());
+    //    }
+  }
+
+  @Override
+  public void writeMovimento(RigaBanca ri) {
     try {
       if (existMovimento(ri)) {
         if ( !overwrite) {
@@ -118,7 +168,7 @@ public abstract class SqlGest implements ISQLGest {
     boolean bRet = false;
     int qta = 0;
     // TimerMeter tm = new TimerMeter("Exist");
-    DataController cntrl = DataController.getInst();
+    DataModel cntrl = DataModel.getInst();
     StringBuilder qry = new StringBuilder();
     try {
       if (null == stmtSel) {
@@ -155,7 +205,7 @@ public abstract class SqlGest implements ISQLGest {
   public int deleteMovimento(RigaBanca rig) {
     int qtaDel = 0;
     // TimerMeter tm = new TimerMeter("Delete");
-    DataController cntrl = DataController.getInst();
+    DataModel cntrl = DataModel.getInst();
     StringBuilder qry = null;
     try {
       if (null == stmtDel) {
@@ -182,7 +232,7 @@ public abstract class SqlGest implements ISQLGest {
   public boolean updateMovimento(RigaBanca p_rig) {
     boolean bRet = false;
     StringBuilder qry = null;
-    DataController cntrl = DataController.getInst();
+    DataModel cntrl = DataModel.getInst();
     try {
       if (null == stmtMod) {
         qry = new StringBuilder(getQryMODMov());
@@ -224,7 +274,7 @@ public abstract class SqlGest implements ISQLGest {
 
   @Override
   public boolean updateCodStat(RigaBanca rig) {
-    String qry1 = getQryMODCodstat();
+    String qry1 = getQryMODMovCodstat();
     String qry2 = String.format(qry1, rig.getTiporec());
 
     Connection conn = dbconn.getConn();
@@ -243,7 +293,7 @@ public abstract class SqlGest implements ISQLGest {
 
   @Override
   public boolean updateCodStat(List<RigaBanca> rigs) {
-    String qry1 = getQryMODCodstat();
+    String qry1 = getQryMODMovCodstat();
     Connection conn = dbconn.getConn();
     beginTrans();
     int qtaTrans = 0;
@@ -317,41 +367,6 @@ public abstract class SqlGest implements ISQLGest {
     return bRet;
   }
 
-  @Override
-  public void beginTrans() {
-    getDbconn().beginTrans();
-    //    try {
-    //      Connection conn = getDbconn().getConn();
-    //      conn.setAutoCommit(false);
-    //      m_savePoint = conn.setSavepoint();
-    //    } catch (SQLException e) {
-    //      getLog().error("BEGIN TRAN Error {}", e.getMessage());
-    //    }
-  }
-
-  @Override
-  public void commitTrans() {
-    getDbconn().commitTrans();
-    //    try {
-    //      getDbconn().getConn().setAutoCommit(true);
-    //      m_savePoint = null;
-    //    } catch (SQLException e) {
-    //      getLog().error("COMMIT TRAN Error {}", e.getMessage());
-    //    }
-  }
-
-  @Override
-  public void rollBackTrans() {
-    getDbconn().rollBackTrans();
-    //    try {
-    //      Connection conn = getDbconn().getConn();
-    //      conn.rollback(m_savePoint);
-    //      m_savePoint = null;
-    //    } catch (SQLException e) {
-    //      getLog().error("BEGIN TRAN Error {}", e.getMessage());
-    //    }
-  }
-
   //  private int trovaLastRowid() {
   //    if (null == stmtLastRowId) {
   //      try {
@@ -373,6 +388,92 @@ public abstract class SqlGest implements ISQLGest {
   //    }
   //    return lastRowid;
   //  }
+
+  public List<CodStat> getListCodStat() {
+    Connection conn = dbconn.getConn();
+    List<CodStat> liCodStat = new ArrayList<>();
+
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(getQrySELCodstat())) {
+      while (rs.next()) {
+        int k = 1;
+        int idCd = rs.getInt(k++);
+        String cods = rs.getString(k++);
+        String desc = rs.getString(k++);
+        CodStat co = new CodStat(idCd, cods, desc);
+
+        liCodStat.add(co);
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQrySELCodstat(), e.getMessage(), e);
+    }
+    return liCodStat;
+  }
+
+  public boolean existCodStat(CodStat cdsCurr) {
+    boolean bRet = false;
+    if (null == cdsCurr || cdsCurr.getIdCodStat() == 0)
+      return bRet;
+    Connection conn = dbconn.getConn();
+    String szQry = getQrySELCodstat();
+    int n = szQry.indexOf("1=1") + 3;
+    String szSin = szQry.substring(0, n);
+    String szDes = szQry.substring(n);
+    String szQryOk = String.format("%s AND idCodStat=%d %s", szSin, cdsCurr.getIdCodStat(), szDes);
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(szQryOk)) {
+      while (rs.next()) {
+        int idCd = rs.getInt(0);
+        bRet = idCd == cdsCurr.getIdCodStat();
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", szQryOk, e.getMessage(), e);
+    }
+    return bRet;
+  }
+
+  public void updadetCodStat(CodStat cdsCurr) {
+    if (null == cdsCurr || cdsCurr.getIdCodStat() == 0)
+      return;
+    Connection conn = dbconn.getConn();
+    try {
+      if (null == stmtModCodStat) {
+        stmtModCodStat = conn.prepareStatement(getQryMODCodstat());
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryMODCodstat(), e.getMessage(), e);
+    }
+    try {
+      int k = 1;
+      dbconn.setStmtString(stmtModCodStat, k++, cdsCurr.getCodice());
+      dbconn.setStmtString(stmtModCodStat, k++, cdsCurr.getDescr());
+      dbconn.setStmtInt(stmtModCodStat, k++, cdsCurr.getIdCodStat());
+
+      stmtModCodStat.executeUpdate();
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryMODCodstat(), e.getMessage(), e);
+    }
+  }
+
+  public void insertCodStat(CodStat cdsCurr) {
+    try {
+      if (null == stmtInsCodStat) {
+        Connection conn = dbconn.getConn();
+        stmtInsCodStat = conn.prepareStatement(getQryINSCodstat());
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryINSCodstat(), e.getMessage(), e);
+    }
+    try {
+      int k = 1;
+      dbconn.setStmtString(stmtInsCodStat, k++, cdsCurr.getCodice());
+      dbconn.setStmtString(stmtInsCodStat, k++, cdsCurr.getDescr());
+
+      stmtInsCodStat.executeUpdate();
+      lastRowid = dbconn.getLastIdentity();
+      cdsCurr.setIdCodStat(lastRowid);
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryMODCodstat(), e.getMessage(), e);
+    }
+  }
 
   @Override
   public List<String> getListTipoCard() {

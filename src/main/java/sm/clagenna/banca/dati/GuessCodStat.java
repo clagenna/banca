@@ -204,7 +204,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
 
     // aggiorno la nuova descr del codstat
     if ( !cds.getCodice().equals(codstatOrig)) {
-      DataController cntrl = DataController.getInst();
+      DataModel cntrl = DataModel.getInst();
       TreeCodStat cdsCntrl = cntrl.getCodStatData();
       if (null != cdsCntrl) {
         cds = cdsCntrl.find(cds.getCodice());

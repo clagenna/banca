@@ -110,8 +110,8 @@ public class RigaBanca {
 
   public void setDescr(String p_des) {
     descr = p_des;
-    if (null != DataController.getInst())
-      localCardIdent = DataController.getInst().getAssocid().findAssoc(descr);
+    if (null != DataModel.getInst())
+      localCardIdent = DataModel.getInst().getAssocid().findAssoc(descr);
     if (null == cardid && localCardIdent != null)
       setCardid(localCardIdent);
   }

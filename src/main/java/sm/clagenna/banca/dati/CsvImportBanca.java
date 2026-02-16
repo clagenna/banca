@@ -80,7 +80,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
   private List<RigaBanca>              righeBanca;
   private DBConn                            dbconn;
   @Getter
-  private DataController                    cntrl;
+  private DataModel                    cntrl;
   private double                            dblQtaRows;
 
   private ConvertCsv2RigaBanca cnvRb;
@@ -112,7 +112,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
         .asList(new String[] { EColsTableView.descr.toString(), "causale", "descrizione", "Target name", "Esercente", "Merchant" }));
     nomiCols.put(EColsTableView.abicaus, Arrays.asList(new String[] { "causabi", "causale abi", "categoria", "ID" }));
 
-    cntrl = DataController.getInst();
+    cntrl = DataModel.getInst();
     // Thread.setDefaultUncaughtExceptionHandler(this);
   }
 
@@ -242,7 +242,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     if (skipSaveDB)
       return;
 
-    DataController dtc = DataController.getInst();
+    DataModel dtc = DataModel.getInst();
     String szDbType = dtc.getDBType();
     ISQLGest sqlg = SqlGestFactory.get(szDbType);
     CsvFileContainer contcsv = cntrl.getContCsv();
@@ -274,7 +274,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       sqlg.beginTrans();
       for (RigaBanca ri : getRigheBanca()) {
         ri.setIdfile(impf.getId());
-        sqlg.write(ri);
+        sqlg.writeMovimento(ri);
         firePropertyChange(EVT_SAVEDBROW, (double) nRow++);
         if (nQtaTran++ > 100) {
           sqlg.commitTrans();

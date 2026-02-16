@@ -21,7 +21,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CsvFileContainer;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
@@ -252,7 +252,7 @@ public class SovrapposView implements Initializable, IStartApp {
   }
 
   public int setImpFileStart(ImpFile imf) {
-    DataController data = DataController.getInst();
+    DataModel data = DataModel.getInst();
     CsvFileContainer csvf = data.getContCsv();
     liFil = csvf.getListSiblings(imf);
     if (null == liFil || liFil.size() <= 1)

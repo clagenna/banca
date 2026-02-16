@@ -32,7 +32,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.sql.ConvDBBanca;
 import sm.clagenna.stdcla.sql.EServerId;
 import sm.clagenna.stdcla.javafx.IStartApp;
@@ -62,9 +62,9 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   @Getter @Setter
   private IStartApp      controller;
   @Getter @Setter
-  private DBConn         connSQL;
+  private DBConn         dbConn;
   @Getter @Setter
-  private DataController data;
+  private DataModel     model;
 
   private List<ResultView> m_liResViews;
   private ViewContanti     m_viewContanti;
@@ -142,8 +142,10 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
         props = new AppProperties();
         props.leggiPropertyFile(new File(LoadBancaMainApp.CSZ_MAIN_PROPS), false, false);
       }
-      data = new DataController();
-      data.initApp(props);
+      scegliDB();
+      model = new DataModel();
+      model.initApp(props);
+      model.setDbConn(dbConn);
       skin = props.getProperty(AppProperties.CSZ_PROP_SKIN);
       if (null == skin)
         skin = "LoadBancaFX";
@@ -164,9 +166,8 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
       LoadBancaMainApp.s_log.error("Errore in main initApp: {}", l_e.getMessage(), l_e);
       System.exit(1957);
     }
-    data.addPropertyChangeListener(this);
+    model.addPropertyChangeListener(this);
     checkConvDB();
-    scegliDB();
   }
 
   private void checkConvDB() {
@@ -189,7 +190,6 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     }
     ConvDBBanca cnv = new ConvDBBanca();
     cnv.checkConversione(szDbFile);
-
   }
 
   public void scegliDB() {
@@ -198,9 +198,9 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
       szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
       // connSQL = new DBConnSQL();
       DBConnFactory conFact = new DBConnFactory();
-      connSQL = conFact.get(szDbType);
-      connSQL.readProperties(props);
-      connSQL.doConn();
+      dbConn = conFact.get(szDbType);
+      dbConn.readProperties(props);
+      dbConn.doConn();
     } catch (Exception e) {
       s_log.error("Errore apertura DB, error={}", e.getMessage(), e);
       Platform.exit();
@@ -236,8 +236,8 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
 
     if (controller != null)
       controller.closeApp(prop);
-    if (data != null)
-      data.closeApp(prop);
+    if (model != null)
+      model.closeApp(prop);
 
     prop.setBooleanProperty(PROP_CHECK_CONV, bCheckConvDb);
     prop.salvaSuProperties();
@@ -363,7 +363,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     if (m_liResViews == null)
       m_liResViews = new ArrayList<>();
     m_liResViews.add(resultView);
-    DataController cntrl = DataController.getInst();
+    DataModel cntrl = DataModel.getInst();
     if (null != m_viewCodStat) {
       //   m_viewCodStat.addPropertyChangeListener(resultView);
       cntrl.addPropertyChangeListener(resultView);
@@ -373,7 +373,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   public void removeResView(ResultView resultView) {
     if (m_liResViews == null || m_liResViews.size() == 0)
       return;
-    DataController cntrl = DataController.getInst();
+    DataModel cntrl = DataModel.getInst();
     if (null != m_viewCodStat) {
       //      m_viewCodStat.removePropertyChangeListener(resultView);
       cntrl.removePropertyChangeListener(resultView);
@@ -385,7 +385,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   public void addCodeStatView(CodStatView codStatView) {
     m_viewCodStat = codStatView;
     if (null != m_liResViews) {
-      DataController cntrl = DataController.getInst();
+      DataModel cntrl = DataModel.getInst();
       // m_liResViews.stream().forEach(s -> m_viewCodStat.addPropertyChangeListener(s));
       m_liResViews.stream().forEach(s -> cntrl.addPropertyChangeListener(s));
     }
@@ -402,7 +402,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   public void addGuessCodeStatView(GuessCodStatView view) {
     m_viewGuessCodStat = view;
     if (null != m_liResViews) {
-      DataController cntrl = DataController.getInst();
+      DataModel cntrl = DataModel.getInst();
       // m_liResViews.stream().forEach(s -> m_viewCodStat.addPropertyChangeListener(s));
       m_liResViews.stream().forEach(s -> cntrl.addPropertyChangeListener(s));
     }
@@ -422,7 +422,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     String szEvt = evt.getPropertyName();
 
     switch (szEvt) {
-      case DataController.EVT_DBCHANGE:
+      case DataModel.EVT_DBCHANGE:
         s_log.warn("Cambio di DB, ora sono su {}", evt.getNewValue());
         scegliDB();
         break;

@@ -20,7 +20,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.TreeitemCodStat;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
@@ -36,6 +36,8 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   private static final String CSZ_PROP_DIMVIEW_X = "modcodstat.lx";
   private static final String CSZ_PROP_DIMVIEW_Y = "modcodstat.ly";
 
+  @FXML
+  private Label     lbIdCodstat;
   @FXML
   private TextField txCd1;
   @FXML
@@ -54,12 +56,12 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   @Getter @Setter
   private Scene            myScene;
   private LoadBancaMainApp m_appmain;
-  private DataController   dataCntr;
-  private TreeitemCodStat codStatData;
+  private DataModel   dataCntr;
+  private TreeitemCodStat  codStatData;
   @Getter @Setter
-  private CodStat         cdsPadre;
-  private CodStat         cdsLavoro;
-  private CodStat         cdsTree;
+  private CodStat          cdsPadre;
+  private CodStat          cdsLavoro;
+  private CodStat          cdsTree;
 
   private boolean bSemaf;
 
@@ -69,7 +71,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   @Override
   public void initApp(AppProperties p_props) {
-    dataCntr = DataController.getInst();
+    dataCntr = DataModel.getInst();
     codStatData = dataCntr.getCodStatData();
     m_appmain = LoadBancaMainApp.getInst();
     m_mainProps = m_appmain.getProps();
@@ -132,6 +134,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   private void updateTxAllCds() {
     // System.out.printf("ModTreeCodStat.updateTxAllCds(\"%s\")\n", cdsCurr.toStringEx());
+    lbIdCodstat.setText(cdsLavoro.getIdCodStat() == 0 ? "-" : Utils.formatLong((long) cdsLavoro.getIdCodStat()));
     txCd1.setText(String.valueOf(cdsLavoro.getCod1()));
     txCd2.setText(String.valueOf(cdsLavoro.getCod2()));
     txCd3.setText(String.valueOf(cdsLavoro.getCod3()));
@@ -230,19 +233,24 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   void btSalvaClick(ActionEvent event) {
     if (btSalva.isDisabled())
       return;
+    boolean bChanged = false;
+    boolean bNew = false;
     CodStat root = codStatData.getRoot();
     cdsTree = root.find(cdsLavoro);
-    if (null != cdsTree)
+    if (null != cdsTree) {
+      bChanged = cdsTree.hasChanged(cdsLavoro);
       cdsTree.setDescr(cdsLavoro.getDescr());
-    else {
+    } else {
       cdsTree = new CodStat();
+      bNew = true;
+      cdsLavoro.setIdCodStat(0);
       cdsTree.assign(cdsLavoro);
       codStatData.add(cdsTree);
     }
     codStatData.refreshTreeItems(cdsTree);
-    codStatData.updateCodStat(cdsTree);
-    codStatData.saveAll();
-    dataCntr.firePropertyChange(DataController.EVT_TREECODSTAT_CHANGED, null, cdsTree);
+    codStatData.updateCodStat(cdsTree, bChanged | bNew);
+    // codStatData.saveAll();
+    dataCntr.firePropertyChange(DataModel.EVT_TREECODSTAT_CHANGED, null, cdsTree);
   }
 
   @Override

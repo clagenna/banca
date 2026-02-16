@@ -4,10 +4,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -25,7 +21,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -42,7 +37,7 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.TreeitemCodStat;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
@@ -68,18 +63,18 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private static final String CSZ_PROP_DIM_AVERE  = "cdstt.avere";
   private static final String CSZ_PROP_DIM_SALDO  = "cdstt.saldo";
 
-  private static final AlertType AlertType = null;
+  // private static final AlertType AlertType = null;
 
   @FXML
-  private TextField                         txFileCodStat;
+  private TextField                        txFileCodStat;
   @FXML
-  private Button                            btCercaFile;
+  private Button                           btCercaFile;
   @FXML
-  private Button                            btImportFile;
+  private Button                           btImportFile;
   @FXML
-  private Button                            btSaveDB;
+  private Button                           btSaveDB;
   @FXML
-  private TextField                         txDescr;
+  private TextField                        txDescr;
   @FXML
   private TreeTableView<CodStat>           treeview;
   @FXML
@@ -99,7 +94,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private Scene            myScene;
   private Stage            lstage;
   private LoadBancaMainApp m_appmain;
-  private DataController   datacntrlr;
+  private DataModel   model;
   private ISQLGest         m_db;
   @Getter @Setter
   private String           styMatchDescr;
@@ -122,11 +117,11 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addCodeStatView(this);
     mainProps = m_appmain.getProps();
-    datacntrlr = m_appmain.getData();
-    datacntrlr.addPropertyChangeListener(this);
+    model = m_appmain.getModel();
+    model.addPropertyChangeListener(this);
     String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
     m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(LoadBancaMainApp.getInst().getConnSQL());
+    m_db.setDbconn(LoadBancaMainApp.getInst().getDbConn());
     txDescr.textProperty().addListener((obj, old, nv) -> txDescrSel(obj, old, nv));
     impostaTreeView(mainProps);
     impostaForma(mainProps);
@@ -205,7 +200,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     treeview.getSelectionModel().selectedItemProperty().addListener((_, _, nv) -> {
       if (null != nv && nv.getValue().getCod1() != 0) {
         String sel = nv.getValue().getCodice();
-        datacntrlr.setCodStat(sel);
+        model.setCodStat(sel);
         // System.out.printf("CodStatView.impostaTreeView(\"%s\")\n", CodStat2);
       }
     });
@@ -227,7 +222,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
     //    CodStatTreeData cdst = new CodStatTreeData();
     //    CodStat2 radice = cdst.readTree();
-    TreeitemCodStat treeData = datacntrlr.getCodStatData();
+    TreeitemCodStat treeData = model.getCodStatData();
     TreeItem<CodStat> root = treeData.getTreeItemRoot();
     treeview.setRoot(root);
   }
@@ -238,7 +233,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     CodStat cds = null;
     if (null != tricds)
       cds = tricds.getValue();
-    datacntrlr.firePropertyChange(DataController.EVT_FILTER_CODSTAT, null, cds);
+    model.firePropertyChange(DataModel.EVT_FILTER_CODSTAT, null, cds);
   }
 
   private void treeView_modTree(Object object) {
@@ -395,17 +390,22 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     return null;
   }
 
+  /**
+   *
+   * @param event
+   */
   @FXML
+  @Deprecated
   void btCercaFileClick(ActionEvent event) {
     // System.out.println("CodStatView.btCercaFileClick()");
-    Path pth = Paths.get(txFileCodStat.getText());
-    if (Files.exists(pth, LinkOption.NOFOLLOW_LINKS))
-      datacntrlr.getCodStatData().setFileCodStats(pth);
-    else {
-      String szMsg = String.format("Il file %s  Non esiste!", pth.toAbsolutePath().toString());
-      s_log.warn(szMsg);
-      m_appmain.messageDialog(AlertType, szMsg);
-    }
+    //    Path pth = Paths.get(txFileCodStat.getText());
+    //    if (Files.exists(pth, LinkOption.NOFOLLOW_LINKS))
+    //      datacntrlr.getCodStatData().setFileCodStats(pth);
+    //    else {
+    //      String szMsg = String.format("Il file %s  Non esiste!", pth.toAbsolutePath().toString());
+    //      s_log.warn(szMsg);
+    //      m_appmain.messageDialog(AlertType, szMsg);
+    //    }
   }
 
   @FXML
@@ -433,7 +433,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     //      m_prcsupp.removePropertyChangeListener(pl);
     if (null != modTreeView)
       modTreeView.closeApp(p_props);
-    datacntrlr.removePropertyChangeListener(this);
+    model.removePropertyChangeListener(this);
     m_appmain.removeCodStatView(this);
     if (myScene == null) {
       s_log.error("Il campo Scene risulta = **null**");
@@ -484,9 +484,9 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   public void propertyChange(PropertyChangeEvent evt) {
     String szEvtId = evt.getPropertyName();
     Object obj = evt.getNewValue();
-    TreeitemCodStat treeItems = datacntrlr.getCodStatData();
+    TreeitemCodStat treeItems = model.getCodStatData();
     switch (szEvtId) {
-      case DataController.EVT_NEW_QUERY_RESULT:
+      case DataModel.EVT_NEW_QUERY_RESULT:
         // m_szQryResulView = evt.getNewValue().toString();
         //        datacntrlr.setQryResulView(evt.getNewValue().toString());
         //        Platform.runLater(() -> datacntrlr.aggiornaTotaliCodStat());
@@ -494,7 +494,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         // System.out.printf("CodStatView.propertyChange(%s)\n", szEvtId);
         break;
 
-      case DataController.EVT_TOTCODSTAT:
+      case DataModel.EVT_TOTCODSTAT:
         //        treeview.refresh();
         //        break;
         // fall down ...
@@ -506,7 +506,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         });
         break;
 
-      case DataController.EVT_TREECODSTAT_CHANGED:
+      case DataModel.EVT_TREECODSTAT_CHANGED:
         if (obj instanceof CodStat cds) {
           Platform.runLater(() -> {
             treeItems.expandNode(cds);

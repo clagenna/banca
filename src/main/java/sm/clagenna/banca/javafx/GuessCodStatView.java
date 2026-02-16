@@ -46,7 +46,7 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.AnalizzaCodStats;
 import sm.clagenna.banca.dati.CodStat;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.GuessCodStat;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
@@ -118,7 +118,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   private Scene            myScene;
   private Stage            lstage;
   private LoadBancaMainApp m_appmain;
-  private DataController   datacntrlr;
+  private DataModel   model;
   private ISQLGest         m_db;
   private AppProperties    mainProps;
   private boolean          bSemaf;
@@ -142,11 +142,11 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addGuessCodeStatView(this);
     mainProps = m_appmain.getProps();
-    datacntrlr = m_appmain.getData();
-    datacntrlr.addPropertyChangeListener(this);
+    model = m_appmain.getModel();
+    model.addPropertyChangeListener(this);
     String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
     m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(LoadBancaMainApp.getInst().getConnSQL());
+    m_db.setDbconn(LoadBancaMainApp.getInst().getDbConn());
 
     impostaForma(mainProps);
     buildTableView();
@@ -476,7 +476,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     if (bSemaf)
       return;
     try {
-      datacntrlr.setDoScartaDescr(ckScartaDescr.isSelected());
+      model.setDoScartaDescr(ckScartaDescr.isSelected());
       bSemaf = true;
       Platform.runLater(() -> lbMsg.setText("Cerco di indovinare i Codici Statistici ..."));
       saveDimCols(mainProps);
@@ -631,7 +631,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
 
   @Override
   public void closeApp(AppProperties p_props) {
-    datacntrlr.removePropertyChangeListener(this);
+    model.removePropertyChangeListener(this);
     m_appmain.removeGuessCodStatView(this);
     if (myScene == null) {
       s_log.error("Il campo Scene risulta = **null**");
@@ -674,7 +674,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     String szEvt = evt.getPropertyName();
     switch (szEvt) {
 
-      case DataController.EVT_CODSTAT:
+      case DataModel.EVT_CODSTAT:
         m_codStatSel = evt.getNewValue().toString();
         Platform.runLater(() -> {
           // DataController data = m_appmain.getData();
@@ -688,7 +688,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
 
         break;
 
-      case DataController.EVT_DATASET_CREATED:
+      case DataModel.EVT_DATASET_CREATED:
         if (evt.getNewValue() instanceof Integer nv) {
           var fmt = NumberFormat.getInstance(Locale.getDefault());
           String szMsg = String.format("Letti %s recs", fmt.format(nv));
@@ -696,7 +696,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
         }
         break;
 
-      case DataController.EVT_GUESSDATA_CREATED:
+      case DataModel.EVT_GUESSDATA_CREATED:
         // System.out.println("EVT_GUESSDATA_CREATED");
         if (evt.getNewValue() instanceof Integer nv) {
           String szMsg = String.format("Letti %s recs", Utils.s_fmtInt.format(nv));
@@ -705,7 +705,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
         buildTableView();
         break;
 
-      case DataController.EVT_SELCODSTAT:
+      case DataModel.EVT_SELCODSTAT:
         if (evt.getNewValue() instanceof CodStat cds) {
           m_codStatSel = cds.getCodice();
           btAssignCodStatClick(null);

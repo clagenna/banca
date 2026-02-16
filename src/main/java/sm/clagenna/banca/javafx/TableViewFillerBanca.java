@@ -8,7 +8,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.stdcla.javafx.TableViewFiller;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
@@ -26,15 +26,15 @@ public class TableViewFillerBanca extends TableViewFiller {
   private Pattern patt;
 
   private List<EColsTableView> myExcludeCols;
-  private DataController       cntrl;
+  private DataModel       cntrl;
   // private Double               precId, precDare, precAvere;
 
   private boolean m_bScartaImpTrasf;
 
   public TableViewFillerBanca(TableView<List<Object>> tblview, DBConn p_dbc) {
     super(tblview, p_dbc);
-    myExcludeCols = LoadBancaMainApp.getInst().getData().getExcludeCols();
-    cntrl = DataController.getInst();
+    myExcludeCols = LoadBancaMainApp.getInst().getModel().getExcludeCols();
+    cntrl = DataModel.getInst();
   }
 
   @Override
@@ -70,8 +70,8 @@ public class TableViewFillerBanca extends TableViewFiller {
     cntrl.azzeraTotaliCodStat();
     String szQry = super.getSzQry();
     Dataset dts = super.getDataset();
-    cntrl.firePropertyChange(DataController.EVT_NEW_QUERY_RESULT, null, szQry);
-    cntrl.firePropertyChange(DataController.EVT_DATASET_CREATED, null, Integer.valueOf(dts.size()));
+    cntrl.firePropertyChange(DataModel.EVT_NEW_QUERY_RESULT, null, szQry);
+    cntrl.firePropertyChange(DataModel.EVT_DATASET_CREATED, null, Integer.valueOf(dts.size()));
     //    DtsRow precRow = null;
     //    for (DtsRow row : dts.getRighe()) {
     //      if (null == precRow) {

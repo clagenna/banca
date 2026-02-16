@@ -257,7 +257,7 @@ public class ProvaProgrBarCla extends Application {
           Throwable ex = ev.getSource().getException();
           s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
         });
-        DBConn connSQL = LoadBancaMainApp.getInst().getConnSQL();
+        DBConn connSQL = LoadBancaMainApp.getInst().getDbConn();
         cvsimp.setConnSql(connSQL);
         backGrService.execute(cvsimp);
       } catch (Exception e) {

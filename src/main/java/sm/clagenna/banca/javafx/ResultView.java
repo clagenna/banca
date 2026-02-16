@@ -56,7 +56,7 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.CsvFileContainer;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.sql.ISQLGest;
@@ -70,7 +70,6 @@ import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
-import sm.clagenna.stdcla.utils.sys.StackViewer;
 import sm.clagenna.stdcla.utils.sys.ex.DatasetException;
 
 public class ResultView implements Initializable, IStartApp, PropertyChangeListener {
@@ -148,7 +147,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private TableViewFillerBanca m_tbvf;
   private Path                 m_CSVfile;
   private String               m_fltrTipoBanca;
-  private DataController       dataCntrl;
+  private DataModel       model;
   @Getter @Setter
   private boolean              csvBlankOnZero;
   private String               m_codStatSel;
@@ -174,8 +173,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addResView(this);
     mainProps = m_appmain.getProps();
-    dataCntrl = m_appmain.getData();
-    dataCntrl.addPropertyChangeListener(this);
+    model = m_appmain.getModel();
+    model.addPropertyChangeListener(this);
 
     scegliDB(p_props);
     caricaComboTipoBanca();
@@ -204,7 +203,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private void scegliDB(AppProperties p_props) {
     String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
     m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(LoadBancaMainApp.getInst().getConnSQL());
+    m_db.setDbconn(LoadBancaMainApp.getInst().getDbConn());
   }
 
   private void caricaComboQrySalvate() {
@@ -355,7 +354,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @Override
   public void closeApp(AppProperties p_props) {
-    dataCntrl.removePropertyChangeListener(this);
+    model.removePropertyChangeListener(this);
     m_appmain.removeResView(this);
     autoCbComp = null;
     if (null != m_gestQry)
@@ -607,7 +606,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     // System.out.println(StackViewer.viewStackTrace("ResultView.creaTableResultThread()"));
     TableViewFiller.setNullRetValue("");
 
-    m_tbvf = new TableViewFillerBanca(tblview, m_appmain.getConnSQL());
+    m_tbvf = new TableViewFillerBanca(tblview, m_appmain.getDbConn());
 
     // m_tbvf.setResView(this);
     if (fltrParolaRegEx) {
@@ -683,10 +682,10 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     String szEvt = evt.getPropertyName();
     switch (szEvt) {
 
-      case DataController.EVT_CODSTAT:
+      case DataModel.EVT_CODSTAT:
         m_codStatSel = evt.getNewValue().toString();
         Platform.runLater(() -> {
-          DataController data = m_appmain.getData();
+          DataModel data = m_appmain.getModel();
           CodStat cds = data.getCodStatData().find(m_codStatSel);
           String szLb = "...";
           if (null != cds)
@@ -697,7 +696,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         });
         break;
 
-      case DataController.EVT_FILTER_CODSTAT:
+      case DataModel.EVT_FILTER_CODSTAT:
         if (evt.getNewValue() instanceof CodStat cds) {
           String szFltrCodstat = cds.getCodice();
           ActionEvent nevt = new ActionEvent(szFltrCodstat, null);
@@ -705,7 +704,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         }
         break;
 
-      case DataController.EVT_DATASET_CREATED:
+      case DataModel.EVT_DATASET_CREATED:
         if (evt.getNewValue() instanceof Integer nv) {
           var fmt = NumberFormat.getInstance(Locale.getDefault());
           String szMsg = String.format("Letti %s recs", fmt.format(nv));
@@ -713,7 +712,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         }
         break;
 
-      case DataController.EVT_SELCODSTAT:
+      case DataModel.EVT_SELCODSTAT:
         if (evt.getNewValue() instanceof CodStat cds) {
           m_codStatSel = cds.getCodice();
           btAssignCodStatClick(null);
@@ -736,8 +735,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       s_log.warn("IdFile = {} sulla Table", EColsTableView.idfile.toString());
       return;
     }
-    Path lastd = dataCntrl.getLastDir();
-    CsvFileContainer csvf = dataCntrl.getContCsv();
+    Path lastd = model.getLastDir();
+    CsvFileContainer csvf = model.getContCsv();
     ImpFile impf = csvf.getFromIndex(iidFil);
     if (null == impf) {
       s_log.warn("IdFile = {} non memorizzato ?", iidFil);

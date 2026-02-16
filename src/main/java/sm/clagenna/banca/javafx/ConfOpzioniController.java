@@ -30,7 +30,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.stdcla.sql.EServerId;
 import sm.clagenna.stdcla.javafx.IStartApp;
@@ -137,7 +137,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   private LoadBancaMainApp m_appmain;
   @Getter @Setter
   private Scene            myScene;
-  private DataController   dataCntr;
+  private DataModel   dataCntr;
   private boolean          bSema;
   private static final boolean VERDE=true;
   private static final boolean ROSSO=false;
@@ -161,7 +161,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
 
   @Override
   public void initApp(AppProperties p_props) {
-    dataCntr = DataController.getInst();
+    dataCntr = DataModel.getInst();
     m_appmain = LoadBancaMainApp.getInst();
     m_mainProps = m_appmain.getProps();
 
@@ -399,7 +399,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     m_mainProps.setProperty(AppProperties.CSZ_PROP_DB_user, userName);
     m_mainProps.setProperty(AppProperties.CSZ_PROP_DB_passwd, password);
     s_log.info("Salvato le properties per il Data Base");
-    DataController.getInst().firePropertyChange(DataController.EVT_DBCHANGE, "null", nomeDB);
+    DataModel.getInst().firePropertyChange(DataModel.EVT_DBCHANGE, "null", nomeDB);
   }
 
   private Path settaFileIn(Path p_fi, boolean p_setTx, boolean bForce) {
@@ -492,7 +492,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     cbSkins.valueProperty().addListener((_, _, nv) -> cbSkinsSel(nv));
     if (null != m_appmain.getSkin())
       cbSkins.getSelectionModel().select(m_appmain.getSkin());
-    txFilesFiltro.setText(p_props.getProperty(DataController.CSZ_FILTER_FILES));
+    txFilesFiltro.setText(p_props.getProperty(DataModel.CSZ_FILTER_FILES));
     txFilesFiltro.textProperty().addListener((_, _, nv) -> changedFiltroFiles(nv));
 
     ckTipo.selectedProperty().addListener((_, _, n) -> {
@@ -573,7 +573,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   }
 
   private Object changedFiltroFiles(String nv) {
-    m_mainProps.setProperty(DataController.CSZ_FILTER_FILES, nv);
+    m_mainProps.setProperty(DataModel.CSZ_FILTER_FILES, nv);
     return null;
   }
 

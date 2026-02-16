@@ -36,7 +36,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import sm.clagenna.banca.dati.CodStat;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.GuessCodStat;
 
 import sm.clagenna.banca.dati.PhraseComparator;
@@ -108,7 +108,7 @@ public class ProvaGuess extends Application implements PropertyChangeListener {
 
   private Stage           primaryStage;
   private ProvaGuess      controller;
-  private DataController  data;
+  private DataModel  data;
   private AppProperties   props;
   private DBConn          connSQL;
   private String          parolaFiltro;
@@ -232,7 +232,7 @@ public class ProvaGuess extends Application implements PropertyChangeListener {
   }
 
   private void apriProperties() {
-    data = new DataController();
+    data = new DataModel();
     AppProperties.setSingleton(false);
     DBConnFactory.setSingleton(false);
     try {
@@ -601,7 +601,7 @@ public class ProvaGuess extends Application implements PropertyChangeListener {
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
     Object obj = evt.getNewValue();
-    if (evt.getPropertyName().equals(DataController.EVT_SELCODSTAT))
+    if (evt.getPropertyName().equals(DataModel.EVT_SELCODSTAT))
       if (obj instanceof CodStat cds) {
         // System.out.printf("ProvaGuess.propertyChange(%s)\n", cds.toString());
         RigaBanca itm = tblRiga.getSelectionModel().getSelectedItem();
