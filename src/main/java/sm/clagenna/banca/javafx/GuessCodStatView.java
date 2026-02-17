@@ -52,6 +52,7 @@ import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
+import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
@@ -118,14 +119,14 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   private Scene            myScene;
   private Stage            lstage;
   private LoadBancaMainApp m_appmain;
-  private DataModel   model;
+  private DataModel        model;
+  private DBConn           dbconn;
   private ISQLGest         m_db;
   private AppProperties    mainProps;
   private boolean          bSemaf;
   private String           m_codStatSel;
   private AnalizzaCodStats m_tbvf;
-
-  private Parent cercaCodStatForm;
+  private Parent           cercaCodStatForm;
 
   public GuessCodStatView() {
     //
@@ -142,11 +143,11 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addGuessCodeStatView(this);
     mainProps = m_appmain.getProps();
-    model = m_appmain.getModel();
+    model = DataModel.getInst();
     model.addPropertyChangeListener(this);
-    String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
-    m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(LoadBancaMainApp.getInst().getDbConn());
+    dbconn = model.getDbConn();
+    m_db = SqlGestFactory.get(dbconn.getServerId());
+    m_db.setDbconn(dbconn);
 
     impostaForma(mainProps);
     buildTableView();

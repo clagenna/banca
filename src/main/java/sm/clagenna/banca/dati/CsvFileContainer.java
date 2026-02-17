@@ -23,7 +23,6 @@ import org.apache.logging.log4j.Logger;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
@@ -82,21 +81,20 @@ public class CsvFileContainer {
   private List<ImpFile>         elenco;
   private Map<String, ImpFile>  mapStrToPath;
   private Map<Integer, ImpFile> mapIndxToPath;
-  private DataModel        cntrl;
-  private ISQLGest              sqlg;
+  private DataModel             model;
+  private DBConn                dbconn;
+  private ISQLGest              m_db;
   private PreparedStatement     stmtSel;
   private PreparedStatement     stmtUpd;
   private PreparedStatement     stmtIns;
 
-  private DBConn connSQL;
-
   public CsvFileContainer() {
-    cntrl = DataModel.getInst();
+    model = DataModel.getInst();
   }
 
   public ObservableList<ImpFile> loadListFiles() {
     elenco = new ArrayList<ImpFile>();
-    AppProperties props = cntrl.getProps();
+    AppProperties props = model.getProps();
 
     String fltrFiles = props.getProperty(DataModel.CSZ_FILTER_FILES);
     if (null == fltrFiles)
@@ -105,7 +103,7 @@ public class CsvFileContainer {
     String szGlobMatch = creaGlobMatch(fltrFiles);
     // String szGlobMatch = "glob:*:/**/{estra*,wise*}*.csv";
     PathMatcher matcher = FileSystems.getDefault().getPathMatcher(szGlobMatch);
-    final Path  lastDir = cntrl.getLastDir();
+    final Path lastDir = model.getLastDir();
     try (Stream<Path> walk = Files.walk(lastDir.toAbsolutePath())) {
       elenco = walk.filter(p -> !Files.isDirectory(p)) //
           // not a directory
@@ -123,7 +121,7 @@ public class CsvFileContainer {
   }
 
   public ImpFile addFile(Path pth) {
-    Path lastd = cntrl.getLastDir();
+    Path lastd = model.getLastDir();
     ImpFile imf = new ImpFile(lastd, pth);
     elenco.add(imf);
     //    mapStrToPath.put(imf.relativePath().toString(), imf);
@@ -143,7 +141,7 @@ public class CsvFileContainer {
   }
 
   private List<ImpFile> completaFilesDaDB(List<ImpFile> p_li) {
-    if (null == sqlg)
+    if (null == m_db)
       openDB();
     for (ImpFile fi : p_li) {
       addInfoFromDB(fi);
@@ -152,11 +150,11 @@ public class CsvFileContainer {
   }
 
   private void openDB() {
-    connSQL = LoadBancaMainApp.getInst().getDbConn();
-    String szDbType = cntrl.getDBType();
-    sqlg = SqlGestFactory.get(szDbType);
-    sqlg.setDbconn(connSQL);
-    Connection conn = sqlg.getDbconn().getConn();
+    dbconn = model.getDbConn();
+    String szDbType = model.getDBType();
+    m_db = SqlGestFactory.get(szDbType);
+    m_db.setDbconn(dbconn);
+    Connection conn = m_db.getDbconn().getConn();
     try {
       stmtSel = conn.prepareStatement(QRY_SEL);
       stmtUpd = conn.prepareStatement(QRY_UPD);
@@ -201,7 +199,7 @@ public class CsvFileContainer {
   }
 
   public void saveDb(ImpFile impf) {
-    if (null == sqlg)
+    if (null == m_db)
       openDB();
     int qta = 0;
     try {
@@ -219,16 +217,16 @@ public class CsvFileContainer {
   private void insertImpFile(ImpFile impf) {
     int k = 1;
     try {
-      connSQL.setStmtString(stmtIns, k++, impf.getFileName());
-      connSQL.setStmtString(stmtIns, k++, impf.getRelDir());
-      connSQL.setStmtInt(stmtIns, k++, impf.getSize());
-      connSQL.setStmtInt(stmtIns, k++, impf.getQtarecs());
-      connSQL.setStmtDate(stmtIns, k++, impf.getDtmin());
-      connSQL.setStmtDate(stmtIns, k++, impf.getDtmax());
-      connSQL.setStmtDate(stmtIns, k++, impf.getUltagg());
+      dbconn.setStmtString(stmtIns, k++, impf.getFileName());
+      dbconn.setStmtString(stmtIns, k++, impf.getRelDir());
+      dbconn.setStmtInt(stmtIns, k++, impf.getSize());
+      dbconn.setStmtInt(stmtIns, k++, impf.getQtarecs());
+      dbconn.setStmtDate(stmtIns, k++, impf.getDtmin());
+      dbconn.setStmtDate(stmtIns, k++, impf.getDtmax());
+      dbconn.setStmtDate(stmtIns, k++, impf.getUltagg());
 
       stmtIns.executeUpdate();
-      int ii = connSQL.getLastIdentity();
+      int ii = dbconn.getLastIdentity();
       impf.setId(ii);
       updateMaps(impf);
     } catch (SQLException e) {
@@ -240,15 +238,15 @@ public class CsvFileContainer {
     int qtaRecsUpd = 0;
     int k = 1;
     try {
-      connSQL.setStmtString(stmtUpd, k++, impf.getFileName());
-      connSQL.setStmtString(stmtUpd, k++, impf.getRelDir());
-      connSQL.setStmtInt(stmtUpd, k++, impf.getSize());
-      connSQL.setStmtInt(stmtUpd, k++, impf.getQtarecs());
-      connSQL.setStmtDate(stmtUpd, k++, impf.getDtmin());
-      connSQL.setStmtDate(stmtUpd, k++, impf.getDtmax());
-      connSQL.setStmtDate(stmtUpd, k++, impf.getUltagg());
+      dbconn.setStmtString(stmtUpd, k++, impf.getFileName());
+      dbconn.setStmtString(stmtUpd, k++, impf.getRelDir());
+      dbconn.setStmtInt(stmtUpd, k++, impf.getSize());
+      dbconn.setStmtInt(stmtUpd, k++, impf.getQtarecs());
+      dbconn.setStmtDate(stmtUpd, k++, impf.getDtmin());
+      dbconn.setStmtDate(stmtUpd, k++, impf.getDtmax());
+      dbconn.setStmtDate(stmtUpd, k++, impf.getUltagg());
       // where id = ?
-      connSQL.setStmtInt(stmtUpd, k++, impf.getId());
+      dbconn.setStmtInt(stmtUpd, k++, impf.getId());
       qtaRecsUpd = stmtUpd.executeUpdate();
       if (qtaRecsUpd != 1) {
         s_log.warn("Non sono riuscito ad aggiornare il file {} su DB", impf.getFileName());
@@ -275,7 +273,7 @@ public class CsvFileContainer {
   public ImpFile getFromPath(Path pth) {
     if (null == mapStrToPath)
       return null;
-    ImpFile imf = new ImpFile(cntrl.getLastDir(), pth);
+    ImpFile imf = new ImpFile(model.getLastDir(), pth);
     Path rel = imf.relativePath();
     imf = mapStrToPath.get(rel.toString());
     return imf;
@@ -309,7 +307,7 @@ public class CsvFileContainer {
   }
 
   public List<Path> getListPaths() {
-    Path lastd = cntrl.getLastDir();
+    Path lastd = model.getLastDir();
     List<Path> li = elenco //
         .stream() //
         .map(p -> p.fullPath(lastd)) //
@@ -319,7 +317,7 @@ public class CsvFileContainer {
 
   public List<ImpFile> controllaFilesAssenti() {
     List<ImpFile> lipth = new ArrayList<>();
-    Path basep = cntrl.getLastDir();
+    Path basep = model.getLastDir();
     for (ImpFile imp : getFilesFromDB()) {
       Path pth = imp.fullPath(basep);
       if ( !Files.exists(pth, LinkOption.NOFOLLOW_LINKS))
@@ -335,7 +333,7 @@ public class CsvFileContainer {
     PreparedStatement lstmt = null;
 
     try {
-      Connection conn = sqlg.getDbconn().getConn();
+      Connection conn = m_db.getDbconn().getConn();
       lstmt = conn.prepareStatement(szQry);
     } catch (SQLException e) {
       s_log.error("Errore prep statement {} on ImpFiles with err={}", szQry, e.getMessage());
@@ -373,7 +371,7 @@ public class CsvFileContainer {
   public void cancellaRegsFiles(List<ImpFile> li) {
     String szWhe = li.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
     final String szQryMas = "DELETE FROM %s WHERE %s IN (%s)";
-    Connection conn = sqlg.getDbconn().getConn();
+    Connection conn = m_db.getDbconn().getConn();
     for (String szTb : SqlGest.allTables) {
       String szId = "id";
       if (szTb.startsWith("mov"))

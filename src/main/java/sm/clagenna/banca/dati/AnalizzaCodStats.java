@@ -64,8 +64,8 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
 
   private PhraseComparator             compr;
   private LoadBancaMainApp             mainApp;
-  private DataModel               model;
-  private TreeCodStat                 codStatData;
+  private DataModel                    model;
+  private TreeCodStat                  codStatData;
   @Getter @Setter
   private ArrayList<GuessCodStat>      listGuess;
   @Getter
@@ -81,8 +81,8 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
 
   public AnalizzaCodStats(LoadBancaMainApp p_main) {
     mainApp = p_main;
-    setDbconn(p_main.getDbConn());
     model = p_main.getModel();
+    setDbconn(model.getDbConn());
     codStatData = model.getCodStatData();
   }
 
@@ -222,7 +222,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
       return;
     String szSQLType = mainApp.getProps().getProperty(AppProperties.CSZ_PROP_DB_Type);
     m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(mainApp.getDbConn());
+    m_db.setDbconn(model.getDbConn());
     List<RigaBanca> liRb = new ArrayList<RigaBanca>();
     for (GuessCodStat gcds : li) {
       RigaBanca rb = new RigaBanca();

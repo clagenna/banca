@@ -3,6 +3,7 @@ package sm.clagenna.banca.dati;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +28,7 @@ import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.sql.DBConn;
+import sm.clagenna.stdcla.sql.DBConnFactory;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -105,8 +108,6 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     s_inst = this;
     propsChange = new PropertyChangeSupport(this);
     filtriQuery = ESqlFiltri.AllSets.getFlag();
-    codStatData = new TreeitemCodStat();
-    codStatData.readTreeCodStats();
     addPropertyChangeListener(this);
   }
 
@@ -192,7 +193,10 @@ public class DataModel implements IStartApp, PropertyChangeListener {
 
   @Override
   public void initApp(AppProperties p_props) {
-    props = p_props;
+
+    openProperties();
+    openDb();
+
     contCsv = new CsvFileContainer();
     filtriQuery = props.getIntProperty(CSZ_FLAG_FILTRI, ESqlFiltri.AllSets.getFlag());
     qtaThreads = props.getIntProperty(CSZ_QTA_THREADS, 1);
@@ -221,7 +225,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
         excludeCols.add(EColsTableView.parse(coln));
     }
     associd = new CardidAssoc();
-    associd.load(p_props);
+    associd.load(props);
     //    try {
     //      codstats = new AppProperties();
     //      codstats.leggiPropertyFile(FILE_CODSTAT, true, false);
@@ -229,7 +233,38 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     //      e.printStackTrace();
     //      return;
     //    }
+    codStatData = new TreeitemCodStat();
+    codStatData.readTreeCodStats();
+  }
 
+  private void openProperties() {
+    AppProperties.setSingleton(false);
+    DBConnFactory.setSingleton(false);
+    try {
+      if (props == null) {
+        props = new AppProperties();
+        props.leggiPropertyFile(new File(LoadBancaMainApp.CSZ_MAIN_PROPS), false, false);
+      }
+    } catch (Exception e) {
+      s_log.error("Errore in  initApp.openProperties(): {}", e.getMessage(), e);
+      Platform.exit();
+    }
+  }
+
+  private void openDb() {
+    String szDbType;
+    try {
+      szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
+      // connSQL = new DBConnSQL();
+      DBConnFactory conFact = new DBConnFactory();
+      dbConn = conFact.get(szDbType);
+      dbConn.readProperties(props);
+      dbConn.doConn();
+    } catch (Exception e) {
+      s_log.error("Errore apertura DB, error={}", e.getMessage(), e);
+      Platform.exit();
+      System.exit(1957);
+    }
   }
 
   @Override
@@ -350,9 +385,9 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       szFiltro = szFiltro.substring(0, n);
     String szQry2 = String.format(QRY_TOT_CODSTAT, szFiltro);
     s_log.debug("Aggiorno i totali della resultView con filtro:{}", szFiltro);
-    DBConn connSQL = LoadBancaMainApp.getInst().getDbConn();
+
     Dataset dts = null;
-    try (Dataset dtset = new Dataset(connSQL)) {
+    try (Dataset dtset = new Dataset(dbConn)) {
       if ( !dtset.executeQuery(szQry2))
         s_log.error("Errore open dataset con query {}", szQry2);
       else
@@ -383,15 +418,20 @@ public class DataModel implements IStartApp, PropertyChangeListener {
 
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
-    @SuppressWarnings("unused") String szEvtId = evt.getPropertyName();
-    //    switch (szEvtId) {
-    //      case EVT_FILECODSTATS:
-    //        String szFil = (String) evt.getNewValue();
-    //        props.setProperty(CSZ_PROP_FILECODSTATS, szFil);
-    //        String sz = ParseData.s_fmtDtDate.format(new Date());
-    //        props.setProperty(CSZ_PROP_DATAFILECDS, sz);
-    //        break;
-    //    }
+    String szEvtId = evt.getPropertyName();
+    switch (szEvtId) {
+      case DataModel.EVT_DBCHANGE:
+        s_log.warn("Cambio di DB, ora sono su {}", evt.getNewValue());
+        openDb();
+        break;
+
+      //      case EVT_FILECODSTATS:
+      //        String szFil = (String) evt.getNewValue();
+      //        props.setProperty(CSZ_PROP_FILECODSTATS, szFil);
+      //        String sz = ParseData.s_fmtDtDate.format(new Date());
+      //        props.setProperty(CSZ_PROP_DATAFILECDS, sz);
+      //        break;
+    }
   }
 
 }

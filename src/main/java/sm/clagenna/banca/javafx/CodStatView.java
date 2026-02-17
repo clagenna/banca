@@ -43,6 +43,7 @@ import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
+import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 import sm.clagenna.stdcla.utils.sys.StackViewer;
@@ -88,13 +89,15 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   @FXML
   private TreeTableColumn<CodStat, String> colSaldo;
 
+  private LoadBancaMainApp m_appmain;
   @Getter
   private AppProperties    mainProps;
   @Getter @Setter
+  private DBConn           dbconn;
+  @Getter @Setter
   private Scene            myScene;
   private Stage            lstage;
-  private LoadBancaMainApp m_appmain;
-  private DataModel   model;
+  private DataModel        model;
   private ISQLGest         m_db;
   @Getter @Setter
   private String           styMatchDescr;
@@ -116,12 +119,13 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   public void initApp(AppProperties p_props) {
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addCodeStatView(this);
-    mainProps = m_appmain.getProps();
-    model = m_appmain.getModel();
+    model = DataModel.getInst();
+    mainProps = model.getProps();
+    dbconn = model.getDbConn();
     model.addPropertyChangeListener(this);
-    String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
-    m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(LoadBancaMainApp.getInst().getDbConn());
+
+    m_db = SqlGestFactory.get(dbconn.getServerId());
+    m_db.setDbconn(dbconn);
     txDescr.textProperty().addListener((obj, old, nv) -> txDescrSel(obj, old, nv));
     impostaTreeView(mainProps);
     impostaForma(mainProps);

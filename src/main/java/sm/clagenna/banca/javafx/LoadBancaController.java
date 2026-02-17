@@ -68,7 +68,6 @@ import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.dati.Versione;
 import sm.clagenna.stdcla.javafx.IStartApp;
-import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ILog4jReader;
 import sm.clagenna.stdcla.utils.Log4jRow;
@@ -129,7 +128,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @FXML
   private ProgressBar                   prgrb;
 
-  private DataModel        cntrlr;
+  private DataModel             model;
   private AppProperties         props;
   private ConfOpzioniController cntrlConfOpz;
   private int                   qtaActiveTasks;
@@ -153,7 +152,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     MioAppender.setLogReader(this);
-    cntrlr = DataModel.getInst();
+    model = DataModel.getInst();
     props = LoadBancaMainApp.getInst().getProps();
     levelMin = Level.INFO;
     initApp(props);
@@ -223,8 +222,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private void impostaTitolo() {
     String szTit = "Caricamento degli Export CSV dalle Banche su DB, %s";
     String szDir = Versione.getVersionEx();
-    if (null != cntrlr)
-      szDir = "da:" + cntrlr.getLastDir().toString();
+    if (null != model)
+      szDir = "da:" + model.getLastDir().toString();
     final String tit = String.format(szTit, szDir);
     Platform.runLater(() -> getStage().setTitle(tit));
   }
@@ -525,7 +524,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     stageResults.setHeight(600);
     stageResults.initOwner(primaryStage);
     stageResults.initModality(Modality.NONE);
-    stageResults.setTitle(String.format("Visualizzazione dei dati del DB di tipo %s Name %s", cntrlr.getDBType(),
+    stageResults.setTitle(String.format("Visualizzazione dei dati del DB di tipo %s Name %s", model.getDBType(),
         props.getProperty(AppProperties.CSZ_PROP_DB_name)));
     // verifica che nel FXML ci sia la dichiarazione:
     // <userData> <fx:reference source="controller" /> </userData>
@@ -663,14 +662,14 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private void eseguiConversioneRunTask() {
     qtaActiveTasks = 0;
     ObservableList<ImpFile> sels = tblvFiles.getSelectionModel().getSelectedItems();
-    s_log.debug("conversione di {} CSV in background con {} threads", sels.size(), cntrlr.getQtaThreads());
-    ExecutorService backGrService = Executors.newFixedThreadPool(cntrlr.getQtaThreads());
+    s_log.debug("conversione di {} CSV in background con {} threads", sels.size(), model.getQtaThreads());
+    ExecutorService backGrService = Executors.newFixedThreadPool(model.getQtaThreads());
     btConvCSV.setDisable(true);
     for (ImpFile impf : sels) {
       CsvImportBanca csvimp = new CsvImportBanca();
       try {
         csvimp.addPropertyChangeListener(this);
-        csvimp.setCsvFile(impf.fullPath(cntrlr.getLastDir()));
+        csvimp.setCsvFile(impf.fullPath(model.getLastDir()));
         // lbProgressione.textProperty().bind(csvimp.messageProperty());
         // prgrb.setProgress(0);
         prgrb.progressProperty().unbind();
@@ -700,8 +699,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
           Throwable ex = ev.getSource().getException();
           s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
         });
-        DBConn connSQL = LoadBancaMainApp.getInst().getDbConn();
-        csvimp.setConnSql(connSQL);
+        csvimp.setConnSql(model.getDbConn());
         //        prgrb.setProgress(0);
         //        prgrb.progressProperty().unbind();
         //        prgrb.progressProperty().bind(csvimp.progressProperty());
@@ -772,7 +770,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     //        return pthDirCSV;
     //    String szFiin = p_fi.toString();
     //    props.setLastDir(szFiin);
-    p_fi = cntrlr.assegnaLastDir(p_fi, bForce);
+    p_fi = model.assegnaLastDir(p_fi, bForce);
     impostaTitolo();
     if (p_setTx)
       txDirExports.setText(p_fi.toString());
@@ -782,8 +780,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   }
 
   private void reloadListFilesCSV() {
-    s_log.debug("Ricarico la lista files CSV da: {}", cntrlr.getLastDir());
-    ObservableList<ImpFile> liFilesCSV = cntrlr.getContCsv().loadListFiles();
+    s_log.debug("Ricarico la lista files CSV da: {}", model.getLastDir());
+    ObservableList<ImpFile> liFilesCSV = model.getContCsv().loadListFiles();
     tblvFiles.getItems().clear();
     tblvFiles.getItems().addAll(liFilesCSV);
     colorizeTblView();
@@ -820,12 +818,12 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     tblvFiles.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     btConvCSV.setDisable(false);
 
-    s_log.debug("Ricaricata lista files dal dir \"{}\"", cntrlr.getLastDir().toString());
+    s_log.debug("Ricaricata lista files dal dir \"{}\"", model.getLastDir().toString());
   }
 
   private void checkPresenceFilesCSV() {
     s_log.debug("Verifica presenza files registrati nel DB sul dir");
-    List<ImpFile> li = cntrlr.getContCsv().controllaFilesAssenti();
+    List<ImpFile> li = model.getContCsv().controllaFilesAssenti();
     if (null == li || li.size() == 0) {
       s_log.info("Tutti i file registrati sono presenti");
       return;
@@ -842,7 +840,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     dial.getButtonTypes().setAll(btClear, btOk);
     Optional<ButtonType> res = dial.showAndWait();
     if (res.get() == btClear)
-      cntrlr.getContCsv().cancellaRegsFiles(li);
+      model.getContCsv().cancellaRegsFiles(li);
   }
 
   private void colorizeTblView() {
@@ -870,7 +868,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private void showFileDoc() {
     // Path it = liBanca.getSelectionModel().getSelectedItem();
     ImpFile imf = tblvFiles.getSelectionModel().getSelectedItem();
-    Path it = imf.fullPath(cntrlr.getLastDir());
+    Path it = imf.fullPath(model.getLastDir());
     // System.out.println("Ctx menu: path="+it);
     try {
       if (Desktop.isDesktopSupported()) {
@@ -886,7 +884,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
 
   private void vaiAlDir() {
     ImpFile imf = tblvFiles.getSelectionModel().getSelectedItem();
-    Path pth = cntrlr.getLastDir();
+    Path pth = model.getLastDir();
     String pth2 = imf.getRelDir();
     Path padre = Paths.get(pth.toString(), pth2);
     // System.out.printf("LoadBancaController.vaiAlDir(%s)\n", padre.toString());
@@ -955,8 +953,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       return;
     // System.out.printf("LoadBancaController.eliminaRegistrazioni(%s)\n", imf.getFileName());
     s_log.warn("Elimino le registrazioini di {}", imf.getFileName());
-    cntrlr.getContCsv().cancellaRegsFiles(Arrays.asList(new ImpFile[] { imf }));
-    imf.garbleName(cntrlr.getLastDir());
+    model.getContCsv().cancellaRegsFiles(Arrays.asList(new ImpFile[] { imf }));
+    imf.garbleName(model.getLastDir());
     reloadListFilesCSV();
   }
 

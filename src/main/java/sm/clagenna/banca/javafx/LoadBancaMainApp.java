@@ -2,7 +2,6 @@ package sm.clagenna.banca.javafx;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
@@ -18,7 +17,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -34,11 +32,9 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.sql.ConvDBBanca;
-import sm.clagenna.stdcla.sql.EServerId;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
-import sm.clagenna.stdcla.sql.DBConn;
-import sm.clagenna.stdcla.sql.DBConnFactory;
+import sm.clagenna.stdcla.sql.EServerId;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
@@ -53,18 +49,18 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   @Getter
   private static LoadBancaMainApp inst;
 
-  private String         skin;
-  private URL            mainCSS;
+  private String        skin;
+  private URL           mainCSS;
   @Getter @Setter
-  private AppProperties  props;
+  private AppProperties props;
   @Getter @Setter
-  private Stage          primaryStage;
+  private Stage         primaryStage;
   @Getter @Setter
-  private IStartApp      controller;
+  private IStartApp     controller;
+  //  @Getter @Setter
+  //  private DBConn         dbConn;
   @Getter @Setter
-  private DBConn         dbConn;
-  @Getter @Setter
-  private DataModel     model;
+  private DataModel model;
 
   private List<ResultView> m_liResViews;
   private ViewContanti     m_viewContanti;
@@ -105,6 +101,36 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     primaryStage.show();
   }
 
+  @Override
+  public void initApp(AppProperties p_props) {
+    try {
+      model = new DataModel();
+      model.initApp(props);
+      props = model.getProps();
+      skin = props.getProperty(AppProperties.CSZ_PROP_SKIN);
+      if (null == skin)
+        skin = "LoadBancaFX";
+
+      int px = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_X);
+      int py = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_Y);
+      int dx = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_X);
+      int dy = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_Y);
+
+      var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+      if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
+        primaryStage.setX(mm.poxX());
+        primaryStage.setY(mm.posY());
+        primaryStage.setWidth(mm.width());
+        primaryStage.setHeight(mm.height());
+      }
+    } catch (Exception e) {
+      LoadBancaMainApp.s_log.error("Errore in main initApp: {}", e.getMessage(), e);
+      System.exit(1957);
+    }
+    model.addPropertyChangeListener(this);
+    checkConvDB();
+  }
+
   public URL getUrlCSS() {
     if (null != mainCSS)
       return mainCSS;
@@ -132,44 +158,6 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     return skin;
   }
 
-  @Override
-  public void initApp(AppProperties p_props) {
-    try {
-      AppProperties.setSingleton(false);
-      DBConnFactory.setSingleton(false);
-      props = p_props;
-      if (props == null) {
-        props = new AppProperties();
-        props.leggiPropertyFile(new File(LoadBancaMainApp.CSZ_MAIN_PROPS), false, false);
-      }
-      scegliDB();
-      model = new DataModel();
-      model.initApp(props);
-      model.setDbConn(dbConn);
-      skin = props.getProperty(AppProperties.CSZ_PROP_SKIN);
-      if (null == skin)
-        skin = "LoadBancaFX";
-
-      int px = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_X);
-      int py = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_Y);
-      int dx = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_X);
-      int dy = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_Y);
-
-      var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-      if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
-        primaryStage.setX(mm.poxX());
-        primaryStage.setY(mm.posY());
-        primaryStage.setWidth(mm.width());
-        primaryStage.setHeight(mm.height());
-      }
-    } catch (Exception l_e) {
-      LoadBancaMainApp.s_log.error("Errore in main initApp: {}", l_e.getMessage(), l_e);
-      System.exit(1957);
-    }
-    model.addPropertyChangeListener(this);
-    checkConvDB();
-  }
-
   private void checkConvDB() {
     bCheckConvDb = props.getBooleanProperty(PROP_CHECK_CONV, true);
     if ( !bCheckConvDb)
@@ -192,21 +180,21 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     cnv.checkConversione(szDbFile);
   }
 
-  public void scegliDB() {
-    String szDbType;
-    try {
-      szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
-      // connSQL = new DBConnSQL();
-      DBConnFactory conFact = new DBConnFactory();
-      dbConn = conFact.get(szDbType);
-      dbConn.readProperties(props);
-      dbConn.doConn();
-    } catch (Exception e) {
-      s_log.error("Errore apertura DB, error={}", e.getMessage(), e);
-      Platform.exit();
-      System.exit(1957);
-    }
-  }
+  //  public void scegliDB() {
+  //    String szDbType;
+  //    try {
+  //      szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
+  //      // connSQL = new DBConnSQL();
+  //      DBConnFactory conFact = new DBConnFactory();
+  //      dbConn = conFact.get(szDbType);
+  //      dbConn.readProperties(props);
+  //      dbConn.doConn();
+  //    } catch (Exception e) {
+  //      s_log.error("Errore apertura DB, error={}", e.getMessage(), e);
+  //      Platform.exit();
+  //      System.exit(1957);
+  //    }
+  //  }
 
   @Override
   public void changeSkin() {
@@ -423,8 +411,9 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
 
     switch (szEvt) {
       case DataModel.EVT_DBCHANGE:
-        s_log.warn("Cambio di DB, ora sono su {}", evt.getNewValue());
-        scegliDB();
+        // questo lo fa il model
+        //        s_log.warn("Cambio di DB, ora sono su {}", evt.getNewValue());
+        //        scegliDB();
         break;
     }
   }

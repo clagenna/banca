@@ -9,7 +9,6 @@ import org.apache.logging.log4j.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.sql.DBConn;
@@ -21,10 +20,10 @@ public class TreeCodStat {
   //  @Getter @Setter
   //  private Path    fileCodStats;
   @Getter @Setter
-  private CodStat        root;
+  private CodStat   root;
   @Getter @Setter
-  private String         codStat;
-  private DataModel contrlr;
+  private String    codStat;
+  private DataModel model;
   // private AppProperties        codstats;
   @Getter
   private Map<String, CodStat> mapCodStat;
@@ -43,7 +42,7 @@ public class TreeCodStat {
 
   private void init() {
     setRoot(new CodStat());
-    contrlr = DataModel.getInst();
+    model = DataModel.getInst();
     // String szficds = null;
     //    if (null != contrlr) {
     //      props = contrlr.getProps();
@@ -54,8 +53,8 @@ public class TreeCodStat {
     //    setFileCodStats(Paths.get(szficds));
     // mapCodStat = new TreeMap<String, CodStat>(String.CASE_INSENSITIVE_ORDER);
     root = new CodStat();
-    dbConn = LoadBancaMainApp.getInst().getDbConn();
-    sqlGest = (SqlGest) SqlGestFactory.get(contrlr.getDBType());
+    dbConn = model.getDbConn();
+    sqlGest = (SqlGest) SqlGestFactory.get(dbConn.getServerId());
     sqlGest.setDbconn(dbConn);
   }
 

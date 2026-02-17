@@ -128,12 +128,11 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private Scene myScene;
   private Stage lstage;
   //   private AppProperties       m_prQries;
-  private LoadBancaMainApp    m_appmain;
+  private LoadBancaMainApp       m_appmain;
   @Getter
-  private AppProperties       mainProps;
-  private ISQLGest            m_db;
-  private Map<String, String> m_mapQry;
-
+  private AppProperties          mainProps;
+  private ISQLGest               m_db;
+  private Map<String, String>    m_mapQry;
   private Integer                m_fltrAnnoComp;
   private String                 m_fltrMeseComp;
   private String                 m_fltrWhere;
@@ -143,20 +142,21 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private String                 m_qry;
   @Getter @Setter
   private GestResViewQueryParams m_gestQry;
-
-  private TableViewFillerBanca m_tbvf;
-  private Path                 m_CSVfile;
-  private String               m_fltrTipoBanca;
-  private DataModel       model;
+  private TableViewFillerBanca   m_tbvf;
+  private Path                   m_CSVfile;
+  private String                 m_fltrTipoBanca;
+  private DataModel              model;
   @Getter @Setter
-  private boolean              csvBlankOnZero;
-  private String               m_codStatSel;
-  private boolean              bSemaf;
-  private Double               precDare;
-  private Double               precAvere;
+  private boolean                csvBlankOnZero;
+  private String                 m_codStatSel;
+  private boolean                bSemaf;
+  private Double                 precDare;
+  private Double                 precAvere;
 
   @SuppressWarnings("unused")
   private AutoCompleteComboBoxListener<String> autoCbComp;
+
+  private DBConn dbconn;
 
   public ResultView() {
     //
@@ -173,10 +173,11 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addResView(this);
     mainProps = m_appmain.getProps();
-    model = m_appmain.getModel();
+    model = DataModel.getInst();
+    dbconn = model.getDbConn();
     model.addPropertyChangeListener(this);
 
-    scegliDB(p_props);
+    scegliDB();
     caricaComboTipoBanca();
     caricaComboAnno();
     caricaComboMesecomp();
@@ -200,10 +201,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     abilitaBottoni();
   }
 
-  private void scegliDB(AppProperties p_props) {
-    String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
-    m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(LoadBancaMainApp.getInst().getDbConn());
+  private void scegliDB() {
+    m_db = SqlGestFactory.get(dbconn.getServerId());
+    m_db.setDbconn(dbconn);
   }
 
   private void caricaComboQrySalvate() {
@@ -606,7 +606,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     // System.out.println(StackViewer.viewStackTrace("ResultView.creaTableResultThread()"));
     TableViewFiller.setNullRetValue("");
 
-    m_tbvf = new TableViewFillerBanca(tblview, m_appmain.getDbConn());
+    m_tbvf = new TableViewFillerBanca(tblview, dbconn);
 
     // m_tbvf.setResView(this);
     if (fltrParolaRegEx) {

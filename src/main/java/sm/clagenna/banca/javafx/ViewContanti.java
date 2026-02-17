@@ -83,13 +83,6 @@ public class ViewContanti implements Initializable, IStartApp {
   private TextField               txDescr;
   @FXML
   private Button                  btCerca;
-  //  @FXML
-  //  private Button                  btInsert;
-  //  @FXML
-  //  private Button                  btModifica;
-  //  @FXML
-  //  private Button                  btElimina;
-
   @FXML
   private TableView<List<Object>> tblview;
   @FXML
@@ -99,15 +92,12 @@ public class ViewContanti implements Initializable, IStartApp {
   private Scene            myScene;
   private Stage            lstage;
   private LoadBancaMainApp m_appmain;
-  // private AppProperties     m_mainProps;
-  private ISQLGest        m_db;
-  private EModalitaView   modalita;
-  private TableViewFiller m_tbvf;
-  private RigaBanca       contante;
-  //  private PreparedStatement stmtIns;
-  // private PreparedStatement stmtMod;
-  //  private PreparedStatement stmtDel;
-  private String szQryWhere;
+  private DataModel        model;
+  private ISQLGest         m_db;
+  private EModalitaView    modalita;
+  private TableViewFiller  m_tbvf;
+  private RigaBanca        contante;
+  private String           szQryWhere;
 
   public ViewContanti() {
     //
@@ -115,13 +105,13 @@ public class ViewContanti implements Initializable, IStartApp {
 
   @Override
   public void initApp(AppProperties p_props) {
-    // m_mainProps = p_props;
+    model = DataModel.getInst();
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addViewContanti(this);
     contante = new RigaBanca(CSZ_Contanti);
     String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
     m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(LoadBancaMainApp.getInst().getDbConn());
+    m_db.setDbconn(model.getDbConn());
 
     impostaForma(p_props);
     caricaComboModalita();
@@ -375,7 +365,7 @@ public class ViewContanti implements Initializable, IStartApp {
 
   @SuppressWarnings("unused")
   private void creaTableResult(String szQryFltr) {
-    m_tbvf = new TableViewFiller(tblview, m_appmain.getDbConn());
+    m_tbvf = new TableViewFiller(tblview, model.getDbConn());
     m_tbvf.setSzQry(szQryFltr);
     try {
       m_tbvf.call();
@@ -399,7 +389,7 @@ public class ViewContanti implements Initializable, IStartApp {
 
   private void creaTableResultThread(String szQryFltr) {
     TableViewFiller.setNullRetValue("");
-    m_tbvf = new TableViewFiller(tblview, m_appmain.getDbConn());
+    m_tbvf = new TableViewFiller(tblview, model.getDbConn());
     m_tbvf.setSzQry(szQryFltr);
 
     ExecutorService backGrService = Executors.newFixedThreadPool(1);

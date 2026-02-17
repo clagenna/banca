@@ -39,8 +39,8 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import sm.clagenna.banca.dati.CsvImportBanca;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.ImpFile;
-import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.Utils;
 
@@ -72,6 +72,8 @@ public class ProvaProgrBarCla extends Application {
 
   private Stage            primStage;
   private ProvaProgrBarCla controller;
+  private DataModel        model;
+  private DBConn           dbconn;
   private List<ImpFile>    elenco;
 
   private int qtaActiveTasks;
@@ -97,6 +99,9 @@ public class ProvaProgrBarCla extends Application {
   @Override
   public void init() throws Exception {
     super.init();
+    model = new DataModel();
+    model.initApp(null);
+    dbconn = model.getDbConn();
     // System.out.printf("ProvaProgrBarCla.init(%d)\n", this.hashCode() % 1023);
   }
 
@@ -257,8 +262,7 @@ public class ProvaProgrBarCla extends Application {
           Throwable ex = ev.getSource().getException();
           s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
         });
-        DBConn connSQL = LoadBancaMainApp.getInst().getDbConn();
-        cvsimp.setConnSql(connSQL);
+        cvsimp.setConnSql(dbconn);
         backGrService.execute(cvsimp);
       } catch (Exception e) {
         progb.progressProperty().unbind();
