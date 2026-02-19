@@ -21,6 +21,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -215,12 +216,23 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       treeView_filtra(null);
     });
 
-    MenuItem mi2 = new MenuItem("Aggiung/modifica");
+    MenuItem mi2 = new MenuItem("modifica");
     mi2.setOnAction((ActionEvent _) -> {
-      treeView_modTree(null);
+      treeView_modTree(true);
     });
+
+    MenuItem mi3 = new MenuItem("Aggiungi");
+    mi3.setOnAction((ActionEvent _) -> {
+      treeView_modTree(false);
+    });
+
+    MenuItem mi4 = new MenuItem("Elimina");
+    mi4.setOnAction((ActionEvent _) -> {
+      treeView_eliminaCodstat();
+    });
+
     ContextMenu menu = new ContextMenu();
-    menu.getItems().addAll(mi1, mi2);
+    menu.getItems().addAll(mi1, mi2, mi3, mi4);
     // liBanca.setContextMenu(menu);
     treeview.setContextMenu(menu);
 
@@ -240,7 +252,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     model.firePropertyChange(DataModel.EVT_FILTER_CODSTAT, null, cds);
   }
 
-  private void treeView_modTree(Object object) {
+  private void treeView_modTree(boolean bModif) {
     URL url = getClass().getResource(ModTreeCodStat.CSZ_FXMLNAME);
     if (url == null)
       url = getClass().getClassLoader().getResource(ModTreeCodStat.CSZ_FXMLNAME);
@@ -268,16 +280,35 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     stageModCodStat.setY(20.);
     // verifica che nel FXML ci sia la dichiarazione:
     // <userData> <fx:reference source="controller" /> </userData>
+    CodStat cds = null;
     if (modTreeView != null) {
       TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
-      if (null != tricds) {
-        CodStat cds = tricds.getValue();
-        modTreeView.setCdsPadre(cds);
+      try {
+        // faccio una copia di lavoro
+        if (null != tricds) {
+          cds = (CodStat) tricds.getValue().clone();
+        }
+      } catch (CloneNotSupportedException e) {
+        s_log.error("Clonazione CodStat, err={}", e.getMessage());
       }
       modTreeView.setMyScene(scene);
+      if (bModif)
+        modTreeView.setCdsLavoro(cds);
+      else {
+        CodStat newc = CodStat.parse(cds.getCodice());
+        newc.setIdCodStat(0);
+        newc.setDescr("");
+        newc.setFather(cds);
+        modTreeView.setCdsLavoro(newc);
+      }
+      System.out.printf("Show ModTreeCodStat(%d)\n", modTreeView.hashCode() % 1023);
       modTreeView.initApp(mainProps);
     }
     stageModCodStat.show();
+  }
+
+  private void treeView_eliminaCodstat() {
+    m_appmain.messageDialog(AlertType.WARNING, "Cancella Cod. Stat. ancora da implementare");
   }
 
   private String formattaCella(String colNam, TreeItem<CodStat> value) {

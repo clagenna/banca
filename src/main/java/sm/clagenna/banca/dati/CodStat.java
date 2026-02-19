@@ -12,7 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class CodStat implements Comparable<CodStat> {
+public class CodStat implements Comparable<CodStat>, Cloneable {
   private static final Logger s_log = LogManager.getLogger(CodStat.class);
 
   @Getter @Setter
@@ -44,8 +44,9 @@ public class CodStat implements Comparable<CodStat> {
   }
 
   public CodStat(int idCd, String cods, String desc) {
+    assign(CodStat.parse(cods));
+    // la parse torna un nuovo CodStat senza idCodStat
     setIdCodStat(idCd);
-    assign(parse(cods));
     setDescr(desc);
   }
 
@@ -73,6 +74,10 @@ public class CodStat implements Comparable<CodStat> {
       figli = new TreeSet<CodStat>();
     if (null != p_cds.figli)
       figli.addAll(p_cds.figli);
+  }
+
+  public boolean isInDB() {
+    return Utils.isValue(idCodStat);
   }
 
   public CodStat getFather() {
@@ -156,6 +161,8 @@ public class CodStat implements Comparable<CodStat> {
 
   public CodStat getPadre() {
     CodStat ret = null;
+    if (null != father)
+      return father;
     switch (livello) {
       case 3:
         ret = new CodStat();
@@ -237,7 +244,7 @@ public class CodStat implements Comparable<CodStat> {
   /**
    * Verifica se e' cambiato il codice statistico oppure la descrizione del
    * modello fornito (<code>p_ob</code>)
-   * 
+   *
    * @param p_ob
    *          altro {@link CodStat} di riferimento
    * @return
@@ -245,11 +252,7 @@ public class CodStat implements Comparable<CodStat> {
   public boolean hasChanged(CodStat p_ob) {
     if (null == p_ob)
       return false;
-    if (cod1 != p_ob.cod1)
-      return true;
-    if (cod2 != p_ob.cod2)
-      return true;
-    if (cod3 != p_ob.cod3)
+    if ((cod1 != p_ob.cod1) || (cod2 != p_ob.cod2) || (cod3 != p_ob.cod3))
       return true;
     return Utils.isChanged(descr, p_ob.descr);
   }
@@ -260,7 +263,7 @@ public class CodStat implements Comparable<CodStat> {
    * allora {@link #matched} = true altrimenti false.<br/>
    * Serve per evindenziare dinamicamente i nodi del treeView quando si cerca un
    * codice statistico in base ad una parola della sua descrizione
-   * 
+   *
    * @param p_sz
    *          la stringa da cercare
    * @return true se la stringa &quot;match-a&quot; la descrizione
@@ -290,8 +293,6 @@ public class CodStat implements Comparable<CodStat> {
       trov = lcd.find(cds);
       if (null != trov)
         return trov;
-      //      if (lcd.equals(cds))
-      //        return lcd;
     }
     return null;
   }
@@ -415,4 +416,13 @@ public class CodStat implements Comparable<CodStat> {
         , Utils.formatDouble(totavere));
   }
 
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    CodStat newc = new CodStat(idCodStat, codice, descr);
+    newc.figli = figli;
+    newc.father = father;
+    newc.totavere=totavere;
+    newc.totdare=totdare;
+    return newc;
+  }
 }
