@@ -289,6 +289,10 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
       default:
         break;
     }
+    // button type YES -> aggiungo il no
+    if ( bt.equals(ButtonType.YES)) {
+      alert.getButtonTypes().setAll(ButtonType.YES,ButtonType.NO);
+    }
     //    alert.setContentText(p_msg);
     WebView webView = new WebView();
     webView.getEngine().loadContent(p_msg);

@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="149.0" prefWidth="427.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.ModTreeCodStat">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="188.0" prefWidth="427.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.ModTreeCodStat">
    <children>
       <Label layoutX="16.0" layoutY="8.0" text="Identificativo DB" />
       <Label fx:id="lbIdCodstat" layoutX="121.0" layoutY="6.0" text="-" textFill="#096802">
@@ -16,16 +16,16 @@
       </Label>
       <Label layoutX="14.0" layoutY="37.0" text="Liv 1" />
       <TextField fx:id="txCd1" layoutX="54.0" layoutY="33.0" prefHeight="25.0" prefWidth="56.0" />
-      <Label layoutX="125.0" layoutY="37.0" text="Liv 2" />
-      <TextField fx:id="txCd2" layoutX="164.0" layoutY="33.0" prefHeight="25.0" prefWidth="56.0" />
-      <Label layoutX="235.0" layoutY="37.0" text="Liv 3" />
-      <TextField fx:id="txCd3" layoutX="274.0" layoutY="33.0" prefHeight="25.0" prefWidth="56.0" />
-      <Button fx:id="btSalva" layoutX="353.0" layoutY="33.0" mnemonicParsing="false" onAction="#btSalvaClick" text="Salva" />
+      <Label layoutX="155.0" layoutY="37.0" text="Liv 2" />
+      <TextField fx:id="txCd2" layoutX="194.0" layoutY="33.0" prefHeight="25.0" prefWidth="56.0" />
+      <Label layoutX="305.0" layoutY="37.0" text="Liv 3" />
+      <TextField fx:id="txCd3" layoutX="344.0" layoutY="33.0" prefHeight="25.0" prefWidth="56.0" />
       <Label layoutX="12.0" layoutY="63.0" text="Padre" />
       <Label fx:id="lbDescr" layoutX="57.0" layoutY="63.0" text=".." />
       <Label layoutX="16.0" layoutY="94.0" text="Descr" />
       <TextField fx:id="txDescr" layoutX="53.0" layoutY="90.0" prefHeight="25.0" prefWidth="352.0" />
-      <Label fx:id="lbMessage" layoutX="17.0" layoutY="121.0" prefHeight="17.0" prefWidth="387.0" textAlignment="CENTER" textFill="#b25b04" wrapText="true">
+      <Button fx:id="btSalva" layoutX="170.0" layoutY="123.0" mnemonicParsing="false" onAction="#btSalvaClick" text="Salva" />
+      <Label fx:id="lbMessage" layoutX="20.0" layoutY="155.0" prefHeight="17.0" prefWidth="387.0" textAlignment="CENTER" textFill="#b25b04" wrapText="true">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>

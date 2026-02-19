@@ -35,17 +35,18 @@ public class CsvFileContainer {
   private static final Logger s_log = LogManager.getLogger(CsvFileContainer.class);
 
   private static final String QRY_SEL = //
-      "SELECT id," //
-          + "       filename," //
-          + "       reldir," //
-          + "       size," //
-          + "       qtarecs," //
-          + "       dtmin," //
-          + "       dtmax," //
-          + "       ultagg" //
-          + " FROM impFiles" //
-          + " WHERE filename = ?" //
-          + " AND relDir = ?";
+      """
+           SELECT id,
+                filename,
+                reldir,
+                size,
+                qtarecs,
+                dtmin,
+                dtmax,
+                ultagg
+           FROM impFiles
+           WHERE filename = ?
+           AND relDir = ? """;
 
   private static final String QRY_UPD = //
       "UPDATE impFiles SET " //

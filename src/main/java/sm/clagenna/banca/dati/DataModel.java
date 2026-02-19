@@ -26,6 +26,8 @@ import lombok.Setter;
 import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ESqlFiltri;
+import sm.clagenna.banca.sql.ISQLGest;
+import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.DBConnFactory;
@@ -46,12 +48,12 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   private static final String CSZ_PERC_INDOV   = "PERC_INDOV";
   public static final String  CSZ_FILTER_FILES = "filter_files";
 
-  public static final String EVT_DBCHANGE         = "dbchange";
-  public static final String EVT_CODSTAT          = "codstat";
-  public static final String EVT_SELCODSTAT       = "selcodstat";
-  public static final String EVT_NEW_QUERY_RESULT = "dtsresult";
-  // public static final String EVT_FILECODSTATS        = "filecodstats";
+  public static final String EVT_DBCHANGE            = "dbchange";
+  public static final String EVT_CODSTAT_STRING      = "codstat";
+  public static final String EVT_SELCODSTAT          = "selcodstat";
+  public static final String EVT_NEW_QUERY_RESULT    = "dtsresult";
   public static final String EVT_TOTCODSTAT          = "totcodstats";
+  public static final String EVT_DBCODSTAT_CHANGED   = "DBCodstat";
   public static final String EVT_TREECODSTAT_CHANGED = "treeCodstat";
   public static final String EVT_FILTER_CODSTAT      = "filterCodstat";
   public static final String EVT_DATASET_CREATED     = "datasetCreated";
@@ -99,6 +101,8 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   private String                qryResulViewOld;
   @Getter @Setter
   private PropertyChangeSupport propsChange;
+  @Getter
+  private ISQLGest              sqlgest;
 
   public DataModel() {
     if (null != s_inst) {
@@ -233,6 +237,12 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     //      e.printStackTrace();
     //      return;
     //    }
+    //    codStatData = new TreeitemCodStat();
+    //    codStatData.readTreeCodStats();
+    refreshCodstatData();
+  }
+
+  private void refreshCodstatData() {
     codStatData = new TreeitemCodStat();
     codStatData.readTreeCodStats();
   }
@@ -265,6 +275,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       Platform.exit();
       System.exit(1957);
     }
+    sqlgest = SqlGestFactory.get(dbConn.getServerId());
   }
 
   @Override
@@ -354,8 +365,9 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   public void setCodStat(String value) {
     if (null == value || value.equals("00"))
       return;
-    firePropertyChange(DataModel.EVT_CODSTAT, codStatData.getCodStat(), value);
+    String szOldCds = codStatData.getCodStat();
     codStatData.setCodStat(value);
+    firePropertyChange(DataModel.EVT_CODSTAT_STRING, szOldCds, value);
   }
 
   public void azzeraTotaliCodStat() {
@@ -420,6 +432,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   public void propertyChange(PropertyChangeEvent evt) {
     String szEvtId = evt.getPropertyName();
     switch (szEvtId) {
+
       case DataModel.EVT_DBCHANGE:
         s_log.warn("Cambio di DB, ora sono su {}", evt.getNewValue());
         openDb();
@@ -431,7 +444,14 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       //        String sz = ParseData.s_fmtDtDate.format(new Date());
       //        props.setProperty(CSZ_PROP_DATAFILECDS, sz);
       //        break;
+
+      case DataModel.EVT_DBCODSTAT_CHANGED:
+        CodStat cdsLavoro = (CodStat) evt.getNewValue();
+        refreshCodstatData();
+        codStatData.setCodStat(cdsLavoro.getCodice());
+        break;
     }
+
   }
 
 }

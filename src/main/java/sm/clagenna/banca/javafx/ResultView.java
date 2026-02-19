@@ -682,7 +682,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     String szEvt = evt.getPropertyName();
     switch (szEvt) {
 
-      case DataModel.EVT_CODSTAT:
+      case DataModel.EVT_CODSTAT_STRING:
         m_codStatSel = evt.getNewValue().toString();
         Platform.runLater(() -> {
           DataModel data = m_appmain.getModel();

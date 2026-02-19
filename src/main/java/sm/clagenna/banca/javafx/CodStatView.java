@@ -7,6 +7,7 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import org.apache.logging.log4j.LogManager;
@@ -23,6 +24,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
@@ -39,8 +41,10 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.DataModel;
+import sm.clagenna.banca.dati.TreeCodStat;
 import sm.clagenna.banca.dati.TreeitemCodStat;
 import sm.clagenna.banca.sql.ISQLGest;
+import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
@@ -103,7 +107,6 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   @Getter @Setter
   private String           styMatchDescr;
   private boolean          bInEventEnterFile;
-
   private ModTreeCodStat modTreeView;
 
   public CodStatView() {
@@ -308,7 +311,20 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   }
 
   private void treeView_eliminaCodstat() {
-    m_appmain.messageDialog(AlertType.WARNING, "Cancella Cod. Stat. ancora da implementare");
+    // m_appmain.messageDialog(AlertType.WARNING, "Cancella Cod. Stat. ancora da implementare");
+    TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
+    CodStat cds = (CodStat) tricds.getValue();
+    String szMsg = String.format("Sei sicuro di voler eliminare il codice Stat.:<br/><b> %s</b>", cds.toStringEx());
+    Optional<ButtonType> btRet = m_appmain.messageDialog(AlertType.CONFIRMATION, szMsg, ButtonType.YES);
+    if (btRet.isEmpty() || btRet.get().equals(ButtonType.NO))
+      return;
+    System.out.printf("CodStatView eliminaCodstat(%s)\n", cds.toStringEx());
+    SqlGest sqlg = model.getCodStatData().getSqlGest();
+    szMsg = sqlg.deleteCodStat(cds);
+    TreeCodStat treedata = model.getCodStatData();
+    treedata.delete(cds);
+    model.firePropertyChange(DataModel.EVT_TREECODSTAT_CHANGED, null, cds);
+    m_appmain.messageDialog(AlertType.INFORMATION, szMsg);
   }
 
   private String formattaCella(String colNam, TreeItem<CodStat> value) {
@@ -430,8 +446,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
    * @param event
    */
   @FXML
-  @Deprecated
   void btCercaFileClick(ActionEvent event) {
+    m_appmain.messageDialog(AlertType.INFORMATION, "Funzione Cerca File da implementare");
     // System.out.println("CodStatView.btCercaFileClick()");
     //    Path pth = Paths.get(txFileCodStat.getText());
     //    if (Files.exists(pth, LinkOption.NOFOLLOW_LINKS))
@@ -445,13 +461,13 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
   @FXML
   void btImportFileClick(ActionEvent event) {
-    System.out.println("CodStatView.btImportFileClick()");
+    m_appmain.messageDialog(AlertType.INFORMATION, "Funzione Import da implementare");
   }
-
-  @FXML
-  void btSaveCodStatSuDBClick(ActionEvent event) {
-    System.out.println("CodStatView.btSaveCodStatSuDBClick()");
-  }
+  //
+  //  @FXML
+  //  void btSaveCodStatSuDBClick(ActionEvent event) {
+  //    System.out.println("CodStatView.btSaveCodStatSuDBClick()");
+  //  }
 
   @Override
   public void changeSkin() {
@@ -545,10 +561,14 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         if (obj instanceof CodStat cds) {
           Platform.runLater(() -> {
             treeItems.expandNode(cds);
+            treeItems.refreshTreeItems();
             treeview.setRoot(treeItems.getTreeItemRoot());
             treeview.refresh();
           });
         }
+        break;
+        
+      case DataModel.EVT_DBCODSTAT_CHANGED:
         break;
     }
   }

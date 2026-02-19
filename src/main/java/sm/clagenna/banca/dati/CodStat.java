@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -74,6 +75,17 @@ public class CodStat implements Comparable<CodStat>, Cloneable {
       figli = new TreeSet<CodStat>();
     if (null != p_cds.figli)
       figli.addAll(p_cds.figli);
+  }
+
+  public void delete(CodStat lcd) {
+    if (null == figli || figli.size() == 0)
+      return;
+    List<CodStat> trov = figli //
+        .stream() //
+        .filter(s -> s.getCodice().equals(lcd.getCodice())) //
+        .collect(Collectors.toList());
+    if (null != trov && trov.size() > 0)
+      figli.remove(trov.get(0));
   }
 
   public boolean isInDB() {
@@ -252,7 +264,7 @@ public class CodStat implements Comparable<CodStat>, Cloneable {
   public boolean hasChanged(CodStat p_ob) {
     if (null == p_ob)
       return false;
-    if ((cod1 != p_ob.cod1) || (cod2 != p_ob.cod2) || (cod3 != p_ob.cod3))
+    if ( (cod1 != p_ob.cod1) || (cod2 != p_ob.cod2) || (cod3 != p_ob.cod3))
       return true;
     return Utils.isChanged(descr, p_ob.descr);
   }
@@ -421,8 +433,8 @@ public class CodStat implements Comparable<CodStat>, Cloneable {
     CodStat newc = new CodStat(idCodStat, codice, descr);
     newc.figli = figli;
     newc.father = father;
-    newc.totavere=totavere;
-    newc.totdare=totdare;
+    newc.totavere = totavere;
+    newc.totdare = totdare;
     return newc;
   }
 }

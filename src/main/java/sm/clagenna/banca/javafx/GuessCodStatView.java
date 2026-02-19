@@ -675,7 +675,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     String szEvt = evt.getPropertyName();
     switch (szEvt) {
 
-      case DataModel.EVT_CODSTAT:
+      case DataModel.EVT_CODSTAT_STRING:
         m_codStatSel = evt.getNewValue().toString();
         Platform.runLater(() -> {
           // DataController data = m_appmain.getData();

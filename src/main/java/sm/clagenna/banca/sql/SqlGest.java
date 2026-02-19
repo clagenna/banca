@@ -34,22 +34,22 @@ public abstract class SqlGest implements ISQLGest {
   // private PreparedStatement stmtLastRowId;
   private PreparedStatement stmtInsCodStat;
   private PreparedStatement stmtModCodStat;
+  private PreparedStatement stmtDelCodStat;
 
   //  @Getter @Setter
   //  private String  tableName;
   @Getter @Setter
-  private DBConn  dbconn;
+  private DBConn                  dbconn;
   @Getter @Setter
-  private boolean overwrite;
+  private boolean                 overwrite;
   @Getter @Setter
-  private int     deleted;
+  private int                     deleted;
   @Getter @Setter
-  private int     scarti;
+  private int                     scarti;
   @Getter @Setter
-  private int     added;
+  private int                     added;
   @Getter @Setter
-  private int     lastRowid;
-
+  private int                     lastRowid;
   private HashMap<String, String> m_mapCausABI;
 
   static {
@@ -202,6 +202,51 @@ public abstract class SqlGest implements ISQLGest {
   }
 
   @Override
+  public boolean insertMovimento(RigaBanca p_rig) {
+    boolean bRet = false;
+    lastRowid = -1;
+    // TimerMeter tm = new TimerMeter("Insert");
+    try {
+      if (null == stmtIns) {
+        String qry = getQryINSMov();
+        Connection conn = dbconn.getConn();
+        stmtIns = conn.prepareStatement(qry.toString());
+        // stmtLastRowId = conn.prepareStatement(getQryLASTROWID());
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore prep statement INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
+      return false;
+    }
+
+    try {
+      String szCaus = p_rig.getAbicaus();
+      if (null != szCaus)
+        szCaus = szCaus.replace(".0", "");
+      String szDescr = p_rig.getDescr();
+      if (Utils.isValue(szDescr) && szDescr.length() > 512)
+        szDescr = szDescr.substring(0, 512);
+      int k = 1;
+      dbconn.setStmtString(stmtIns, k++, p_rig.getTiporec());
+      dbconn.setStmtInt(stmtIns, k++, p_rig.getIdfile());
+      dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtmov());
+      dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtval());
+      dbconn.setStmtImporto(stmtIns, k++, p_rig.getDare());
+      dbconn.setStmtImporto(stmtIns, k++, p_rig.getAvere());
+      dbconn.setStmtString(stmtIns, k++, szDescr);
+      dbconn.setStmtString(stmtIns, k++, szCaus);
+      dbconn.setStmtString(stmtIns, k++, p_rig.getCardid());
+      dbconn.setStmtString(stmtIns, k++, p_rig.getCodstat());
+
+      stmtIns.executeUpdate();
+      lastRowid = dbconn.getLastIdentity();
+    } catch (SQLException e) {
+      getLog().error("Errore INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
+    }
+    // System.out.println(tm.stop());
+    return bRet;
+  }
+
+  @Override
   public int deleteMovimento(RigaBanca rig) {
     int qtaDel = 0;
     // TimerMeter tm = new TimerMeter("Delete");
@@ -272,6 +317,28 @@ public abstract class SqlGest implements ISQLGest {
     return bRet;
   }
 
+  public void insertCodStat(CodStat cdsCurr) {
+    try {
+      if (null == stmtInsCodStat) {
+        Connection conn = dbconn.getConn();
+        stmtInsCodStat = conn.prepareStatement(getQryINSCodstat());
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryINSCodstat(), e.getMessage(), e);
+    }
+    try {
+      int k = 1;
+      dbconn.setStmtString(stmtInsCodStat, k++, cdsCurr.getCodice());
+      dbconn.setStmtString(stmtInsCodStat, k++, cdsCurr.getDescr());
+  
+      stmtInsCodStat.executeUpdate();
+      lastRowid = dbconn.getLastIdentity();
+      cdsCurr.setIdCodStat(lastRowid);
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryMODCodstat(), e.getMessage(), e);
+    }
+  }
+
   @Override
   public boolean updateCodStat(RigaBanca rig) {
     String qry1 = getQryMODMovCodstat();
@@ -322,49 +389,30 @@ public abstract class SqlGest implements ISQLGest {
     return true;
   }
 
-  @Override
-  public boolean insertMovimento(RigaBanca p_rig) {
-    boolean bRet = false;
-    lastRowid = -1;
-    // TimerMeter tm = new TimerMeter("Insert");
+  public String deleteCodStat(CodStat cds) {
+    String szRet = null;
+    if (null == cds || cds.getIdCodStat() == 0) {
+      szRet = String.format("Insufficienti info per cancellare <br/>%s", null != cds ? cds.toStringEx() : "*null*");
+      return szRet;
+    }
+    Connection conn = dbconn.getConn();
     try {
-      if (null == stmtIns) {
-        String qry = getQryINSMov();
-        Connection conn = dbconn.getConn();
-        stmtIns = conn.prepareStatement(qry.toString());
-        // stmtLastRowId = conn.prepareStatement(getQryLASTROWID());
+      if (null == stmtDelCodStat) {
+        stmtDelCodStat = conn.prepareStatement(getQryDELCodstat());
       }
     } catch (SQLException e) {
-      getLog().error("Errore prep statement INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
-      return false;
+      getLog().error("Query {}; err={}", getQryDELCodstat(), e.getMessage());
     }
-
     try {
-      String szCaus = p_rig.getAbicaus();
-      if (null != szCaus)
-        szCaus = szCaus.replace(".0", "");
-      String szDescr = p_rig.getDescr();
-      if (Utils.isValue(szDescr) && szDescr.length() > 512)
-        szDescr = szDescr.substring(0, 512);
       int k = 1;
-      dbconn.setStmtString(stmtIns, k++, p_rig.getTiporec());
-      dbconn.setStmtInt(stmtIns, k++, p_rig.getIdfile());
-      dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtmov());
-      dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtval());
-      dbconn.setStmtImporto(stmtIns, k++, p_rig.getDare());
-      dbconn.setStmtImporto(stmtIns, k++, p_rig.getAvere());
-      dbconn.setStmtString(stmtIns, k++, szDescr);
-      dbconn.setStmtString(stmtIns, k++, szCaus);
-      dbconn.setStmtString(stmtIns, k++, p_rig.getCardid());
-      dbconn.setStmtString(stmtIns, k++, p_rig.getCodstat());
-
-      stmtIns.executeUpdate();
-      lastRowid = dbconn.getLastIdentity();
+      dbconn.setStmtInt(stmtDelCodStat, k++, cds.getIdCodStat());
+      int qta = stmtDelCodStat.executeUpdate();
+      if (qta > 0)
+        szRet = String.format("Cancellato %s", cds.toStringEx());
     } catch (SQLException e) {
-      getLog().error("Errore INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
+      getLog().error("Query {}; err={}", getQryDELCodstat(), e.getMessage(), e);
     }
-    // System.out.println(tm.stop());
-    return bRet;
+    return szRet;
   }
 
   //  private int trovaLastRowid() {
@@ -421,7 +469,7 @@ public abstract class SqlGest implements ISQLGest {
     String szQryOk = String.format("%s AND idCodStat=%d %s", szSin, cdsCurr.getIdCodStat(), szDes);
     try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(szQryOk)) {
       while (rs.next()) {
-        int idCd = rs.getInt(0);
+        int idCd = rs.getInt(1);
         bRet = idCd == cdsCurr.getIdCodStat();
       }
     } catch (SQLException e) {
@@ -448,28 +496,6 @@ public abstract class SqlGest implements ISQLGest {
       dbconn.setStmtInt(stmtModCodStat, k++, cdsCurr.getIdCodStat());
 
       stmtModCodStat.executeUpdate();
-    } catch (SQLException e) {
-      getLog().error("Query {}; err={}", getQryMODCodstat(), e.getMessage(), e);
-    }
-  }
-
-  public void insertCodStat(CodStat cdsCurr) {
-    try {
-      if (null == stmtInsCodStat) {
-        Connection conn = dbconn.getConn();
-        stmtInsCodStat = conn.prepareStatement(getQryINSCodstat());
-      }
-    } catch (SQLException e) {
-      getLog().error("Query {}; err={}", getQryINSCodstat(), e.getMessage(), e);
-    }
-    try {
-      int k = 1;
-      dbconn.setStmtString(stmtInsCodStat, k++, cdsCurr.getCodice());
-      dbconn.setStmtString(stmtInsCodStat, k++, cdsCurr.getDescr());
-
-      stmtInsCodStat.executeUpdate();
-      lastRowid = dbconn.getLastIdentity();
-      cdsCurr.setIdCodStat(lastRowid);
     } catch (SQLException e) {
       getLog().error("Query {}; err={}", getQryMODCodstat(), e.getMessage(), e);
     }

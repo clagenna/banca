@@ -20,16 +20,15 @@ public class TreeCodStat {
   //  @Getter @Setter
   //  private Path    fileCodStats;
   @Getter @Setter
-  private CodStat   root;
+  private CodStat              root;
   @Getter @Setter
-  private String    codStat;
-  private DataModel model;
-  // private AppProperties        codstats;
+  private String               codStat;
+  private DataModel            model;
   @Getter
   private Map<String, CodStat> mapCodStat;
   private DBConn               dbConn;
-
-  private SqlGest sqlGest;
+  @Getter
+  private SqlGest              sqlGest;
 
   public TreeCodStat() {
     init();
@@ -114,6 +113,13 @@ public class TreeCodStat {
         trova = trovato;
       start = trova;
     }
+  }
+
+  public void delete(CodStat cds) {
+    CodStat lcd = find(cds.getCodice());
+    CodStat padre = lcd.getFather();
+    padre.delete(lcd);
+    
   }
 
   public CodStat find(String string) {

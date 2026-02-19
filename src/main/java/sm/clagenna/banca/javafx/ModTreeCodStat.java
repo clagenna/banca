@@ -22,6 +22,7 @@ import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.TreeitemCodStat;
+import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -211,7 +212,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     Platform.runLater(() -> lbMessage.setText(""));
     CodStat root = codStatData.getRoot();
     cdsTree = root.find(cdsLavoro);
-    // verifico che non ce ne sia uno in root con quel codice, allora lo rifiuto
+    // verifico che non ce ne sia uno in root con quel codice, altrimenti lo rifiuto
     if (null != cdsTree) {
       // test di clash con codice gia' esistente
       if (cdsTree.getIdCodStat() != cdsLavoro.getIdCodStat()) {
@@ -221,7 +222,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
         return;
       }
     }
-    // cdsLavoro non e' presente all'interno del albero !
+    // cod.statis. in cdsLavoro non e' presente all'interno del albero !
     btSalva.setDisable( !cdsLavoro.isValid());
     // descrizione del padre
     cdsPadre = cdsLavoro.getPadre();
@@ -271,6 +272,29 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   @FXML
   void btSalvaClick(ActionEvent event) {
+    if (btSalva.isDisabled())
+      return;
+    DataModel model = DataModel.getInst();
+    SqlGest sqlg = (SqlGest) DataModel.getInst().getSqlgest();
+    sqlg.setDbconn(model.getDbConn());
+    // modalita INSERIMENTO
+    if (cdsLavoro.getIdCodStat() == 0) {
+      codStatData.add(cdsLavoro);
+      codStatData.refreshTreeItems(cdsLavoro);
+      sqlg.insertCodStat(cdsLavoro);
+      Platform.runLater(() -> lbIdCodstat.setText(String.valueOf(cdsLavoro.getIdCodStat())));
+      dataCntr.firePropertyChange(DataModel.EVT_TREECODSTAT_CHANGED, null, cdsLavoro);
+      return;
+    }
+    codStatData.updateTreeItem(cdsLavoro);
+    codStatData.refreshTreeItems(cdsLavoro);
+    codStatData.updateCodStat(cdsLavoro, true);
+    
+    sqlg.updadetCodStat(cdsLavoro);
+    dataCntr.firePropertyChange(DataModel.EVT_TREECODSTAT_CHANGED, null, cdsLavoro);
+  }
+
+  void btSalvaClick_OLD(ActionEvent event) {
     if (btSalva.isDisabled())
       return;
     boolean bChanged = false;

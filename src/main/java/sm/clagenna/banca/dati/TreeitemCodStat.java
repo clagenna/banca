@@ -30,6 +30,11 @@ public class TreeitemCodStat extends TreeCodStat {
     refreshTreeItems(getRoot()); // ??
   }
 
+  public void updateTreeItem(CodStat cdsCurr) {
+    CodStat cds = find(cdsCurr.getCodice());
+    cds.assign(cdsCurr);
+  }
+  
   public void refreshTreeItems(CodStat cdsCurr) { // ??
     treeItemRoot = buildTree(getRoot()); // ??
     expandNodes(treeItemRoot, cdsCurr);
@@ -37,9 +42,9 @@ public class TreeitemCodStat extends TreeCodStat {
 
   public Object expandNode(CodStat cds) {
     TreeItem<CodStat> exp = treeFind(treeItemRoot, cds);
-    if ( null != exp)
+    if (null != exp)
       exp.getValue().setMatched(true);
-    while(  null != exp ) {
+    while (null != exp) {
       exp.setExpanded(true);
       exp = exp.getParent();
     }
