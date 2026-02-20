@@ -3,6 +3,7 @@ package sm.clagenna.banca.dati;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -117,9 +118,13 @@ public class TreeCodStat {
 
   public void delete(CodStat cds) {
     CodStat lcd = find(cds.getCodice());
-    CodStat padre = lcd.getFather();
-    padre.delete(lcd);
-    
+    if (null == lcd)
+      lcd = find(cds.getIdCodStat());
+    if (null != lcd) {
+      CodStat padre = lcd.getFather();
+      if (null != padre)
+        padre.delete(lcd);
+    }
   }
 
   public CodStat find(String string) {
@@ -127,6 +132,15 @@ public class TreeCodStat {
       return null;
     var cds = mapCodStat.get(string);
     return cds;
+  }
+
+  public CodStat find(int idCodStat) {
+    if (null == root || null == mapCodStat)
+      return null;
+    List<CodStat> pv = mapCodStat.values().stream().filter(c -> c.getIdCodStat() == idCodStat).collect(Collectors.toList());
+    if (null != pv && pv.size() > 0)
+      return pv.get(0);
+    return null;
   }
 
   public void clearTotali() {

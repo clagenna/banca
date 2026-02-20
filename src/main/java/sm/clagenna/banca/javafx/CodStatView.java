@@ -107,7 +107,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   @Getter @Setter
   private String           styMatchDescr;
   private boolean          bInEventEnterFile;
-  private ModTreeCodStat modTreeView;
+  private Stage            stageModCodStat;
+  private ModTreeCodStat   modTreeView;
 
   public CodStatView() {
     styMatchDescr = "gold";
@@ -271,7 +272,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       return;
     }
 
-    Stage stageModCodStat = new Stage();
+    stageModCodStat = new Stage();
     Scene scene = new Scene(radice, 300, 240);
     stageModCodStat.setScene(scene);
     stageModCodStat.setWidth(427);
@@ -313,7 +314,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private void treeView_eliminaCodstat() {
     // m_appmain.messageDialog(AlertType.WARNING, "Cancella Cod. Stat. ancora da implementare");
     TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
-    CodStat cds = (CodStat) tricds.getValue();
+    CodStat cds = tricds.getValue();
     String szMsg = String.format("Sei sicuro di voler eliminare il codice Stat.:<br/><b> %s</b>", cds.toStringEx());
     Optional<ButtonType> btRet = m_appmain.messageDialog(AlertType.CONFIRMATION, szMsg, ButtonType.YES);
     if (btRet.isEmpty() || btRet.get().equals(ButtonType.NO))
@@ -559,18 +560,29 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
       case DataModel.EVT_TREECODSTAT_CHANGED:
         if (obj instanceof CodStat cds) {
+          System.out.printf("CodStatView.propertyChange(%s)\n", cds.toStringEx());
           Platform.runLater(() -> {
-            treeItems.expandNode(cds);
-            treeItems.refreshTreeItems();
-            treeview.setRoot(treeItems.getTreeItemRoot());
-            treeview.refresh();
+            refreshTreeViewAfterUpdate(treeItems, cds);
           });
         }
         break;
-        
+
       case DataModel.EVT_DBCODSTAT_CHANGED:
         break;
     }
+  }
+
+  private void refreshTreeViewAfterUpdate(TreeitemCodStat treeItems, CodStat cds) {
+    treeItems.refreshTreeItems();
+    treeItems.expandNode(cds);
+    treeview.setRoot(treeItems.getTreeItemRoot());
+    treeview.refresh();
+    if (null != modTreeView)
+      modTreeView.closeApp(mainProps);
+    if (null != stageModCodStat)
+      stageModCodStat.close();
+    modTreeView = null;
+    stageModCodStat = null;
   }
   //
   //  private void viewStackTrace(String szId) {

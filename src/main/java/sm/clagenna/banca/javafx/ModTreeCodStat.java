@@ -28,6 +28,24 @@ import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 
+/**
+ * <pre>
+ * Test CodStat
+
+1) Modifica
+  modifica ed evidenza TreeView
+  e chiusura della form ModTreeView !
+  
+2) cambio codice
+  verificato cambio codice con clash
+  verificato evidenzia nuovo elem nel tree
+  
+3) Inserimento
+  verificato inserimento codice nuovo,
+  rimane evidenziato il codice corrente + quello modificato precedentemente
+4) cancellazione
+ * </pre>
+ */
 public class ModTreeCodStat implements Initializable, IStartApp {
 
   private static final Logger s_log = LogManager.getLogger(ModTreeCodStat.class);
@@ -271,7 +289,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   }
 
   @FXML
-  void btSalvaClick(ActionEvent event) {
+  private void btSalvaClick(ActionEvent event) {
     if (btSalva.isDisabled())
       return;
     DataModel model = DataModel.getInst();
@@ -289,33 +307,33 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     codStatData.updateTreeItem(cdsLavoro);
     codStatData.refreshTreeItems(cdsLavoro);
     codStatData.updateCodStat(cdsLavoro, true);
-    
+
     sqlg.updadetCodStat(cdsLavoro);
     dataCntr.firePropertyChange(DataModel.EVT_TREECODSTAT_CHANGED, null, cdsLavoro);
   }
 
-  void btSalvaClick_OLD(ActionEvent event) {
-    if (btSalva.isDisabled())
-      return;
-    boolean bChanged = false;
-    boolean bNew = !Utils.isValue(cdsLavoro.getIdCodStat());
-    CodStat root = codStatData.getRoot();
-    cdsTree = root.find(cdsLavoro);
-    if (null != cdsTree) {
-      bChanged = cdsTree.hasChanged(cdsLavoro);
-      cdsTree.setDescr(cdsLavoro.getDescr());
-    } else {
-      cdsTree = new CodStat();
-      bNew = true;
-      cdsLavoro.setIdCodStat(0);
-      cdsTree.assign(cdsLavoro);
-      codStatData.add(cdsTree);
-    }
-    codStatData.refreshTreeItems(cdsTree);
-    codStatData.updateCodStat(cdsTree, bChanged | bNew);
-    // codStatData.saveAll();
-    dataCntr.firePropertyChange(DataModel.EVT_TREECODSTAT_CHANGED, null, cdsTree);
-  }
+  //  void btSalvaClick_OLD(ActionEvent event) {
+  //    if (btSalva.isDisabled())
+  //      return;
+  //    boolean bChanged = false;
+  //    boolean bNew = !Utils.isValue(cdsLavoro.getIdCodStat());
+  //    CodStat root = codStatData.getRoot();
+  //    cdsTree = root.find(cdsLavoro);
+  //    if (null != cdsTree) {
+  //      bChanged = cdsTree.hasChanged(cdsLavoro);
+  //      cdsTree.setDescr(cdsLavoro.getDescr());
+  //    } else {
+  //      cdsTree = new CodStat();
+  //      bNew = true;
+  //      cdsLavoro.setIdCodStat(0);
+  //      cdsTree.assign(cdsLavoro);
+  //      codStatData.add(cdsTree);
+  //    }
+  //    codStatData.refreshTreeItems(cdsTree);
+  //    codStatData.updateCodStat(cdsTree, bChanged | bNew);
+  //    // codStatData.saveAll();
+  //    dataCntr.firePropertyChange(DataModel.EVT_TREECODSTAT_CHANGED, null, cdsTree);
+  //  }
 
   @Override
   public void initialize(URL location, ResourceBundle resources) {
