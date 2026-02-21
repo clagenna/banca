@@ -391,6 +391,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   @FXML
   void cbAnnoCompSel(ActionEvent event) {
     m_fltrAnnoComp = cbAnnoComp.getSelectionModel().getSelectedItem();
+    model.setAnnoComp(m_fltrAnnoComp);
     s_log.debug("ResultView.cbAnnoCompSel({}):", m_fltrAnnoComp);
     caricaComboMesecomp();
     abilitaBottoni();
@@ -410,6 +411,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       m_qry = null;
     else
       m_qry = m_mapQry.get(szK);
+    model.setComboQuery(m_qry);
     s_log.debug("ResultView.cbQuerySel():" + szK);
     abilitaBottoni();
   }

@@ -74,6 +74,10 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   @Getter @Setter
   private ObservableList<Path>  selPaths;
   @Getter @Setter
+  private int                   annoComp;
+  @Getter @Setter
+  private String                comboQuery;
+  @Getter @Setter
   private int                   filtriQuery;
   @Getter @Setter
   private int                   qtaThreads;

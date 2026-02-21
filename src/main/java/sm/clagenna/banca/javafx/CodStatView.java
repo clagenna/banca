@@ -2,13 +2,17 @@ package sm.clagenna.banca.javafx;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +31,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
@@ -50,8 +55,8 @@ import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
+import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
-import sm.clagenna.stdcla.utils.sys.StackViewer;
 
 public class CodStatView implements Initializable, IStartApp, PropertyChangeListener {
   // FIXME aggiungere bottone refresh da file di properties
@@ -235,8 +240,15 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       treeView_eliminaCodstat();
     });
 
+    SeparatorMenuItem sp1 = new SeparatorMenuItem();
+
+    MenuItem mi5 = new MenuItem("Esporta CSV");
+    mi5.setOnAction((ActionEvent _) -> {
+      treeView_esportaCSV();
+    });
+
     ContextMenu menu = new ContextMenu();
-    menu.getItems().addAll(mi1, mi2, mi3, mi4);
+    menu.getItems().addAll(mi1, mi2, mi3, mi4, sp1, mi5);
     // liBanca.setContextMenu(menu);
     treeview.setContextMenu(menu);
 
@@ -347,6 +359,67 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     DecimalFormat fmt = (DecimalFormat) NumberFormat.getInstance(Locale.getDefault()); // ("#,##0.00", Locale.getDefault())
     fmt.applyPattern("#,##0.00");
     return fmt.format(dbl);
+  }
+
+  private void treeView_esportaCSV() {
+    TreeitemCodStat treeData = model.getCodStatData();
+    int annoComp = model.getAnnoComp();
+    if ( ! (Utils.isValue(annoComp) && null != treeData)) {
+      m_appmain.messageDialog(AlertType.WARNING, "Mi manca l'anno competenza e la query per formare il nome da esportare");
+      return;
+    }
+    String szNow = ParseData.formatDate(LocalDateTime.now()).replaceAll(" ", "_").replaceAll(":", "-");
+    String szCsvFile = String.format("CodStat_Estratto_%s_%s.csv", annoComp, szNow);
+    TreeItem<CodStat> root = treeData.getTreeItemRoot();
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(szCsvFile))) {
+      writer.append("sep=;");
+      writer.newLine();
+      writer.append(";".repeat(3));
+      writer.append("Descrizione;Dare;Avere;Saldo");
+      writer.newLine();
+      scriviRigaTreeCodstat(writer, root.getValue());
+      m_appmain.messageDialog(AlertType.INFORMATION, String.format("Scritto CodStat CSV : %s", szCsvFile));
+    } catch (IOException e) {
+      s_log.error("Errore scrittura  CSV: {}, err={}", szCsvFile, e.getMessage());
+    }
+  }
+
+  private void scriviRigaTreeCodstat(BufferedWriter wr, CodStat cds) {
+    final String sep = ";";
+    StringBuilder sb = new StringBuilder();
+    if (Utils.isValue(cds.getDescr())) {
+      String szCod = cds.getCodice();
+      int liv1 = cds.getLivello() - 1;
+      int liv2 = 4 - cds.getLivello();
+
+      String szTabs1 = "";
+      String szTabs2 = "";
+      if (liv1 > 0)
+        szTabs1 = sep.repeat(liv1);
+      if (liv2 > 0)
+        szTabs2 = sep.repeat(liv2);
+      sb.append(szTabs1).append(szCod).append(szTabs2);
+      sb.append(cds.getDescr()).append(sep);
+      String szDa = cds.getTotdare() != 0 ? Utils.formatDouble(cds.getTotdare()) : "";
+      String szAv = cds.getTotavere() != 0 ? Utils.formatDouble(cds.getTotavere()) : "";
+      double saldo = cds.getTotavere() - cds.getTotdare();
+      String szSa = saldo != 0 ? Utils.formatDouble(saldo) : "";
+
+      sb.append(szDa).append(sep);
+      sb.append(szAv).append(sep);
+      sb.append(szSa).append(sep);
+
+      try {
+        wr.append(sb.toString());
+        wr.newLine();
+      } catch (IOException e) {
+        s_log.error("Errore scrittura Riga CSV: {}", sb.toString());
+      }
+    }
+    Set<CodStat> figl = cds.getFigli();
+    if (null == figl || figl.size() == 0)
+      return;
+    figl.stream().forEach(s -> scriviRigaTreeCodstat(wr, s));
   }
 
   private void impostaForma(AppProperties p_props) {
@@ -542,7 +615,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         // m_szQryResulView = evt.getNewValue().toString();
         //        datacntrlr.setQryResulView(evt.getNewValue().toString());
         //        Platform.runLater(() -> datacntrlr.aggiornaTotaliCodStat());
-        System.out.println(StackViewer.viewStackTrace("CodStatView prop_change:" + szEvtId.toString()));
+        // System.out.println(StackViewer.viewStackTrace("CodStatView prop_change:" + szEvtId.toString()));
         // System.out.printf("CodStatView.propertyChange(%s)\n", szEvtId);
         break;
 
