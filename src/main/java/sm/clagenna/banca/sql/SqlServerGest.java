@@ -25,7 +25,7 @@ public class SqlServerGest extends SqlGest {
           + "                 ,descr" //
           + "                 ,abicaus" //
           + "                 ,cardid" //
-          + "                 ,codstat)" //
+          + "                 ,idcodstat)" //
           + "           VALUES (?,?,?,?,?,?,?,?,?,?)";
 
   private static final String QRY_SEL_Mov = //
@@ -48,7 +48,7 @@ public class SqlServerGest extends SqlGest {
           + "     ,descr=?" //
           + "     ,abicaus=?" //
           + "     ,cardid=?" //
-          + "     ,codstat=?" //
+          + "     ,idcodstat=?" //
           + "  WHERE 1=1";
 
   private static final String QRY_MOD_Mov_CodStat = //

@@ -3,6 +3,9 @@ package sm.clagenna.banca.dati;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import lombok.Data;
 import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.stdcla.utils.ParseData;
@@ -13,49 +16,38 @@ import sm.clagenna.stdcla.utils.Utils;
  */
 @Data
 public class RigaBanca {
+  private static final Logger s_log = LogManager.getLogger(RigaBanca.class);
 
-  // @Getter @Setter
-  private Integer rigaid;
-  // @Getter @Setter
-  private String tiporec;
-  // @Getter @Setter
-  private Integer idfile;
-  // @Getter
+  private Integer       rigaid;
+  private String        tiporec;
+  private Integer       idfile;
   private LocalDateTime dtmov;
-  // Getter
   private LocalDateTime dtval;
-  // @Getter
-  private String movstr;
-  // @Getter @Setter
-  private String valstr;
-  // @Getter @Setter
-  private Double dare;
-  // @Getter
-  private Double avere;
-  // @Getter
-  private String descr;
-  // @Getter @Setter
-  private String abicaus;
-  // @Getter @Setter
-  private String descrcaus;
-  // @Getter @Setter
-  private Integer costo;
-  // @Getter
-  private String cardid;
-  // @Getter @Setter
-  private String codstat;
-  // @Getter @Setter
-  private String cdsdescr;
-  // @Getter
-  private String localCardIdent;
+  private String        movstr;
+  private String        valstr;
+  private Double        dare;
+  private Double        avere;
+  private String        descr;
+  private String        abicaus;
+  private String        descrcaus;
+  private Integer       costo;
+  private String        cardid;
+  private String        codstat;
+  private Integer       idcodstat;
+  private String        cdsdescr;
+  private String        localCardIdent;
+
+  private TreeitemCodStat treeCodstat;
 
   public RigaBanca() {
     azzera();
+    treeCodstat = DataModel.getInst().getCodStatData();
   }
 
   public RigaBanca(String p_tipo) {
     azzera();
     setTiporec(p_tipo);
+    treeCodstat = DataModel.getInst().getCodStatData();
   }
 
   public RigaBanca( //
@@ -78,6 +70,7 @@ public class RigaBanca {
     if (Utils.isValue(p_cardid))
       setCardid(p_cardid);
     codstat = p_codstat;
+    treeCodstat = DataModel.getInst().getCodStatData();
   }
 
   public void setDtmov(LocalDateTime dt) {
@@ -116,6 +109,18 @@ public class RigaBanca {
       setCardid(localCardIdent);
   }
 
+  public void setCodstat(String cds) {
+    codstat = cds;
+    idcodstat = null;
+    if (null != codstat) {
+      CodStat rec = treeCodstat.find(cds);
+      if (null != rec)
+        idcodstat = rec.getIdCodStat();
+      else
+        s_log.warn("Non trovo CodStat per cod={}", cds);
+    }
+  }
+
   public void setCardid(String p_sz) {
     cardid = p_sz;
   }
@@ -132,6 +137,7 @@ public class RigaBanca {
     abicaus = null;
     cardid = null;
     codstat = null;
+    idcodstat = null;
     cdsdescr = null;
   }
 
@@ -215,6 +221,9 @@ public class RigaBanca {
         case costo:
           rb.setCosto(Integer.decode(col.toString()));
           break;
+        case idcodstat:
+          rb.setIdcodstat(Integer.decode(col.toString()));
+          break;
         case codstat:
           rb.setCodstat(col.toString());
           break;
@@ -231,8 +240,8 @@ public class RigaBanca {
     StringBuilder sb = new StringBuilder();
     String sz1 = null == dtmov ? "*null*" : ParseData.formatDate(dtmov);
     String sz2 = null == dtval ? "*null*" : ParseData.formatDate(dtval);
-  
-    sb.append(String.format("RigaBanca - %s \trigaId=%s", tiporec, (null != rigaid ? rigaid.toString() : "-")));
+
+    sb.append(String.format("RigaBanca - %s \trigaId=%s", tiporec, null != rigaid ? rigaid.toString() : "-"));
     sb.append(String.format("\n\tidFil  %s", idfile));
     sb.append(String.format("\n\tdtMov  %s", sz1));
     sb.append(String.format("\n\tdtVal  %s", sz2));
@@ -240,10 +249,10 @@ public class RigaBanca {
     sb.append(String.format("\n\tavere  %s", Utils.parseDouble(avere)));
     sb.append(String.format("\n\tdescr  %s", descr));
     sb.append(String.format("\n\tAbicas %s - %s", abicaus, descrcaus));
-    sb.append(String.format("\n\tcosto  %s", (null != costo && costo.intValue() != 0 ? "Si" : "")));
+    sb.append(String.format("\n\tcosto  %s", null != costo && costo.intValue() != 0 ? "Si" : ""));
     sb.append(String.format("\n\tCardid %s", cardid));
-    sb.append(String.format("\n\tCodStt %s - %s", codstat, cdsdescr));
-  
+    sb.append(String.format("\n\tCodStt (%d)%s - %s", idcodstat, codstat, cdsdescr));
+
     //    return tiporec + "\t" + sz1 + "\t" + sz2 + "\t" + dare + "\t" + avere + "\t" + descr + "\t" + abicaus + "\t" + cardid + "\t"
     //        + codstat + "\\n";
     return sb.toString();

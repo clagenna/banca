@@ -18,17 +18,18 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class GuessCodStat implements Comparable<GuessCodStat> {
 
-  public static final String COL_ID       = "id";
-  public static final String COL_TIPO     = "tipo";
-  public static final String COL_DTMOV    = "dtmov";
-  public static final String COL_DTVAL    = "dtval";
-  public static final String COL_DARE     = "dare";
-  public static final String COL_AVERE    = "avere";
-  public static final String COL_CARDID   = "cardid";
-  public static final String COL_DESCR    = "descr";
-  public static final String COL_CODSTAT  = "codstat";
-  public static final String COL_CDSDESCR = "cdsdescr";
-  public static final String COL_ASSIGNED = "assigned";
+  public static final String COL_ID        = "id";
+  public static final String COL_TIPO      = "tipo";
+  public static final String COL_DTMOV     = "dtmov";
+  public static final String COL_DTVAL     = "dtval";
+  public static final String COL_DARE      = "dare";
+  public static final String COL_AVERE     = "avere";
+  public static final String COL_CARDID    = "cardid";
+  public static final String COL_DESCR     = "descr";
+  public static final String COL_CODSTAT   = "codstat";
+  public static final String COL_IDCODSTAT = "idcodstat";
+  public static final String COL_CDSDESCR  = "cdsdescr";
+  public static final String COL_ASSIGNED  = "assigned";
 
   private SimpleIntegerProperty               id;
   private SimpleStringProperty                tipo;
@@ -38,6 +39,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
   private SimpleStringProperty                cardid;
   private SimpleStringProperty                descr;
   private SimpleStringProperty                codstat;
+  private SimpleIntegerProperty               idcodstat;
   private SimpleStringProperty                descrcds;
   private SimpleBooleanProperty               assigned;
   private String                              codstatOrig;
@@ -56,13 +58,14 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
     avere = new SimpleDoubleProperty(null, COL_AVERE);
     cardid = new SimpleStringProperty(null, COL_CARDID);
     descr = new SimpleStringProperty(null, COL_DESCR);
+    idcodstat = new SimpleIntegerProperty(null, COL_CODSTAT);
     codstat = new SimpleStringProperty(null, COL_CODSTAT);
     descrcds = new SimpleStringProperty(null, COL_CDSDESCR);
     assigned = new SimpleBooleanProperty(null, COL_ASSIGNED);
   }
 
   public GuessCodStat(Integer id, String tipo, LocalDateTime dtmov, Double dare, Double avere, String cardid, String descr,
-      String codstat, String descrcds, boolean assigned) {
+      Integer idcodstat, String codstat, String descrcds, boolean assigned) {
     init();
     setId(id);
     setTipo(tipo);
@@ -71,6 +74,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
     setAvere(avere);
     setCardid(cardid);
     setDescr(descr);
+    setIdcodstat(idcodstat);
     setCodstat(codstat);
     codstatOrig = codstat;
     setDescrCds(descrcds);
@@ -122,6 +126,10 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
 
   public StringProperty propertyCodstat() {
     return codstat;
+  }
+
+  public SimpleIntegerProperty propertyIdCodstat() {
+    return idcodstat;
   }
 
   public StringProperty propertyDescrcds() {
@@ -208,10 +216,20 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
       TreeCodStat cdsCntrl = cntrl.getCodStatData();
       if (null != cdsCntrl) {
         cds = cdsCntrl.find(cds.getCodice());
-        if (null != cds)
+        if (null != cds) {
           setDescrCds(cds.getDescr());
+          setIdcodstat(cds.getIdCodStat());
+        }
       }
     }
+  }
+
+  public Integer getIdcodstat() {
+    return idcodstat.get();
+  }
+
+  public void setIdcodstat(Integer ii) {
+    idcodstat.set(ii);
   }
 
   public String getDescrcds() {

@@ -235,7 +235,7 @@ public abstract class SqlGest implements ISQLGest {
       dbconn.setStmtString(stmtIns, k++, szDescr);
       dbconn.setStmtString(stmtIns, k++, szCaus);
       dbconn.setStmtString(stmtIns, k++, p_rig.getCardid());
-      dbconn.setStmtString(stmtIns, k++, p_rig.getCodstat());
+      dbconn.setStmtInt(stmtIns, k++, p_rig.getIdcodstat());
 
       stmtIns.executeUpdate();
       lastRowid = dbconn.getLastIdentity();

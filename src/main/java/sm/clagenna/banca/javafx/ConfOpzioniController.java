@@ -105,6 +105,8 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   @FXML
   private CheckBox ckExclCosto;
   @FXML
+  private CheckBox ckExcliCodstat;
+  @FXML
   private CheckBox ckExclCodstat;
 
   @FXML
