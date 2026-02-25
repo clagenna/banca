@@ -63,16 +63,17 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   // FIXME aggiungere tabella del codici statistici alimentati da CodStat2.properties
   private static final Logger s_log = LogManager.getLogger(CodStatView.class);
 
-  public static final String  CSZ_FXMLNAME        = "CodStatView.fxml";
-  private static final String CSZ_PROP_POScdstt_X = "cdstt.x";
-  private static final String CSZ_PROP_POScdstt_Y = "cdstt.y";
-  private static final String CSZ_PROP_DIMcdstt_X = "cdstt.lx";
-  private static final String CSZ_PROP_DIMcdstt_Y = "cdstt.ly";
-  private static final String CSZ_PROP_DIM_COL1   = "cdstt.col1";
-  private static final String CSZ_PROP_DIM_COL2   = "cdstt.col2";
-  private static final String CSZ_PROP_DIM_DARE   = "cdstt.dare";
-  private static final String CSZ_PROP_DIM_AVERE  = "cdstt.avere";
-  private static final String CSZ_PROP_DIM_SALDO  = "cdstt.saldo";
+  public static final String CSZ_FXMLNAME             = "CodStatView.fxml";
+  public static final String PROP_POSview_codstatView = "cdstt";
+  //  private static final String CSZ_PROP_POScdstt_X = "cdstt.x";
+  //  private static final String CSZ_PROP_POScdstt_Y = "cdstt.y";
+  //  private static final String CSZ_PROP_DIMcdstt_X = "cdstt.lx";
+  //  private static final String CSZ_PROP_DIMcdstt_Y = "cdstt.ly";
+  private static final String CSZ_PROP_DIM_COL1  = "cdstt.col1";
+  private static final String CSZ_PROP_DIM_COL2  = "cdstt.col2";
+  private static final String CSZ_PROP_DIM_DARE  = "cdstt.dare";
+  private static final String CSZ_PROP_DIM_AVERE = "cdstt.avere";
+  private static final String CSZ_PROP_DIM_SALDO = "cdstt.saldo";
 
   // private static final AlertType AlertType = null;
 
@@ -285,17 +286,16 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     }
 
     stageModCodStat = new Stage();
-    Scene scene = new Scene(radice, 300, 240);
+    Scene scene = new Scene(radice, 444, 211);
     stageModCodStat.setScene(scene);
-    stageModCodStat.setWidth(427);
-    stageModCodStat.setHeight(125);
+//    stageModCodStat.setWidth(427);
+//    stageModCodStat.setHeight(325);
     stageModCodStat.initOwner(lstage);
     stageModCodStat.initModality(Modality.APPLICATION_MODAL);
-    stageModCodStat.setTitle("Gestione delle Opzioni di Import files CSV");
+    stageModCodStat.setTitle("Modifica dei Codici Statistici");
     stageModCodStat.setX(20.);
     stageModCodStat.setY(20.);
-    // verifica che nel FXML ci sia la dichiarazione:
-    // <userData> <fx:reference source="controller" /> </userData>
+    JFXUtils.readPosStage(stageModCodStat, mainProps, ModTreeCodStat.PROP_POSVIEW_modcodstat);
     CodStat cds = null;
     if (modTreeView != null) {
       TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
@@ -432,18 +432,18 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       s_log.error("Non trovo lo stage per CodStatView");
       return;
     }
-
-    int px = p_props.getIntProperty(CSZ_PROP_POScdstt_X);
-    int py = p_props.getIntProperty(CSZ_PROP_POScdstt_Y);
-    int dx = p_props.getIntProperty(CSZ_PROP_DIMcdstt_X);
-    int dy = p_props.getIntProperty(CSZ_PROP_DIMcdstt_Y);
-    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
-      lstage.setX(mm.poxX());
-      lstage.setY(mm.posY());
-      lstage.setWidth(mm.width());
-      lstage.setHeight(mm.height());
-    }
+    JFXUtils.readPosStage(lstage, p_props, PROP_POSview_codstatView);
+    //    int px = p_props.getIntProperty(CSZ_PROP_POScdstt_X);
+    //    int py = p_props.getIntProperty(CSZ_PROP_POScdstt_Y);
+    //    int dx = p_props.getIntProperty(CSZ_PROP_DIMcdstt_X);
+    //    int dy = p_props.getIntProperty(CSZ_PROP_DIMcdstt_Y);
+    //    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+    //    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
+    //      lstage.setX(mm.poxX());
+    //      lstage.setY(mm.posY());
+    //      lstage.setWidth(mm.width());
+    //      lstage.setHeight(mm.height());
+    //    }
     URL url = m_appmain.getUrlCSS();
     if (null != url)
       myScene.getStylesheets().add(url.toExternalForm());
@@ -564,16 +564,17 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       s_log.error("Il campo Scene risulta = **null**");
       return;
     }
+    JFXUtils.savePosStage(lstage, p_props, PROP_POSview_codstatView);
 
-    double px = myScene.getWindow().getX();
-    double py = myScene.getWindow().getY();
-    double dx = myScene.getWindow().getWidth();
-    double dy = myScene.getWindow().getHeight();
-
-    p_props.setProperty(CSZ_PROP_POScdstt_X, (int) px);
-    p_props.setProperty(CSZ_PROP_POScdstt_Y, (int) py);
-    p_props.setProperty(CSZ_PROP_DIMcdstt_X, (int) dx);
-    p_props.setProperty(CSZ_PROP_DIMcdstt_Y, (int) dy);
+    //    double px = myScene.getWindow().getX();
+    //    double py = myScene.getWindow().getY();
+    //    double dx = myScene.getWindow().getWidth();
+    //    double dy = myScene.getWindow().getHeight();
+    //
+    //    p_props.setProperty(CSZ_PROP_POScdstt_X, (int) px);
+    //    p_props.setProperty(CSZ_PROP_POScdstt_Y, (int) py);
+    //    p_props.setProperty(CSZ_PROP_DIMcdstt_X, (int) dx);
+    //    p_props.setProperty(CSZ_PROP_DIMcdstt_Y, (int) dy);
 
     double vv = colCodStat.getWidth();
     p_props.setProperty(CSZ_PROP_DIM_COL1, Integer.valueOf((int) vv));
@@ -646,10 +647,13 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   }
 
   private void refreshTreeViewAfterUpdate(TreeitemCodStat treeItems, CodStat cds) {
+    int iSel = treeview.getSelectionModel().getSelectedIndex();
     treeItems.refreshTreeItems();
     treeItems.expandNode(cds);
     treeview.setRoot(treeItems.getTreeItemRoot());
     treeview.refresh();
+    if ( iSel > 0 )
+      treeview.getSelectionModel().select(iSel);
     if (null != modTreeView)
       modTreeView.closeApp(mainProps);
     if (null != stageModCodStat)

@@ -347,7 +347,7 @@ public abstract class SqlGest implements ISQLGest {
     Connection conn = dbconn.getConn();
     try (PreparedStatement stmtModCod = conn.prepareStatement(qry2)) {
       int k = 1;
-      dbconn.setStmtString(stmtModCod, k++, rig.getCodstat());
+      dbconn.setStmtInt(stmtModCod, k++, rig.getIdcodstat());
       dbconn.setStmtInt(stmtModCod, k++, rig.getRigaid());
 
       stmtModCod.executeUpdate();
@@ -370,7 +370,7 @@ public abstract class SqlGest implements ISQLGest {
 
       try (PreparedStatement stmtModCod = conn.prepareStatement(qry2)) {
         int k = 1;
-        dbconn.setStmtString(stmtModCod, k++, rig.getCodstat());
+        dbconn.setStmtInt(stmtModCod, k++, rig.getIdcodstat());
         dbconn.setStmtInt(stmtModCod, k++, rig.getRigaid());
 
         stmtModCod.executeUpdate();

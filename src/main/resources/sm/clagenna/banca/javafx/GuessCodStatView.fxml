@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="869.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.GuessCodStatView">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="869.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.GuessCodStatView">
 	<children>
 		<HBox prefHeight="40.0" prefWidth="846.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<padding>
@@ -54,7 +54,7 @@
                   <Tooltip text="Digita un testo da ricercare nelle causali dei movimenti, es: &quot;TitanCOOP&quot;" />
                </tooltip>
             </Label>
-            <Label layoutX="328.0" layoutY="45.0" text="Al">
+            <Label layoutX="301.0" layoutY="45.0" text="Al">
                <padding>
                   <Insets left="5.0" right="5.0" />
                </padding>

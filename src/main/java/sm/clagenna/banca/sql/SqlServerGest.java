@@ -53,7 +53,7 @@ public class SqlServerGest extends SqlGest {
 
   private static final String QRY_MOD_Mov_CodStat = //
       "UPDATE movimenti" //
-          + "  SET codstat=?" //
+          + "  SET idcodstat=?" //
           + "  WHERE id=?";
 
   private static final String QRY_INS_CodStats = """

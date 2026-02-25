@@ -68,6 +68,7 @@ import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.dati.Versione;
 import sm.clagenna.stdcla.javafx.IStartApp;
+import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ILog4jReader;
 import sm.clagenna.stdcla.utils.Log4jRow;
@@ -539,7 +540,9 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   public void mnuConfMostraCodStatClick(ActionEvent event) {
     LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
     if (mainApp.isCodStatViewOpened()) {
-      s_log.warn("La finestra dei codici statistici e' gia' aperta!");
+      String szMsg="La finestra dei codici statistici e' gia' aperta!";
+      s_log.warn(szMsg);
+      mainApp.messageDialog(AlertType.INFORMATION, szMsg);
       return;
     }
     Stage primaryStage = mainApp.getPrimaryStage();
@@ -561,9 +564,11 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
 
     Stage stageResults = new Stage();
     Scene scene = new Scene(radice, 600, 440);
+    
     stageResults.setScene(scene);
     stageResults.setWidth(800);
     stageResults.setHeight(600);
+    JFXUtils.readPosStage(stageResults, props, CodStatView.PROP_POSview_codstatView);
     stageResults.initOwner(primaryStage);
     stageResults.initModality(Modality.NONE);
     stageResults.setTitle("Visualizzazione Codici Statistici");

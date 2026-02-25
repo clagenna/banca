@@ -39,7 +39,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
   private SimpleStringProperty                cardid;
   private SimpleStringProperty                descr;
   private SimpleStringProperty                codstat;
-  private SimpleIntegerProperty               idcodstat;
+  private SimpleObjectProperty<Integer>       idcodstat;
   private SimpleStringProperty                descrcds;
   private SimpleBooleanProperty               assigned;
   private String                              codstatOrig;
@@ -58,7 +58,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
     avere = new SimpleDoubleProperty(null, COL_AVERE);
     cardid = new SimpleStringProperty(null, COL_CARDID);
     descr = new SimpleStringProperty(null, COL_DESCR);
-    idcodstat = new SimpleIntegerProperty(null, COL_CODSTAT);
+    idcodstat = new SimpleObjectProperty<Integer>(null, COL_CODSTAT);
     codstat = new SimpleStringProperty(null, COL_CODSTAT);
     descrcds = new SimpleStringProperty(null, COL_CDSDESCR);
     assigned = new SimpleBooleanProperty(null, COL_ASSIGNED);
@@ -91,6 +91,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
     setCardid(rb.getCardid());
     setDescr(rb.getDescr());
     setCodstat(rb.getCodstat());
+    setIdcodstat(rb.getIdcodstat());
     codstatOrig = rb.getCodstat();
     setDescrCds(rb.getCdsdescr());
     setAssigned(false);
@@ -128,7 +129,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
     return codstat;
   }
 
-  public SimpleIntegerProperty propertyIdCodstat() {
+  public SimpleObjectProperty<Integer> propertyIdCodstat() {
     return idcodstat;
   }
 

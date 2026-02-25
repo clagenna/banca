@@ -105,7 +105,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   @FXML
   private CheckBox ckExclCosto;
   @FXML
-  private CheckBox ckExcliCodstat;
+  private CheckBox ckExclidCodstat;
   @FXML
   private CheckBox ckExclCodstat;
 
@@ -301,6 +301,10 @@ public class ConfOpzioniController implements Initializable, IStartApp {
     ckExclCosto.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
         dataCntr.addExcludeCol(EColsTableView.costo, n);
+    });
+    ckExclidCodstat.selectedProperty().addListener((_, _, n) -> {
+      if (bSema)
+        dataCntr.addExcludeCol(EColsTableView.idcodstat, n);
     });
     ckExclCodstat.selectedProperty().addListener((_, _, n) -> {
       if (bSema)

@@ -44,6 +44,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -157,6 +158,10 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private AutoCompleteComboBoxListener<String> autoCbComp;
 
   private DBConn dbconn;
+
+  private boolean bBackGrRunning;
+
+  private List<List<Object>> liSelRowsForCodStat;
 
   public ResultView() {
     //
@@ -333,6 +338,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private Object tblRigaKeyPressed(KeyEvent e) {
     // System.out.printf("ProvaGuess.tblRigaKeyPressed(%s)\n", e.toString());
     switch (e.getCode()) {
+      case KeyCode.ADD:
       case KeyCode.PLUS:
         e.consume();
         caricaCercaCodStat();
@@ -390,7 +396,10 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @FXML
   void cbAnnoCompSel(ActionEvent event) {
-    m_fltrAnnoComp = cbAnnoComp.getSelectionModel().getSelectedItem();
+    Integer ii = cbAnnoComp.getSelectionModel().getSelectedItem();
+    if (null == ii)
+      return;
+    m_fltrAnnoComp = ii;
     model.setAnnoComp(m_fltrAnnoComp);
     s_log.debug("ResultView.cbAnnoCompSel({}):", m_fltrAnnoComp);
     caricaComboMesecomp();
@@ -399,6 +408,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @FXML
   void cbMeseCompSel(ActionEvent event) {
+    if (bSemaf)
+      return;
     m_fltrMeseComp = cbMeseComp.getSelectionModel().getSelectedItem();
     s_log.debug("ResultView.cbMeseCompSel(\"{}\"):", m_fltrMeseComp);
     abilitaBottoni();
@@ -455,12 +466,12 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private void btCercaClick(ActionEvent event) {
     if (bSemaf)
       return;
-    bSemaf = true;
     // chiamando btCercaClick() dal propertyChange( EVT_FILTER_CODSTAT )(piu sotto)
     // ricevo 2 chiamate consecutive !?! Per cui bSema viene spento solo alla fine del thread
     // creaTableResultThread(szQryFltr);
-    //    System.out.println("ResultView.btCercaClick()");
+    //    System.out.printf("ResultView.btCercaClick(semaf=%s)\n", Boolean.toString(bSemaf));
     //    printStackTrace();
+    bSemaf = true;
     try {
       if (null != event) {
         if (event.getSource() instanceof String szCodstat) {
@@ -514,7 +525,14 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   @FXML
   void cbSaveQuerySel(ActionEvent event) {
     // System.out.printf("ResultView.cbSaveQuerySel(%s)\n", cbSaveQuery.getSelectionModel().getSelectedItem());
-    m_gestQry.readQuery(cbSaveQuery.getSelectionModel().getSelectedItem());
+    if (bSemaf)
+      return;
+    try {
+      bSemaf = true;
+      m_gestQry.readQuery(cbSaveQuery.getSelectionModel().getSelectedItem());
+    } finally {
+      bSemaf = false;
+    }
   }
 
   @FXML
@@ -533,10 +551,20 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   void btAssignCodStatClick(ActionEvent event) {
     if ( !Utils.isValue(m_codStatSel))
       return;
-    ObservableList<List<Object>> li = tblview.getSelectionModel().getSelectedItems();
-    if (null == li || li.size() == 0) {
-      s_log.debug("Nessun record selezionato per l'assegnamento di {}", m_codStatSel);
+    ObservableList<List<Object>> locLi = tblview.getSelectionModel().getSelectedItems();
+    if (null == locLi || locLi.size() == 0) {
+      String szMsg = String.format("Nessun record selezionato per l'assegnamento di %s", m_codStatSel);
+      s_log.debug(szMsg);
+      m_appmain.messageDialog(AlertType.WARNING, szMsg);
+      liSelRowsForCodStat = null;
       return;
+    }
+    // faccio una copia dei table row selezionati sulla ResView
+    liSelRowsForCodStat = new ArrayList<List<Object>>();
+    for (List<Object> el : locLi) {
+      List<Object> tmp = new ArrayList<Object>();
+      tmp.addAll(el);
+      liSelRowsForCodStat.add(tmp);
     }
     Platform.runLater(() -> {
       lstage.getScene().setCursor(Cursor.WAIT);
@@ -545,7 +573,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     // System.out.printf("ResultView.btAssignCodStatClick(sel=%d)\n", li.size());
     try {
       m_db.beginTrans();
-      for (List<Object> elem : li) {
+      for (List<Object> elem : liSelRowsForCodStat) {
         RigaBanca riga = RigaBanca.parse(elem);
         riga.setCodstat(m_codStatSel);
         m_db.updateCodStat(riga);
@@ -554,9 +582,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     } finally {
       m_db.commitTrans();
     }
-    s_log.info("Aggegnato cod. stat. {} a {} records", m_codStatSel, li.size());
-    btCercaClick(null);
+    s_log.info("Aggegnato cod. stat. {} a {} records", m_codStatSel, liSelRowsForCodStat.size());
     Platform.runLater(() -> {
+      btCercaClick(null);
       lstage.getScene().setCursor(Cursor.DEFAULT);
       btAssignCodStat.setDisable(false);
     });
@@ -627,28 +655,28 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     try {
       m_tbvf.setOnRunning(_ -> {
         s_log.debug("TableViewFiller task running...");
+        // System.out.println(StackViewer.viewStackTrace("Res View"));
       });
       m_tbvf.setOnSucceeded(_ -> {
         s_log.debug("TableViewFiller task Finished!");
         Platform.runLater(() -> {
-          lstage.getScene().setCursor(Cursor.DEFAULT);
-          btCerca.setDisable(false);
-          btExportCsv.setDisable(false);
-          bSemaf = false;
+          abilitaButtEselRows();
         });
       });
       m_tbvf.setOnFailed(_ -> {
         s_log.debug("TableViewFiller task failure");
         Platform.runLater(() -> {
-          lstage.getScene().setCursor(Cursor.DEFAULT);
-          btCerca.setDisable(false);
-          btExportCsv.setDisable(false);
-          bSemaf = false;
+          abilitaButtEselRows();
         });
       });
-      backGrService.execute(m_tbvf);
+      if ( !bBackGrRunning) {
+        backGrService.execute(m_tbvf);
+        bBackGrRunning = true;
+      }
     } catch (Exception e) {
       s_log.error("Errore task TableViewFiller");
+    } finally {
+      bBackGrRunning = false;
     }
     bSemaf = false;
     backGrService.shutdown();
@@ -676,6 +704,61 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     });
     tblview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     tblview.setOnKeyPressed(e -> tblRigaKeyPressed(e));
+  }
+
+  private void abilitaButtEselRows() {
+    lstage.getScene().setCursor(Cursor.DEFAULT);
+    btCerca.setDisable(false);
+    btExportCsv.setDisable(false);
+    bSemaf = false;
+    bBackGrRunning = false;
+
+    if (null == liSelRowsForCodStat || liSelRowsForCodStat.size() == 0) {
+      liSelRowsForCodStat = null;
+      return;
+    }
+    TableViewSelectionModel<List<Object>> selmod = tblview.getSelectionModel();
+    liSelRowsForCodStat.forEach(c -> vediESelezionaLaRigaGiusta(selmod, c));
+
+  }
+
+  private Object vediESelezionaLaRigaGiusta(TableViewSelectionModel<List<Object>> selmod, List<Object> c) {
+    int k = 0;
+    for (List<Object> aa : tblview.getItems()) {
+      k++;
+      int coln = EColsTableView.tipo.getColNo();
+      String tabTipo = (String) aa.get(coln);
+      String mioTipo = (String) c.get(coln);
+      if ( !Utils.isValueEq(tabTipo, mioTipo))
+        continue;
+
+      coln = EColsTableView.dtmov.getColNo();
+      String tabDtMov = (String) aa.get(coln);
+      String mioDtMov = (String) c.get(coln);
+      if ( !Utils.isValueEq(tabDtMov, mioDtMov))
+        continue;
+
+      coln = EColsTableView.dare.getColNo();
+      Double tabDare = (Double) aa.get(coln);
+      Double mioDare = (Double) c.get(coln);
+      if ( !Utils.isValueEq(tabDare, mioDare))
+        continue;
+
+      coln = EColsTableView.avere.getColNo();
+      Double tabAvere = (Double) aa.get(coln);
+      Double mioAvere = (Double) c.get(coln);
+      if ( !Utils.isValueEq(tabAvere, mioAvere))
+        continue;
+
+      coln = EColsTableView.descr.getColNo();
+      String tabDescr = (String) aa.get(coln);
+      String mioDescr = (String) c.get(coln);
+      if ( !Utils.isValueEq(tabDescr, mioDescr))
+        continue;
+      selmod.select(k - 1);
+      break;
+    }
+    return null;
   }
 
   @Override

@@ -229,6 +229,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
       rb.setTiporec(gcds.getTipo());
       rb.setRigaid(gcds.getId());
       rb.setCodstat(gcds.getCodstat());
+      rb.setIdcodstat(gcds.getIdcodstat());
       liRb.add(rb);
     }
     m_db.updateCodStat(liRb);

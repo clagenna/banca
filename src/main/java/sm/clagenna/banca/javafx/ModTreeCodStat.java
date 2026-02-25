@@ -50,13 +50,14 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   private static final Logger s_log = LogManager.getLogger(ModTreeCodStat.class);
 
-  public static final String  CSZ_FXMLNAME       = "ModTreeCodStat.fxml";
-  private static final String CSZ_PROP_POSVIEW_X = "modcodstat.x";
-  private static final String CSZ_PROP_POSVIEW_Y = "modcodstat.y";
-  private static final String CSZ_PROP_DIMVIEW_X = "modcodstat.lx";
-  private static final String CSZ_PROP_DIMVIEW_Y = "modcodstat.ly";
-  private static final String BT_SAV_INSERT      = "Inser.";
-  private static final String BT_SAV_MODIF       = "Modif.";
+  public static final String  CSZ_FXMLNAME            = "ModTreeCodStat.fxml";
+  public static final String PROP_POSVIEW_modcodstat = "modcodstat";
+  //  private static final String CSZ_PROP_POSVIEW_X = "modcodstat.x";
+  //  private static final String CSZ_PROP_POSVIEW_Y = "modcodstat.y";
+  //  private static final String CSZ_PROP_DIMVIEW_X = "modcodstat.lx";
+  //  private static final String CSZ_PROP_DIMVIEW_Y = "modcodstat.ly";
+  private static final String BT_SAV_INSERT = "Inser.";
+  private static final String BT_SAV_MODIF  = "Modif.";
 
   @FXML
   private Label     lbIdCodstat;
@@ -120,17 +121,19 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     txCd3.textProperty().addListener((_, _, nv) -> changedCd3(nv));
     txDescr.textProperty().addListener((_, _, nv) -> changedDescr(nv));
 
-    int px = p_props.getIntProperty(CSZ_PROP_POSVIEW_X, 10);
-    int py = p_props.getIntProperty(CSZ_PROP_POSVIEW_Y, 10);
-    int dx = p_props.getIntProperty(CSZ_PROP_DIMVIEW_X, 427);
-    int dy = p_props.getIntProperty(CSZ_PROP_DIMVIEW_Y, 150);
-    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
-      lstage.setX(mm.poxX());
-      lstage.setY(mm.posY());
-      lstage.setWidth(mm.width());
-      lstage.setHeight(mm.height());
-    }
+    JFXUtils.readPosStage(lstage, p_props, PROP_POSVIEW_modcodstat);
+
+    //    int px = p_props.getIntProperty(CSZ_PROP_POSVIEW_X, 10);
+    //    int py = p_props.getIntProperty(CSZ_PROP_POSVIEW_Y, 10);
+    //    int dx = p_props.getIntProperty(CSZ_PROP_DIMVIEW_X, 427);
+    //    int dy = p_props.getIntProperty(CSZ_PROP_DIMVIEW_Y, 150);
+    //    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+    //    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
+    //      lstage.setX(mm.poxX());
+    //      lstage.setY(mm.posY());
+    //      lstage.setWidth(mm.width());
+    //      lstage.setHeight(mm.height());
+    //    }
     lstage.setOnHiding(_ -> {
       closeApp(m_mainProps);
     });
@@ -352,15 +355,16 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   @Override
   public void closeApp(AppProperties p_props) {
-    double px = myScene.getWindow().getX();
-    double py = myScene.getWindow().getY();
-    double dx = myScene.getWindow().getWidth();
-    double dy = myScene.getWindow().getHeight();
-
-    p_props.setProperty(CSZ_PROP_POSVIEW_X, (int) px);
-    p_props.setProperty(CSZ_PROP_POSVIEW_Y, (int) py);
-    p_props.setProperty(CSZ_PROP_DIMVIEW_X, (int) dx);
-    p_props.setProperty(CSZ_PROP_DIMVIEW_Y, (int) dy);
+    JFXUtils.savePosStage(lstage, p_props, PROP_POSVIEW_modcodstat);
+    //    double px = myScene.getWindow().getX();
+    //    double py = myScene.getWindow().getY();
+    //    double dx = myScene.getWindow().getWidth();
+    //    double dy = myScene.getWindow().getHeight();
+    //
+    //    p_props.setProperty(CSZ_PROP_POSVIEW_X, (int) px);
+    //    p_props.setProperty(CSZ_PROP_POSVIEW_Y, (int) py);
+    //    p_props.setProperty(CSZ_PROP_DIMVIEW_X, (int) dx);
+    //    p_props.setProperty(CSZ_PROP_DIMVIEW_Y, (int) dy);
   }
 
 }
