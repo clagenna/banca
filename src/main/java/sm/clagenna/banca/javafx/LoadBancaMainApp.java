@@ -110,19 +110,19 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
       skin = props.getProperty(AppProperties.CSZ_PROP_SKIN);
       if (null == skin)
         skin = "LoadBancaFX";
+      JFXUtils.readPosStage(primaryStage, props, "frame");
 
-      int px = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_X);
-      int py = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_Y);
-      int dx = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_X);
-      int dy = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_Y);
-
-      var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-      if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
-        primaryStage.setX(mm.poxX());
-        primaryStage.setY(mm.posY());
-        primaryStage.setWidth(mm.width());
-        primaryStage.setHeight(mm.height());
-      }
+      //      int px = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_X);
+      //      int py = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_Y);
+      //      int dx = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_X);
+      //      int dy = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_Y);
+      //      var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
+      //      if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
+      //        primaryStage.setX(mm.poxX());
+      //        primaryStage.setY(mm.posY());
+      //        primaryStage.setWidth(mm.width());
+      //        primaryStage.setHeight(mm.height());
+      //      }
     } catch (Exception e) {
       LoadBancaMainApp.s_log.error("Errore in main initApp: {}", e.getMessage(), e);
       System.exit(1957);
@@ -211,16 +211,17 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   @Override
   public void closeApp(AppProperties prop) {
     // TODO salva le updates rimaste in sospeso
-    Scene sce = primaryStage.getScene();
-    double px = sce.getWindow().getX();
-    double py = sce.getWindow().getY();
-    double dx = sce.getWindow().getWidth();
-    double dy = sce.getWindow().getHeight();
-
-    prop.setProperty(AppProperties.CSZ_PROP_POSFRAME_X, (int) px);
-    prop.setProperty(AppProperties.CSZ_PROP_POSFRAME_Y, (int) py);
-    prop.setProperty(AppProperties.CSZ_PROP_DIMFRAME_X, (int) dx);
-    prop.setProperty(AppProperties.CSZ_PROP_DIMFRAME_Y, (int) dy);
+    JFXUtils.savePosStage(primaryStage, prop, "frame");
+    //    Scene sce = primaryStage.getScene();
+    //    double px = sce.getWindow().getX();
+    //    double py = sce.getWindow().getY();
+    //    double dx = sce.getWindow().getWidth();
+    //    double dy = sce.getWindow().getHeight();
+    //
+    //    prop.setProperty(AppProperties.CSZ_PROP_POSFRAME_X, (int) px);
+    //    prop.setProperty(AppProperties.CSZ_PROP_POSFRAME_Y, (int) py);
+    //    prop.setProperty(AppProperties.CSZ_PROP_DIMFRAME_X, (int) dx);
+    //    prop.setProperty(AppProperties.CSZ_PROP_DIMFRAME_Y, (int) dy);
 
     if (controller != null)
       controller.closeApp(prop);
@@ -290,8 +291,8 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
         break;
     }
     // button type YES -> aggiungo il no
-    if ( bt.equals(ButtonType.YES)) {
-      alert.getButtonTypes().setAll(ButtonType.YES,ButtonType.NO);
+    if (bt.equals(ButtonType.YES)) {
+      alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
     }
     //    alert.setContentText(p_msg);
     WebView webView = new WebView();

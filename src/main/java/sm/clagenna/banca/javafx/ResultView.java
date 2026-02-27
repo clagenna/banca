@@ -737,16 +737,20 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       String mioDtMov = (String) c.get(coln);
       if ( !Utils.isValueEq(tabDtMov, mioDtMov))
         continue;
-
+      // passando a SQLite qui mi torna un Float invece che un Double ?!?
       coln = EColsTableView.dare.getColNo();
-      Double tabDare = (Double) aa.get(coln);
-      Double mioDare = (Double) c.get(coln);
+      var vvDare = aa.get(coln);
+      Double tabDare = (vvDare instanceof Float) ? ((Float) vvDare).doubleValue() : (Double) vvDare;
+      vvDare = c.get(coln);
+      Double mioDare = (vvDare instanceof Float) ? ((Float) vvDare).doubleValue() : (Double) vvDare;
       if ( !Utils.isValueEq(tabDare, mioDare))
         continue;
 
       coln = EColsTableView.avere.getColNo();
-      Double tabAvere = (Double) aa.get(coln);
-      Double mioAvere = (Double) c.get(coln);
+      var vvAvere = aa.get(coln);
+      Double tabAvere = (vvAvere instanceof Float) ? ((Float) vvAvere).doubleValue() : (Double) vvAvere;
+      vvAvere = c.get(coln);
+      Double mioAvere = (vvAvere instanceof Float) ? ((Float) vvAvere).doubleValue() : (Double) vvAvere;
       if ( !Utils.isValueEq(tabAvere, mioAvere))
         continue;
 

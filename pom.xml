@@ -9,7 +9,7 @@
 		<compiler.plugin>3.12.1</compiler.plugin>
 		<java.version>25</java.version>
 		<stdc.version>0.10-SNAPSHOT</stdc.version>
-		<lombok.version>1.18.32</lombok.version>
+		<lombok.version>1.18.40</lombok.version>
 	</properties>
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->

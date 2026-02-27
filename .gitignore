@@ -6,6 +6,7 @@
 **/*.json
 **/*.log
 **/*.tmp
+*.csv
 *.zip
 **/*.zipx
 **/old

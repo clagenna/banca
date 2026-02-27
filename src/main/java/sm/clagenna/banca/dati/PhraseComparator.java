@@ -9,7 +9,9 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.scene.control.Alert.AlertType;
 import lombok.Getter;
+import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class PhraseComparator {
@@ -52,6 +54,12 @@ public class PhraseComparator {
   }
 
   public int creaVectors() {
+    if (null == knowns || knowns.size() == 0) {
+      var msg = "Non esistono registrazioni contenenti Codici Statistici!! Impossibile apprendere qualcosa.";
+      LoadBancaMainApp.getInst().messageDialog(AlertType.WARNING, msg);
+      s_log.warn(msg);
+      return 0;
+    }
     for (Phrase phr : knowns)
       phr.creaVector(wordIndex);
     return wordIndex.size();
@@ -77,8 +85,7 @@ public class PhraseComparator {
       if ( !wordIndex.containsKey(tok))
         wordIndex.put(tok, index++);
     }
-    @SuppressWarnings("unused")
-    boolean bAdded = oldSize != wordIndex.size();
+    @SuppressWarnings("unused") boolean bAdded = oldSize != wordIndex.size();
     // creo il vector della frase entrante
     phr.creaVector(wordIndex);
     RealVector vec1 = phr.getVector();

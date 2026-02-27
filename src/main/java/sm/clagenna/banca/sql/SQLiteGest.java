@@ -26,7 +26,7 @@ public class SQLiteGest extends SqlGest {
           + "                 ,descr" //
           + "                 ,abicaus" //
           + "                 ,cardid" //
-          + "                 ,codstat)" //
+          + "                 ,idcodstat)" //
           + "           VALUES (?,?,?,?,?,?,?,?,?,?)";
 
   private static final String QRY_SEL_Mov = //
@@ -49,12 +49,12 @@ public class SQLiteGest extends SqlGest {
           + "     ,descr=?" //
           + "     ,abicaus=?" //
           + "     ,cardid=?" //
-          + "     ,codstat=?" //
+          + "     ,idcodstat=?" //
           + "  WHERE 1=1";
 
   private static final String QRY_MOD_Mov_CodStat = //
       "UPDATE movimenti" //
-          + "  SET codstat=?" //
+          + "  SET idcodstat=?" //
           + "  WHERE id=?";
 
   private static final String QRY_INS_CodStats = """
@@ -68,6 +68,8 @@ public class SQLiteGest extends SqlGest {
           ,codstat
           ,descrstat
       FROM CodiciStat
+      WHERE 1=1
+      ORDER BY codstat
           """;
 
   private static final String QRY_DEL_CodStats = """

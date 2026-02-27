@@ -34,28 +34,30 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   private static final Logger s_log = LogManager.getLogger(AnalizzaCodStats.class);
 
   /** query per i record gia riconosciuti per formare il vocabolario */
-  private static final String CSZ_QRY_KNOWN   =   //
-      "SELECT  descr"                             //
-          + " ,codstat"                           //
-          + " FROM ListaMovimenti"                //
-          + " WHERE 1=1"                          //
-          + "   AND codstat IS NOT NULL"          //
-          + " ORDER BY descr";
+  private static final String CSZ_QRY_KNOWN   = """
+      SELECT  descr
+           ,codstat
+           FROM ListaMovimenti
+           WHERE 1=1
+             AND codstat IS NOT NULL
+           ORDER BY descr
+           """;
   /** query per i record da indovinare */
-  private static final String CSZ_QRY_UNKNOWN =   //
-      "SELECT id"                                 //
-          + " ,tipo"                              //
-          + " ,dtmov"                             //
-          + " ,dare"                              //
-          + " ,avere"                             //
-          + " ,cardid"                            //
-          + " ,descr"                             //
-          + " FROM ListaMovimenti"                //
-          + " WHERE 1=1"                          //
-          + " %s"                                 //
-          + "   AND (dare <> 0 OR avere <> 0)"    //
-          + "   AND codstat IS NULL"              //
-          + " ORDER BY descr";
+  private static final String CSZ_QRY_UNKNOWN = """
+      SELECT id
+            ,tipo
+            ,dtmov
+            ,dare
+            ,avere
+            ,cardid
+            ,descr
+           FROM ListaMovimenti
+            WHERE 1=1
+             %s
+             AND (dare <> 0 OR avere <> 0)
+             AND codstat IS NULL
+          ORDER BY descr
+      """;
 
   @Getter @Setter
   private DBConn     dbconn;
