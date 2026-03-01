@@ -37,11 +37,11 @@ public class TreeCodStat {
 
   public TreeCodStat(CodStat p_no) {
     init();
-    setRoot(p_no);
+    this.root = p_no;
   }
 
   private void init() {
-    setRoot(new CodStat());
+    this.root = new CodStat();
     model = DataModel.getInst();
     // String szficds = null;
     //    if (null != contrlr) {

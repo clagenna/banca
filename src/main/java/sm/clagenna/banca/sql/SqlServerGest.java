@@ -15,46 +15,47 @@ public class SqlServerGest extends SqlGest {
   private static final String QRY_VIEW_PATT     = "SELECT %s from %s WHERE 1=1 ORDER BY dtMov,dtval,dare,avere";
   private static final String QRY_LAST_ROWID    = "Select @@IDENTITY  as LastId";
 
-  private static final String QRY_INS_Mov = //
-      "INSERT INTO dbo.movimenti" //
-          + "                 (tipo" + "                 ,idfile" //
-          + "                 ,dtmov" //
-          + "                 ,dtval" //
-          + "                 ,dare" //
-          + "                 ,avere" //
-          + "                 ,descr" //
-          + "                 ,abicaus" //
-          + "                 ,cardid" //
-          + "                 ,idcodstat)" //
-          + "           VALUES (?,?,?,?,?,?,?,?,?,?)";
+  private static final String QRY_INS_Mov = """
+      INSERT INTO dbo.movimenti
+          (tipo
+          ,idfile
+          ,dtmov
+          ,dtval
+          ,dare
+          ,avere
+          ,descr
+          ,abicaus
+          ,cardid
+          ,idcodstat)
+    VALUES (?,?,?,?,?,?,?,?,?,?)""";
 
-  private static final String QRY_SEL_Mov = //
-      "SELECT COUNT(*)" //
-          + "  FROM dbo.movimenti" //
-          + " WHERE 1=1"; //
+  private static final String QRY_SEL_Mov = """
+      SELECT COUNT(*)
+        FROM dbo.movimenti
+       WHERE 1=1""";
 
-  private static final String QRY_DEL_Mov = //
-      "DELETE FROM dbo.movimenti" //
-          + " WHERE 1=1"; //
+  private static final String QRY_DEL_Mov = """
+      DELETE FROM dbo.movimenti
+           WHERE 1=1""";
 
-  private static final String QRY_MOD_Mov = //
-      "UPDATE movimenti" //
-          + "  SET tipo=?" //
-          + "     ,idfile=?" //
-          + "     ,dtmov=?" //
-          + "     ,dtval=?" //
-          + "     ,dare=?" //
-          + "     ,avere=?" //
-          + "     ,descr=?" //
-          + "     ,abicaus=?" //
-          + "     ,cardid=?" //
-          + "     ,idcodstat=?" //
-          + "  WHERE 1=1";
+  private static final String QRY_MOD_Mov = """
+      UPDATE movimenti
+         SET tipo=?
+            ,idfile=?
+            ,dtmov=?
+            ,dtval=?
+            ,dare=?
+            ,avere=?
+            ,descr=?
+            ,abicaus=?
+            ,cardid=?
+            ,idcodstat=?
+      WHERE 1=1";""";
 
-  private static final String QRY_MOD_Mov_CodStat = //
-      "UPDATE movimenti" //
-          + "  SET idcodstat=?" //
-          + "  WHERE id=?";
+  private static final String QRY_MOD_Mov_CodStat = """
+      UPDATE movimenti
+         SET idcodstat=?" //
+       WHERE id=?""";
 
   private static final String QRY_INS_CodStats = """
       INSERT INTO dbo.CodiciStat
@@ -68,8 +69,7 @@ public class SqlServerGest extends SqlGest {
           ,descrstat
       FROM CodiciStat
       WHERE 1=1
-      ORDER BY codstat
-          """;
+      ORDER BY codstat""";
 
   private static final String QRY_DEL_CodStats = """
       DELETE FROM dbo.CodiciStat
@@ -80,8 +80,7 @@ public class SqlServerGest extends SqlGest {
            codstat=?
           ,descrstat=?
       FROM CodiciStat
-      WHERE idCodStat=?
-          """;
+      WHERE idCodStat=?""";
 
   public SqlServerGest() {
     super();

@@ -1,4 +1,4 @@
-@echo off
+@echo on
 :: --------------------------------------------------------
 :: (0) Init di alcune variabili [ESC, BaseDir, MvnCmd]
 :: - - - - - 
@@ -85,7 +85,7 @@ if "%DEBUG%" == "1" pause
 call :mioecho "Build progetto in"  %CD%
 rem  @echo Build of  %CD%
 if "%DEBUG%" == "1" pause
-pwsh -f "%BaseDir%\bin2\buildApp.ps1"
+pwsh -f "%BaseDir%\bin\buildApp.ps1"
 call :mioecho "Fine Build" Banca
 rem @echo %CD%
 

@@ -1,3 +1,5 @@
+.wix
+.vscode
 **/target
 **/*.bak
 **/*.csv

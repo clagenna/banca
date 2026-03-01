@@ -34,41 +34,40 @@ import sm.clagenna.stdcla.utils.Utils;
 public class CsvFileContainer {
   private static final Logger s_log = LogManager.getLogger(CsvFileContainer.class);
 
-  private static final String QRY_SEL = //
-      """
-           SELECT id,
-                filename,
-                reldir,
-                size,
-                qtarecs,
-                dtmin,
-                dtmax,
-                ultagg
-           FROM impFiles
-           WHERE filename = ?
-           AND relDir = ? """;
+  private static final String QRY_SEL = """
+      SELECT id,
+           filename,
+           reldir,
+           size,
+           qtarecs,
+           dtmin,
+           dtmax,
+           ultagg
+      FROM impFiles
+      WHERE filename = ?
+      AND relDir = ?""";
 
-  private static final String QRY_UPD = //
-      "UPDATE impFiles SET " //
-          + "       filename=?," //
-          + "       reldir=?," //
-          + "       size=?," //
-          + "       qtarecs=?," //
-          + "       dtmin=?," //
-          + "       dtmax=?," //
-          + "       ultagg=?" //
-          + "  WHERE id = ?";
+  private static final String QRY_UPD = """
+      UPDATE impFiles SET
+             filename=?,
+             reldir=?,
+             size=?,
+             qtarecs=?,
+             dtmin=?,
+             dtmax=?,
+             ultagg=?
+      WHERE id = ?""";
 
-  private static final String QRY_INS = //
-      "INSERT INTO impFiles (" //
-          + "       filename," //
-          + "       reldir," //
-          + "       size," //
-          + "       qtarecs," //
-          + "       dtmin," //
-          + "       dtmax," //
-          + "       ultagg) " //
-          + " VALUES ( ?, ?, ?, ?, ?, ?, ? )";
+  private static final String QRY_INS = """
+       INSERT INTO impFiles (
+            filename,
+            reldir,
+            size,
+            qtarecs,
+            dtmin,
+            dtmax,
+            ultagg)
+      VALUES ( ?, ?, ?, ?, ?, ?, ? )""";
 
   private final int CO_id       = 1;
   private final int CO_filename = 2;

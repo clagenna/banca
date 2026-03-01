@@ -111,17 +111,11 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${compiler.plugin}</version>
 				<configuration>
-					<!--
- compilerArgs> - - enable - preview</compilerArgs 
-					-->
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 					<release>${java.version}</release>
 					<fork>true</fork>
 					<compilerArgs>
-						<!--
-  arg  enable-preview< / arg 
-						-->
 						<arg>-Xlint:all</arg>
 						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
 						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
