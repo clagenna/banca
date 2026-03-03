@@ -10,13 +10,13 @@ if "%DEBUG%" == "1" echo on
 if "%1" == "" goto noOpt
 if "%1" == "-?" goto help
 if "%1" == "-help" goto help
-if "%1" == "-updVers"  goto second
-if "%1" == "-buildStd"  goto second
+if /i "%1" == "-updVers"  goto second
+if /i "%1" == "-buildStd"  goto second
 goto help
 :second
 if "%2" == ""  goto noOpt
-if "%2" == "-updVers"  goto noOpt
-if "%2" == "-buildStd"  goto noOpt
+if /i "%2" == "-updVers"  goto noOpt
+if /i "%2" == "-buildStd"  goto noOpt
 goto help
 
 if "%DEBUG%" == "1" echo on
@@ -27,7 +27,7 @@ if "%DEBUG%" == "1" echo on
 set updVers=
 set buildStd=
 :testp
-if "%DEBUG%" == "1" @echo 0=%0 1=%1 2=%2 3=%3
+if "%DEBUG%" == "1" @echo 1=%1 2=%2 3=%3 4=%4
 if /i "%1" EQU "-updVers" (
   	set updVers=1
 	shift /1
@@ -38,20 +38,24 @@ if /i "%1" EQU "-buildStd" (
 	shift /1
 	goto testp
 )
-if "%DEBUG%" == "1" @echo updVers=%updVers%
-if "%DEBUG%" == "1" @echo buildStd=%buildStd%
-if "%DEBUG%" == "1" pause
+if "%DEBUG%" == "1" ( 
+	@echo updVers=%updVers%
+	@echo buildStd=%buildStd%
+	pause
+	goto testp
+)
 
-:: - - - - - 
+:: - - - - - - - - - - - - - - - 
 :: (0,3) BaseDir
 @echo %~dpnx0
-cd /d %~dp0
+cd /d "%~dp0"
 cd ..
 set BaseDir=%CD%
 call :mioecho "Base Dir" %BaseDir%
+if "%DEBUG%" == "1" pause
 
 :: - - - - - 
-:: (0,4) MvnCmd il comando batch di Maven
+:: (0,4) Mvn.Cmd il comando batch di Maven
 set MvnCmd=
 for /F "usebackq tokens=*" %%i in (`where mvn.cmd` ) do set MvnCmd=%%i
 if   "%MvnCmd%" == "" goto nomvn

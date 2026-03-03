@@ -1,4 +1,4 @@
-package sm.clagenna.banca.dati;
+package prova.banca;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import lombok.Getter;
+import sm.clagenna.banca.dati.CodeAteco;
 
 public class AtecoContainer {
   private static final Logger s_log          = LogManager.getLogger(AtecoContainer.class);

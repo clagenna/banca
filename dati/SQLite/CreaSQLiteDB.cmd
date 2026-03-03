@@ -1,6 +1,6 @@
 @echo off
 if "%1" == "" (
-  @echo nome del DB senza estensione
+  @echo nome del DB senza estensione ".DB"
   set /P NEWDB=Nome del nuovo DB SQLite:
 ) else (
   set NEWDB=%1
@@ -11,8 +11,11 @@ if exist "%NEWDB%.db" (
   @echo [93;101mlo vuoi Cancellare ?[0m
   set /P CANCDB="Cancellare (Y/N) ?:"
 )
-if /i "%CANCDB%" == "y" del "%NEWDB%.db"
-if /i "%CANCDB%" == "n" goto fine
+if /i "%CANCDB%" == "y" (
+  del "%NEWDB%.db" 
+  ) else (
+  goto fine
+  )
 sqlite3.exe "%NEWDB%.db" < Banca.sql
 dir "%NEWDB%.db"
 

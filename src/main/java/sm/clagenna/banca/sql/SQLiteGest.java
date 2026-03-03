@@ -69,8 +69,7 @@ public class SQLiteGest extends SqlGest {
           ,descrstat
       FROM CodiciStat
       WHERE 1=1
-      ORDER BY codstat
-          """;
+      ORDER BY codstat""";
 
   private static final String QRY_DEL_CodStats = """
       DELETE FROM dbo.CodiciStat
@@ -81,8 +80,7 @@ public class SQLiteGest extends SqlGest {
            codstat=?
           ,descrstat=?
       FROM CodiciStat
-      WHERE idCodStat=?
-          """;
+      WHERE idCodStat=?""";
 
 
   public SQLiteGest() {

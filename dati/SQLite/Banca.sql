@@ -65,7 +65,7 @@ CREATE INDEX IF NOT EXISTS IX_Movim_dtMov ON movimenti (
 
 -- Tabella: codiciStat  XXXXXXXXXXXXXXXXXXXXX
 CREATE TABLE IF NOT EXISTS codiciStat (
-  idCodStat   INTEGER       PRIMARY KEY ASC, 
+    idCodStat   INTEGER       PRIMARY KEY ASC, 
 	codstat     NVARCHAR(12)  NOT NULL,
 	descrstat   NVARCHAR(256) NOT NULL
 );  
@@ -85,7 +85,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS UXImpFiles ON impFiles (
 -- Vista: listaMovimenti
 DROP VIEW IF EXISTS listaMovimenti;
 CREATE VIEW IF NOT EXISTS listaMovimenti AS
-    SELECT id,
+SELECT id,
            tipo,
            idfile,
            dtmov,
@@ -99,10 +99,15 @@ CREATE VIEW IF NOT EXISTS listaMovimenti AS
            mo.abicaus,
            ca.descrcaus,
            ca.costo,
-           codstat
+           mo.idcodstat,
+           cs.codstat,
+           cs.descrstat,
+           0 as flag
       FROM movimenti mo
-           LEFT OUTER JOIN
-           causali ca ON mo.abicaus = ca.abicaus;
+           LEFT OUTER JOIN causali ca 
+                ON mo.abicaus = ca.abicaus
+           left outer join codiciStat cs
+	            ON mo.idCodStat=cs.idCodStat;
 
 
 COMMIT TRANSACTION;

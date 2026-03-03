@@ -33,7 +33,7 @@ public class Convert2CsvCol {
   public Convert2CsvCol(ConvertCsv2RigaBanca convRB, RigaBanca p_rb, String p_nam) {
     this.convRB = convRB;
     rbRef = p_rb;
-    setName(p_nam);
+    this.setName(p_nam);
     if (null != p_nam) {
       rbCol = EColsTableView.valueOf(p_nam);
     }

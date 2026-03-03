@@ -77,26 +77,29 @@ public class CsvImportBanca extends Task<String> implements Closeable {
   private PropertyChangeSupport             prchsupp;
   private Map<EColsTableView, List<String>> nomiCols;
   @Getter
-  private List<RigaBanca>              righeBanca;
+  private List<RigaBanca>                   righeBanca;
   private DBConn                            dbconn;
   @Getter
-  private DataModel                    cntrl;
+  private DataModel                         cntrl;
   private double                            dblQtaRows;
 
   private ConvertCsv2RigaBanca cnvRb;
 
   public CsvImportBanca() {
-    init();
+    // WARNING(?!?): [this-escape] possible 'this' escape before subclass is fully initialized
+    this.init();
   }
 
   public CsvImportBanca(Path p_fiCsv) {
-    setCsvFile(p_fiCsv);
-    init();
+    // WARNING(?!?): [this-escape] possible 'this' escape before subclass is fully initialized
+    this.setCsvFile(p_fiCsv);
+    this.init();
   }
 
   private void init() {
     // i CSV degli export Welly/BSI sono in Locale.US
     skipSaveDB = false;
+    // WARNING(?!?) : [this-escape] previous possible 'this' escape happens here via invocation
     prchsupp = new PropertyChangeSupport(this);
     Utils.setLocale(Locale.ITALY);
     nomiCols = new HashMap<>();
@@ -108,8 +111,8 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     nomiCols.put(EColsTableView.dare,
         Arrays.asList(new String[] { EColsTableView.dare.toString(), "importo", "Amount", "Source amount (after fees)" }));
     nomiCols.put(EColsTableView.avere, Arrays.asList(new String[] { EColsTableView.avere.toString(), "*no*", "*no*" }));
-    nomiCols.put(EColsTableView.descr, Arrays
-        .asList(new String[] { EColsTableView.descr.toString(), "causale", "descrizione", "Target name", "Esercente", "Merchant" }));
+    nomiCols.put(EColsTableView.descr, Arrays.asList(
+        new String[] { EColsTableView.descr.toString(), "causale", "descrizione", "Target name", "Esercente", "Merchant" }));
     nomiCols.put(EColsTableView.abicaus, Arrays.asList(new String[] { "causabi", "causale abi", "categoria", "ID" }));
 
     cntrl = DataModel.getInst();

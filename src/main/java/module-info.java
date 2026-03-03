@@ -1,5 +1,5 @@
 open module banca {
-  exports sm.clagenna.banca.javafx;
+  exports sm.clagenna.banca.javafx to javafx.graphics;
   exports sm.clagenna.banca.sql;
   exports sm.clagenna.banca.dati;
   

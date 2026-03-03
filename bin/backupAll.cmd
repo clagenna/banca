@@ -15,7 +15,7 @@ call :mioecho StdCla backup di stdcla
 start "Backup degli Standard" /d ..\stdcla /wait cmd.exe /c "savzip.cmd"
 call :mioecho StdCla backup progetto Banca
 if "%DEBUG%" == "1" pause
-start "Backup progetto Banca" /d . /wait cmd.exe /c "savzip.cmd"
+start "Backup progetto Banca" /d ..\banca /wait cmd.exe /c "savzip.cmd"
 
 goto fine
 

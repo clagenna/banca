@@ -45,10 +45,10 @@ public class CodStat implements Comparable<CodStat>, Cloneable {
   }
 
   public CodStat(int idCd, String cods, String desc) {
-    assign(CodStat.parse(cods));
+    this.assign(CodStat.parse(cods));
     // la parse torna un nuovo CodStat senza idCodStat
-    setIdCodStat(idCd);
-    setDescr(desc);
+    idCodStat = idCd;
+    descr = desc;
   }
 
   public void assign(int cd1, int cd2, int cd3) {
@@ -391,6 +391,13 @@ public class CodStat implements Comparable<CodStat>, Cloneable {
     if (this.cod3 > o.cod3)
       return 1;
     return 0;
+  }
+
+  @Override
+  public int hashCode() {
+    if (null == codice)
+      return super.hashCode();
+    return codice.hashCode();
   }
 
   public String toStringEx() {

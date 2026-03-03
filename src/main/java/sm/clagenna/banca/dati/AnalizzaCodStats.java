@@ -40,8 +40,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
            FROM ListaMovimenti
            WHERE 1=1
              AND codstat IS NOT NULL
-           ORDER BY descr
-           """;
+           ORDER BY descr""";
   /** query per i record da indovinare */
   private static final String CSZ_QRY_UNKNOWN = """
       SELECT id
@@ -56,8 +55,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
              %s
              AND (dare <> 0 OR avere <> 0)
              AND codstat IS NULL
-          ORDER BY descr
-      """;
+          ORDER BY descr""";
 
   @Getter @Setter
   private DBConn     dbconn;
@@ -84,7 +82,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   public AnalizzaCodStats(LoadBancaMainApp p_main) {
     mainApp = p_main;
     model = p_main.getModel();
-    setDbconn(model.getDbConn());
+    dbconn = model.getDbConn();
     codStatData = model.getCodStatData();
   }
 

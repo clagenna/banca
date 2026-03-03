@@ -15,7 +15,6 @@ import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class PhraseComparator {
-  @SuppressWarnings("unused")
   private static final Logger s_log = LogManager.getLogger(PhraseComparator.class);
 
   // Creazione di un vocabolario di parole uniche

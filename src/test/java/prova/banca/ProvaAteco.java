@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import sm.clagenna.banca.dati.AtecoContainer;
 import sm.clagenna.banca.dati.CodeAteco;
 
 public class ProvaAteco {

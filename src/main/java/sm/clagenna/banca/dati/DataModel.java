@@ -114,6 +114,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       throw new UnsupportedOperationException("DataController is Singleton!");
     }
     s_inst = this;
+    // WARNING(?!?): [this-escape] possible 'this' escape before subclass is fully initialized
     propsChange = new PropertyChangeSupport(this);
     filtriQuery = ESqlFiltri.AllSets.getFlag();
     addPropertyChangeListener(this);
