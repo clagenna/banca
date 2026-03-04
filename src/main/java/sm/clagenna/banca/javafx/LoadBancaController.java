@@ -540,7 +540,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   public void mnuConfMostraCodStatClick(ActionEvent event) {
     LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
     if (mainApp.isCodStatViewOpened()) {
-      String szMsg="La finestra dei codici statistici e' gia' aperta!";
+      String szMsg = "La finestra dei codici statistici e' gia' aperta!";
       s_log.warn(szMsg);
       mainApp.messageDialog(AlertType.INFORMATION, szMsg);
       return;
@@ -564,7 +564,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
 
     Stage stageResults = new Stage();
     Scene scene = new Scene(radice, 600, 440);
-    
+
     stageResults.setScene(scene);
     stageResults.setWidth(800);
     stageResults.setHeight(600);
@@ -788,8 +788,10 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     s_log.debug("Ricarico la lista files CSV da: {}", model.getLastDir());
     ObservableList<ImpFile> liFilesCSV = model.getContCsv().loadListFiles();
     tblvFiles.getItems().clear();
-    tblvFiles.getItems().addAll(liFilesCSV);
-    colorizeTblView();
+    if (null != liFilesCSV) {
+      tblvFiles.getItems().addAll(liFilesCSV);
+      colorizeTblView();
+    }
 
     MenuItem mi1 = new MenuItem("Import");
     mi1.setOnAction((ActionEvent ev) -> {

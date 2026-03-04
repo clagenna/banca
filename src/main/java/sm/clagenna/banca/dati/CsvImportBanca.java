@@ -751,18 +751,18 @@ public class CsvImportBanca extends Task<String> implements Closeable {
   }
 
   public void addPropertyChangeListener(PropertyChangeListener loadBancaController) {
-    System.out.println("CsvImportBanca.addPropertyChangeListener()");
+    // System.out.println("CsvImportBanca.addPropertyChangeListener()");
     prchsupp.addPropertyChangeListener(loadBancaController);
   }
 
   public void removePropertyChangeListener(PropertyChangeListener loadBancaController) {
-    System.out.println("CsvImportBanca.removePropertyChangeListener()");
+    // System.out.println("CsvImportBanca.removePropertyChangeListener()");
     prchsupp.removePropertyChangeListener(loadBancaController);
   }
 
   @Override
   public void close() throws IOException {
-    System.out.println("CsvImportBanca.close()");
+    // System.out.println("CsvImportBanca.close()");
     if (null != prchsupp) {
       List<PropertyChangeListener> li = Arrays.asList(prchsupp.getPropertyChangeListeners());
       for (PropertyChangeListener el : li)

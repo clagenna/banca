@@ -17,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -258,13 +259,15 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     Alert alert = new Alert(typ);
     alert.setResizable(true);
     Scene scene = primaryStage.getScene();
-    double posx = scene.getWindow().getX();
-    double posy = scene.getWindow().getY();
-    double widt = scene.getWidth();
-    double px = posx + widt / 2 - 366;
-    double py = posy + 50;
-    alert.setX(px);
-    alert.setY(py);
+    if (null != scene) {
+      double posx = scene.getWindow().getX();
+      double posy = scene.getWindow().getY();
+      double widt = scene.getWidth();
+      double px = posx + widt / 2 - 366;
+      double py = posy + 50;
+      alert.setX(px);
+      alert.setY(py);
+    }
     alert.setWidth(400);
 
     switch (typ) {
@@ -313,8 +316,18 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
 
   public boolean msgBox(String p_txt, AlertType tipo, String p_ico) {
     boolean bRet = true;
+    // se lanciato da un Thread la chiamata ad Alert non puo funzionare
+    // Va' lanciata solo sul JavaFX Application Thread
+    if ( !Platform.isFxApplicationThread()) {
+      Platform.runLater(() -> msgBox(p_txt, tipo, p_ico));
+      return bRet;
+    }
     Alert alt = new Alert(tipo);
     Scene sce = getPrimaryStage().getScene();
+    if (null == sce) {
+      // Cerchiamo di dare un'ancora all'alert se possibile
+      Stage.getWindows().stream().filter(Window::isShowing).findFirst().ifPresent(alt::initOwner);
+    }
     if (null != p_ico) {
       URL resico = getClass().getResource(p_ico);
       if (null == resico)
@@ -324,19 +337,12 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
         alt.setGraphic(ico);
       }
     }
-
-    Window wnd = null;
-    if (sce != null)
-      wnd = sce.getWindow();
-    if (wnd != null) {
-      alt.initOwner(wnd);
-      alt.setTitle(tipo.toString());
-      alt.setHeaderText(tipo.toString());
-      alt.setContentText(p_txt);
-      Optional<ButtonType> result = alt.showAndWait();
-      if (tipo == AlertType.CONFIRMATION) {
-        bRet = result.get() == ButtonType.OK;
-      }
+    alt.setTitle(tipo.toString());
+    alt.setHeaderText(tipo.toString());
+    alt.setContentText(p_txt);
+    Optional<ButtonType> result = alt.showAndWait();
+    if (tipo == AlertType.CONFIRMATION) {
+      bRet = result.get() == ButtonType.OK;
     } else
       s_log.error("Windows==null; msg={}", p_txt);
     return bRet;

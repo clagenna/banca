@@ -1,7 +1,9 @@
 package sm.clagenna.banca.dati;
 
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
-
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -72,8 +74,13 @@ public class ConvertCsv2RigaBanca {
   public void readConvProperties(Path p_pth) {
     try {
       convProps = new AppProperties();
-      final boolean FROM_JAR = true;
-      convProps.leggiPropertyFile(p_pth.toFile(), true, FROM_JAR);
+      boolean FROM_JAR = false;
+      Path locProp = Paths.get("src/main/resources", p_pth.toString());
+      convProps.leggiPropertyFile(locProp.toFile(), false, FROM_JAR);
+      if (convProps.size() == 0) {
+        FROM_JAR = true;
+        convProps.leggiPropertyFile(p_pth.toFile(), true, FROM_JAR);
+      }
       parseProps();
     } catch (AppPropsException e) {
       // e.printStackTrace();

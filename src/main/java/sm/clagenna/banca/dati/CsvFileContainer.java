@@ -23,6 +23,8 @@ import org.apache.logging.log4j.Logger;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.Alert.AlertType;
+import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
@@ -94,6 +96,12 @@ public class CsvFileContainer {
 
   public ObservableList<ImpFile> loadListFiles() {
     elenco = new ArrayList<ImpFile>();
+    final Path lastDir = model.getLastDir();
+    if ( !Files.exists(lastDir, LinkOption.NOFOLLOW_LINKS)) {
+      String szMsg = String.format("Non esiste il direttorio fatture:<br/>&nbsp;&nbsp; %s",(null == lastDir) ? "*null*" : lastDir.toString());
+      LoadBancaMainApp.getInst().messageDialog(AlertType.WARNING, szMsg);
+      return null;
+    }
     AppProperties props = model.getProps();
 
     String fltrFiles = props.getProperty(DataModel.CSZ_FILTER_FILES);
@@ -103,7 +111,6 @@ public class CsvFileContainer {
     String szGlobMatch = creaGlobMatch(fltrFiles);
     // String szGlobMatch = "glob:*:/**/{estra*,wise*}*.csv";
     PathMatcher matcher = FileSystems.getDefault().getPathMatcher(szGlobMatch);
-    final Path lastDir = model.getLastDir();
     try (Stream<Path> walk = Files.walk(lastDir.toAbsolutePath())) {
       elenco = walk.filter(p -> !Files.isDirectory(p)) //
           // not a directory

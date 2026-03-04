@@ -28,10 +28,10 @@ public class Versione implements Serializable {
   /** Minor Version */
   public static final int APP_MIN_VERSION = 0;
   /** Build Version */
-  public static final int    APP_BUILD = 3;
+  public static final int    APP_BUILD = 4;
 
   // e oggi esteso ${dh:CSZ_DATEDEPLOY}
-  public static final String CSZ_DATEDEPLOY = "02/03/2026 16:54:00";
+  public static final String CSZ_DATEDEPLOY = "04/03/2026 16:54:00";
 
   public static void main(String[] args) {
     System.out.println(DESC_APPL + " " + Versione.getVersion());
