@@ -23,7 +23,7 @@ public class TreeitemCodStat extends TreeCodStat {
   @Override
   public CodStat readTreeCodStats() {
     CodStat rad = super.readTreeCodStats();
-    refreshTreeItems(); // ??
+    refreshTreeItems(); 
     return rad;
   }
 

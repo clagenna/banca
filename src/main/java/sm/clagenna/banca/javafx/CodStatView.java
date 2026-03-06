@@ -144,6 +144,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       lstage.setOnCloseRequest(_ -> {
         closeApp(mainProps);
       });
+    getMyScene().setOnKeyReleased(e -> premutoTasto(e));
   }
 
   private void impostaTreeView(AppProperties p_props) {
@@ -255,9 +256,20 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
     //    CodStatTreeData cdst = new CodStatTreeData();
     //    CodStat2 radice = cdst.readTree();
-    TreeitemCodStat treeData = model.getCodStatData();
+    refreshTreeCodstat();
+  }
+
+  private void refreshTreeCodstat() {
+    System.out.println("CodStatView.refreshTreeCodstat()");
+    TreeItem<CodStat> cds = treeview.getSelectionModel().getSelectedItem();
+    TreeitemCodStat treeData = model.refreshCodstatData();
     TreeItem<CodStat> root = treeData.getTreeItemRoot();
     treeview.setRoot(root);
+    treeview.refresh();
+    if ( null != cds ) {
+      String ds = cds.getValue().getDescr() ;
+      txDescrSel(null, "", ds);
+    }
   }
 
   private void treeView_filtra(Object object) {
@@ -288,8 +300,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     stageModCodStat = new Stage();
     Scene scene = new Scene(radice, 444, 211);
     stageModCodStat.setScene(scene);
-//    stageModCodStat.setWidth(427);
-//    stageModCodStat.setHeight(325);
+    //    stageModCodStat.setWidth(427);
+    //    stageModCodStat.setHeight(325);
     stageModCodStat.initOwner(lstage);
     stageModCodStat.initModality(Modality.APPLICATION_MODAL);
     stageModCodStat.setTitle("Modifica dei Codici Statistici");
@@ -502,12 +514,13 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
   @FXML
   Object premutoTasto(KeyEvent p_e) {
-    // System.out.printf("LoadAassController.premutoTasto(%s)\n", p_e.toString());
+    System.out.printf("LoadAassController.premutoTasto(%s)\n", p_e.getCode().toString());
     KeyCode key = p_e.getCode();
     switch (key) {
       case ENTER:
       case F5:
-        btCercaFileClick(null);
+        // btCercaFileClick(null);
+        refreshTreeCodstat();
         break;
       default:
         break;
@@ -636,6 +649,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         if (obj instanceof CodStat cds) {
           System.out.printf("CodStatView.propertyChange(%s)\n", cds.toStringEx());
           Platform.runLater(() -> {
+            // refreshTreeCodstat();
             refreshTreeViewAfterUpdate(treeItems, cds);
           });
         }
@@ -648,11 +662,12 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
   private void refreshTreeViewAfterUpdate(TreeitemCodStat treeItems, CodStat cds) {
     int iSel = treeview.getSelectionModel().getSelectedIndex();
+    refreshTreeCodstat();
     treeItems.refreshTreeItems();
     treeItems.expandNode(cds);
     treeview.setRoot(treeItems.getTreeItemRoot());
     treeview.refresh();
-    if ( iSel > 0 )
+    if (iSel > 0)
       treeview.getSelectionModel().select(iSel);
     if (null != modTreeView)
       modTreeView.closeApp(mainProps);

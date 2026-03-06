@@ -28,7 +28,7 @@ public class Versione implements Serializable {
   /** Minor Version */
   public static final int APP_MIN_VERSION = 0;
   /** Build Version */
-  public static final int    APP_BUILD = 4;
+  public static final int    APP_BUILD = 5;
 
   // e oggi esteso ${dh:CSZ_DATEDEPLOY}
   public static final String CSZ_DATEDEPLOY = "04/03/2026 16:54:00";

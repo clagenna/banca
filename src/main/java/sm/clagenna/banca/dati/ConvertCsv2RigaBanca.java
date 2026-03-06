@@ -1,7 +1,5 @@
 package sm.clagenna.banca.dati;
 
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -132,7 +130,7 @@ public class ConvertCsv2RigaBanca {
    * Popola un {@link RigaBanca} con le colonne passate con P_row sotto la guida
    * delle {@link #convCols} che hanno una tipologia, defaut value, SqlType etc
    * ...
-   * 
+   *
    * @param p_rb
    *          il {@link RigaBanca} da popolare
    * @param P_row

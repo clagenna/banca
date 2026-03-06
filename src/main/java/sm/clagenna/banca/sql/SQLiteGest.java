@@ -58,9 +58,8 @@ public class SQLiteGest extends SqlGest {
           + "  WHERE id=?";
 
   private static final String QRY_INS_CodStats = """
-      INSERT INTO dbo.CodiciStat
-      (codstat
-          ,descrstat)
+      INSERT INTO CodiciStat
+      (codstat, descrstat)
       VALUES (?, ? )""";
 
   private static final String QRY_SEL_CodStats = """
@@ -72,14 +71,13 @@ public class SQLiteGest extends SqlGest {
       ORDER BY codstat""";
 
   private static final String QRY_DEL_CodStats = """
-      DELETE FROM dbo.CodiciStat
+      DELETE FROM CodiciStat
       WHERE idCodStat = ?""";
 
   private static final String QRY_UPD_CodStats = """
           UPDATE CodiciStat SET
            codstat=?
           ,descrstat=?
-      FROM CodiciStat
       WHERE idCodStat=?""";
 
 

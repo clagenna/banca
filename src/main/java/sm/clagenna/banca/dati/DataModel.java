@@ -247,9 +247,10 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     refreshCodstatData();
   }
 
-  private void refreshCodstatData() {
+  public TreeitemCodStat refreshCodstatData() {
     codStatData = new TreeitemCodStat();
     codStatData.readTreeCodStats();
+    return codStatData;
   }
 
   private void openProperties() {
