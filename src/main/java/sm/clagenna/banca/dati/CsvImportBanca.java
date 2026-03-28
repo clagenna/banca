@@ -220,7 +220,8 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     } finally {
       Utils.setLocale(prevloc);
       firePropertyChange(EVT_ENDDTSROW, (double) dtsCsv.size());
-      updateProgress(nRow, nRow);
+      if ( !DataModel.isJUnit())
+        updateProgress(nRow, nRow);
       System.out.println("CsvImportBanca.analizzaBanca - " + EVT_ENDDTSROW);
     }
     return righeBanca;
@@ -313,7 +314,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     Matcher mat = pat.matcher(sz2);
     if (mat.find()) {
       cardIdent = mat.group(1);
-      s_log.debug("cardIdent:{} for file: {}", cardIdent, p_sz);
+      s_log.debug("cardIdent: \"{}\" for file: {}", cardIdent, p_sz);
     }
   }
 
@@ -522,6 +523,10 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       s_log.debug("Scarto riga SMAC: {}", row.toString());
       return;
     }
+    // 25/03/2026 Aggiungo indirizzo nella descrizione (ovviare omonimi)
+    val = row.get("Indirizzo");
+    if (null != val)
+      descr += ", " + val.toString().trim();
 
     RigaBanca rigb = new RigaBanca(sqlTableName, dtmov, dtval, dare, avere, descr, caus, cardid, null);
     if (null != cardIdent)
@@ -747,7 +752,8 @@ public class CsvImportBanca extends Task<String> implements Closeable {
 
   private void firePropertyChange(String szEvt, Double dbl) {
     prchsupp.firePropertyChange(szEvt, -1., dbl);
-    updateProgress(dbl, dblQtaRows);
+    if ( !DataModel.isJUnit())
+      updateProgress(dbl, dblQtaRows);
   }
 
   public void addPropertyChangeListener(PropertyChangeListener loadBancaController) {

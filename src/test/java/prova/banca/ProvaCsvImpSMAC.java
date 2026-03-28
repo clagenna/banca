@@ -15,12 +15,12 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.sys.TimerMeter;
 import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 
-public class ProvaCsvImpWise {
-  private CsvImportBanca      csvi;
-  private AppProperties       props;
+public class ProvaCsvImpSMAC {
+  private CsvImportBanca csvi;
+  private AppProperties  props;
   private DataModel      model;
 
-  public ProvaCsvImpWise() {
+  public ProvaCsvImpSMAC() {
     //
   }
 
@@ -32,7 +32,7 @@ public class ProvaCsvImpWise {
     model.initApp(props);
     model.setOverwrite(true);
     // openDb();
-    Path pth = Paths.get("F:\\Google Drive\\gennari\\Banche\\wise\\estrattoconto_wise-2024-11-14_cla.csv");
+    Path pth = Paths.get("F:\\Google Drive\\gennari\\Banche\\SMAC\\estrattoconto_SMAC_2026-02-28_cla.xls");
     CsvImportBanca cs = importFile(pth);
     writeDb(cs);
   }

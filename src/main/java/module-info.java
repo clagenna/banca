@@ -14,6 +14,9 @@ open module banca {
   requires transitive stdc_javafx;
   requires transitive stdc_sql;
   requires transitive stdc_utils;
+
+  requires transitive com.opencsv;
+
   
   requires lombok;
   requires org.apache.opennlp.tools;

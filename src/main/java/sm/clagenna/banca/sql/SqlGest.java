@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,8 @@ public abstract class SqlGest implements ISQLGest {
 
   public abstract String getQryListVIEWS();
 
+  public abstract String getQryQtaIdCodstat();
+
   /** Deve tornare la SELECT %s con elenco colonne libero */
   public abstract String getQryListVIEW_PATT();
 
@@ -99,6 +102,8 @@ public abstract class SqlGest implements ISQLGest {
   public abstract String getQryMODMov();
 
   public abstract String getQryMODMovCodstat();
+
+  public abstract String getQryAzzeraIdCodStats();
 
   // ----- gestione CODICI STATISTICI  -----------------
 
@@ -317,6 +322,25 @@ public abstract class SqlGest implements ISQLGest {
     return bRet;
   }
 
+  /**
+   * Verifica se nei movimenti e' mai stato assegnato un codice statistico.
+   * Questo serve per poter decidere se e' possibile leggere ed aggiornare la
+   * tabella dei codici statistici (CodiciStat) da un file da leggere.
+   */
+  @Override
+  public int getQtaIdCodstatsInMov() {
+    int retQta = -1;
+    Connection conn = dbconn.getConn();
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(getQryQtaIdCodstat())) {
+      while (rs.next()) {
+        retQta = rs.getInt(1);
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryQtaIdCodstat(), e.getMessage(), e);
+    }
+    return retQta;
+  }
+
   public void insertCodStat(CodStat cdsCurr) {
     try {
       if (null == stmtInsCodStat) {
@@ -330,7 +354,7 @@ public abstract class SqlGest implements ISQLGest {
       int k = 1;
       dbconn.setStmtString(stmtInsCodStat, k++, cdsCurr.getCodice());
       dbconn.setStmtString(stmtInsCodStat, k++, cdsCurr.getDescr());
-  
+
       stmtInsCodStat.executeUpdate();
       lastRowid = dbconn.getLastIdentity();
       cdsCurr.setIdCodStat(lastRowid);
@@ -413,6 +437,47 @@ public abstract class SqlGest implements ISQLGest {
       getLog().error("Query {}; err={}", getQryDELCodstat(), e.getMessage(), e);
     }
     return szRet;
+  }
+
+  /**
+   * Azzera tutti i riferimenti ai Codici Statistici nella tabella
+   * Movimenti(idCodStat) in vista del import della tabella CodiciStat
+   *
+   * @return
+   */
+  @Override
+  public int azzeraIdCodStats() {
+    int qtaRecs = -1;
+    String qry = getQryAzzeraIdCodStats();
+    Connection conn = dbconn.getConn();
+    try (PreparedStatement stmtAzzeraIdCds = conn.prepareStatement(qry)) {
+      qtaRecs = stmtAzzeraIdCds.executeUpdate();
+    } catch (SQLException e) {
+      getLog().error("Errore AzZERAMENTO riferimenti codstat con err={}", e.getMessage());
+    }
+    return qtaRecs;
+  }
+
+  public int deleteAllCodStats() {
+    int qtaRecs = -1;
+    String szQry1 = getQryDELCodstat();
+    String szQry2 = szQry1.substring(0, szQry1.toLowerCase().indexOf("where "));
+    Connection conn = dbconn.getConn();
+    try (PreparedStatement stmtAzzeraIdCds = conn.prepareStatement(szQry2)) {
+      qtaRecs = stmtAzzeraIdCds.executeUpdate();
+    } catch (SQLException e) {
+      getLog().error("Errore AzZERAMENTO riferimenti codstat con err={}", e.getMessage());
+    }
+    return qtaRecs;
+  }
+
+  public int insAllCodStats(List<CodStat> righe) {
+    List<CodStat> li2 = new ArrayList<CodStat>(righe);
+    Collections.sort(li2);
+    for (CodStat cds : li2) {
+      insertCodStat(cds);
+    }
+    return righe.size();
   }
 
   //  private int trovaLastRowid() {

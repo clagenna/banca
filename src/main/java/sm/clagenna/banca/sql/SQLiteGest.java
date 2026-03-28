@@ -15,51 +15,60 @@ public class SQLiteGest extends SqlGest {
   private static final String QRY_VIEW_PATT     = "SELECT %s from %s WHERE 1=1 ORDER BY dtMov,dtval,dare,avere;";
   private static final String QRY_LAST_ROWID    = "SELECT last_insert_rowid()";
 
-  private static final String QRY_INS_Mov = //
-      "INSERT INTO movimenti" //
-          + "                 (tipo"
-          + "                 ,idfile" //
-          + "                 ,dtmov" //
-          + "                 ,dtval" //
-          + "                 ,dare" //
-          + "                 ,avere" //
-          + "                 ,descr" //
-          + "                 ,abicaus" //
-          + "                 ,cardid" //
-          + "                 ,idcodstat)" //
-          + "           VALUES (?,?,?,?,?,?,?,?,?,?)";
+  private static final String QRY_INS_Mov = """
+      INSERT INTO movimenti
+          (tipo
+          ,idfile
+          ,dtmov
+          ,dtval
+          ,dare
+          ,avere
+          ,descr
+          ,abicaus
+          ,cardid
+          ,idcodstat)
+    VALUES (?,?,?,?,?,?,?,?,?,?)""";
 
-  private static final String QRY_SEL_Mov = //
-      "SELECT COUNT(*)" //
-          + "  FROM movimenti" //
-          + " WHERE 1=1"; //
+  private static final String QRY_SEL_Mov = """
+      SELECT COUNT(*)
+        FROM movimenti
+       WHERE 1=1""";
 
-  private static final String QRY_DEL_Mov = //
-      "DELETE FROM movimenti" //
-          + " WHERE 1=1"; //
+  private static final String QRY_DEL_Mov = """
+      DELETE FROM movimenti
+           WHERE 1=1""";
 
-  private static final String QRY_MOD_Mov = //
-      "UPDATE movimenti" //
-          + "  SET tipo=?" //
-          + "     ,idfile=?" //
-          + "     ,dtmov=?" //
-          + "     ,dtval=?" //
-          + "     ,dare=?" //
-          + "     ,avere=?" //
-          + "     ,descr=?" //
-          + "     ,abicaus=?" //
-          + "     ,cardid=?" //
-          + "     ,idcodstat=?" //
-          + "  WHERE 1=1";
+  private static final String QRY_MOD_Mov = """
+      UPDATE movimenti
+         SET tipo=?
+            ,idfile=?
+            ,dtmov=?
+            ,dtval=?
+            ,dare=?
+            ,avere=?
+            ,descr=?
+            ,abicaus=?
+            ,cardid=?
+            ,idcodstat=?
+      WHERE 1=1";""";
+  
+  private static final String QRY_QTACODSTATINMOV = """
+      SELECT COUNT(*) as qtaMovInCodStat
+        FROM movimenti
+       WHERE idcodstat IS NOT NULL""";
 
-  private static final String QRY_MOD_Mov_CodStat = //
-      "UPDATE movimenti" //
-          + "  SET idcodstat=?" //
-          + "  WHERE id=?";
+  private static final String QRY_AZZERACODSTATS = """
+      UPDATE movimenti SET idCodStat=NULL""";
+
+  private static final String QRY_MOD_Mov_CodStat = """
+      UPDATE movimenti
+         SET idcodstat=?
+       WHERE id=?""";
 
   private static final String QRY_INS_CodStats = """
       INSERT INTO CodiciStat
-      (codstat, descrstat)
+          (codstat
+          ,descrstat)
       VALUES (?, ? )""";
 
   private static final String QRY_SEL_CodStats = """
@@ -149,6 +158,11 @@ public class SQLiteGest extends SqlGest {
   public String getQryMODMov() {
     return QRY_MOD_Mov;
   }
+  
+  @Override
+  public String getQryAzzeraIdCodStats() {
+    return QRY_AZZERACODSTATS;
+  }
 
   @Override
   public String getQryMODMovCodstat() {
@@ -173,6 +187,11 @@ public class SQLiteGest extends SqlGest {
   @Override
   public String getQryMODCodstat() {
     return QRY_UPD_CodStats;
+  }
+
+  @Override
+  public String getQryQtaIdCodstat() {
+    return QRY_QTACODSTATINMOV;
   }
 
 }

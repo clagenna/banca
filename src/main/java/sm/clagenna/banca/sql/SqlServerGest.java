@@ -16,7 +16,7 @@ public class SqlServerGest extends SqlGest {
   private static final String QRY_LAST_ROWID    = "Select @@IDENTITY  as LastId";
 
   private static final String QRY_INS_Mov = """
-      INSERT INTO dbo.movimenti
+      INSERT INTO movimenti
           (tipo
           ,idfile
           ,dtmov
@@ -31,11 +31,11 @@ public class SqlServerGest extends SqlGest {
 
   private static final String QRY_SEL_Mov = """
       SELECT COUNT(*)
-        FROM dbo.movimenti
+        FROM movimenti
        WHERE 1=1""";
 
   private static final String QRY_DEL_Mov = """
-      DELETE FROM dbo.movimenti
+      DELETE FROM movimenti
            WHERE 1=1""";
 
   private static final String QRY_MOD_Mov = """
@@ -51,14 +51,22 @@ public class SqlServerGest extends SqlGest {
             ,cardid=?
             ,idcodstat=?
       WHERE 1=1";""";
+  
+  private static final String QRY_QTACODSTATINMOV = """
+      SELECT COUNT(*) as qtaMovInCodStat
+        FROM movimenti
+       WHERE idcodstat IS NOT NULL""";
 
+  private static final String QRY_AZZERACODSTATS = """
+      UPDATE movimenti SET idCodStat=NULL""";
+  
   private static final String QRY_MOD_Mov_CodStat = """
       UPDATE movimenti
-         SET idcodstat=?" //
+         SET idcodstat=?
        WHERE id=?""";
 
   private static final String QRY_INS_CodStats = """
-      INSERT INTO dbo.CodiciStat
+      INSERT INTO CodiciStat
           (codstat
           ,descrstat)
       VALUES (?, ? )""";
@@ -72,14 +80,13 @@ public class SqlServerGest extends SqlGest {
       ORDER BY codstat""";
 
   private static final String QRY_DEL_CodStats = """
-      DELETE FROM dbo.CodiciStat
+      DELETE FROM CodiciStat
       WHERE idCodStat = ?""";
 
   private static final String QRY_UPD_CodStats = """
           UPDATE CodiciStat SET
            codstat=?
           ,descrstat=?
-      FROM CodiciStat
       WHERE idCodStat=?""";
 
   public SqlServerGest() {
@@ -150,6 +157,11 @@ public class SqlServerGest extends SqlGest {
   public String getQryMODMov() {
     return QRY_MOD_Mov;
   }
+  
+  @Override
+  public String getQryAzzeraIdCodStats() {
+    return QRY_AZZERACODSTATS;
+  }
 
   @Override
   public String getQryMODMovCodstat() {
@@ -174,6 +186,11 @@ public class SqlServerGest extends SqlGest {
   @Override
   public String getQryMODCodstat() {
     return QRY_UPD_CodStats;
+  }
+
+  @Override
+  public String getQryQtaIdCodstat() {
+    return QRY_QTACODSTATINMOV;
   }
 
 }

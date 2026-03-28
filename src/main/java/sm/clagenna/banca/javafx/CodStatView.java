@@ -3,9 +3,14 @@ package sm.clagenna.banca.javafx;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
@@ -40,6 +45,7 @@ import javafx.scene.control.TreeTableView;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import lombok.Getter;
@@ -111,6 +117,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private DataModel        model;
   private ISQLGest         m_db;
   @Getter @Setter
+  private Path             importFile;
+  @Getter @Setter
   private String           styMatchDescr;
   private boolean          bInEventEnterFile;
   private Stage            stageModCodStat;
@@ -118,7 +126,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
   public CodStatView() {
     styMatchDescr = "gold";
-    // m_prcsupp = new PropertyChangeSupport(this);
+    //
   }
 
   @Override
@@ -185,6 +193,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         if (null != row) {
           CodStat cds = row.getValue();
           System.out.println("Doppio click su:" + cds.getCodice());
+          treeView_modTree(true);
         }
       }
     });
@@ -260,14 +269,14 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   }
 
   private void refreshTreeCodstat() {
-    System.out.println("CodStatView.refreshTreeCodstat()");
+    // System.out.println("CodStatView.refreshTreeCodstat()");
     TreeItem<CodStat> cds = treeview.getSelectionModel().getSelectedItem();
     TreeitemCodStat treeData = model.refreshCodstatData();
     TreeItem<CodStat> root = treeData.getTreeItemRoot();
     treeview.setRoot(root);
     treeview.refresh();
-    if ( null != cds ) {
-      String ds = cds.getValue().getDescr() ;
+    if (null != cds) {
+      String ds = cds.getValue().getDescr();
       txDescrSel(null, "", ds);
     }
   }
@@ -343,7 +352,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     Optional<ButtonType> btRet = m_appmain.messageDialog(AlertType.CONFIRMATION, szMsg, ButtonType.YES);
     if (btRet.isEmpty() || btRet.get().equals(ButtonType.NO))
       return;
-    System.out.printf("CodStatView eliminaCodstat(%s)\n", cds.toStringEx());
+    s_log.debug("Da CodStatView elimina Codstat {}", cds.toStringEx());
     SqlGest sqlg = model.getCodStatData().getSqlGest();
     szMsg = sqlg.deleteCodStat(cds);
     TreeCodStat treedata = model.getCodStatData();
@@ -374,26 +383,30 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   }
 
   private void treeView_esportaCSV() {
+    boolean bErr = false;
     TreeitemCodStat treeData = model.getCodStatData();
     int annoComp = model.getAnnoComp();
     if ( ! (Utils.isValue(annoComp) && null != treeData)) {
       m_appmain.messageDialog(AlertType.WARNING, "Mi manca l'anno competenza e la query per formare il nome da esportare");
       return;
     }
-    String szNow = ParseData.formatDate(LocalDateTime.now()).replaceAll(" ", "_").replaceAll(":", "-");
+    String szNow = ParseData.formatDate(LocalDateTime.now()).replace(' ', '_').replace(':', '-');
     String szCsvFile = String.format("CodStat_Estratto_%s_%s.csv", annoComp, szNow);
     TreeItem<CodStat> root = treeData.getTreeItemRoot();
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(szCsvFile))) {
       writer.append("sep=;");
       writer.newLine();
-      writer.append(";".repeat(3));
-      writer.append("Descrizione;Dare;Avere;Saldo");
+      //writer.append(";".repeat(3));
+      writer.append("cat1;cat2;cat3;Descrizione;Dare;Avere;Saldo");
       writer.newLine();
       scriviRigaTreeCodstat(writer, root.getValue());
-      m_appmain.messageDialog(AlertType.INFORMATION, String.format("Scritto CodStat CSV : %s", szCsvFile));
+      bErr = false;
     } catch (IOException e) {
       s_log.error("Errore scrittura  CSV: {}, err={}", szCsvFile, e.getMessage());
+      bErr = true;
     }
+    if ( !bErr)
+      m_appmain.messageDialog(AlertType.INFORMATION, String.format("Scritto CodStat CSV : %s", szCsvFile));
   }
 
   private void scriviRigaTreeCodstat(BufferedWriter wr, CodStat cds) {
@@ -445,20 +458,20 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       return;
     }
     JFXUtils.readPosStage(lstage, p_props, PROP_POSview_codstatView);
-    //    int px = p_props.getIntProperty(CSZ_PROP_POScdstt_X);
-    //    int py = p_props.getIntProperty(CSZ_PROP_POScdstt_Y);
-    //    int dx = p_props.getIntProperty(CSZ_PROP_DIMcdstt_X);
-    //    int dy = p_props.getIntProperty(CSZ_PROP_DIMcdstt_Y);
-    //    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-    //    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
-    //      lstage.setX(mm.poxX());
-    //      lstage.setY(mm.posY());
-    //      lstage.setWidth(mm.width());
-    //      lstage.setHeight(mm.height());
-    //    }
     URL url = m_appmain.getUrlCSS();
     if (null != url)
       myScene.getStylesheets().add(url.toExternalForm());
+    txFileCodStat.focusedProperty().addListener((_, _, nw) -> {
+      if ( !nw) {
+        String szFiCds = txFileCodStat.getText();
+        if (null == szFiCds || szFiCds.length() < 4)
+          return;
+        Path pth = Paths.get(szFiCds);
+        settaImportFile(pth, false);
+        return;
+      }
+    });
+    btImportFile.setDisable(true);
   }
 
   private Object txDescrSel(ObservableValue<? extends String> obj, String old, String nv) {
@@ -534,7 +547,6 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
    */
   @FXML
   void btCercaFileClick(ActionEvent event) {
-    m_appmain.messageDialog(AlertType.INFORMATION, "Funzione Cerca File da implementare");
     // System.out.println("CodStatView.btCercaFileClick()");
     //    Path pth = Paths.get(txFileCodStat.getText());
     //    if (Files.exists(pth, LinkOption.NOFOLLOW_LINKS))
@@ -544,12 +556,81 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     //      s_log.warn(szMsg);
     //      m_appmain.messageDialog(AlertType, szMsg);
     //    }
+    String szMsg = null;
+    Stage stage = m_appmain.getPrimaryStage();
+    FileChooser filChoose = new FileChooser();
+    // imposto la dir precedente (se c'e')
+    String szLastDir = mainProps.getLastDir();
+    if (szLastDir != null) {
+      File fi = new File(szLastDir);
+      if (fi.exists())
+        filChoose.setInitialDirectory(fi);
+    }
+    filChoose.getExtensionFilters().addAll( //
+        new FileChooser.ExtensionFilter("CSV Files", "*.csv"), //
+        new FileChooser.ExtensionFilter("Excel Files", "*.xls", "*.xlsx"), //
+        new FileChooser.ExtensionFilter("Tutti Files", "*.*"));
+    File fiScelto = filChoose.showOpenDialog(stage);
+    if (null == fiScelto) {
+      szMsg = "Non hai scelto nessun file !!";
+      s_log.warn(szMsg);
+      m_appmain.messageDialog(AlertType.WARNING, szMsg);
+      return;
+    }
+    if ( !fiScelto.exists()) {
+      szMsg = "Non esiste il file " + fiScelto;
+      s_log.warn(szMsg);
+      m_appmain.messageDialog(AlertType.WARNING, szMsg);
+      return;
+    }
+    settaImportFile(fiScelto.toPath(), true);
+  }
+
+  private void settaImportFile(Path path, boolean bSetTx) {
+    System.out.printf("CodStatView.settaImportFile(%s)\n", null != path ? path.toString() : "*null*");
+    setImportFile(path);
+    if (bSetTx)
+      txFileCodStat.setText(path.toString());
+    btImportFile.setDisable( !Files.exists(path, LinkOption.NOFOLLOW_LINKS));
+
   }
 
   @FXML
   void btImportFileClick(ActionEvent event) {
-    m_appmain.messageDialog(AlertType.INFORMATION, "Funzione Import da implementare");
+
+    if (null == importFile) {
+      String szMsg = "Non hai specificato il file da leggere";
+      m_appmain.messageDialog(AlertType.WARNING, szMsg);
+      return;
+    }
+
+    if ( !Files.exists(importFile, LinkOption.NOFOLLOW_LINKS)) {
+      String szMsg = String.format("Ll file \"%s\" *NON* esiste!", null != importFile ? importFile.toString() : "*null*");
+      s_log.debug(szMsg);
+      m_appmain.messageDialog(AlertType.WARNING, szMsg);
+      return;
+    }
+    TreeCodStat treedata = model.getCodStatData();
+    SqlGest isql = treedata.getSqlGest();
+    int qtaIdCds = isql.getQtaIdCodstatsInMov();
+    Optional<ButtonType> butt = null;
+    if (qtaIdCds > 0) {
+      String szMsg = String.format(
+          "Sono presenti %d movimenti con codici Statistici assegnati!<br/>Vuoi azzerare <b>TUTTE</b> le assegnazioni fatte", qtaIdCds);
+      butt = m_appmain.messageDialog(AlertType.CONFIRMATION, szMsg, ButtonType.YES);
+    }
+    if (qtaIdCds > 0 && (butt.isEmpty() || butt.get() == ButtonType.NO)) {
+      String szMsg = String.format(
+          "Sono presenti %d movimenti con codici Statistici assegnati!<br/>Non posso ricoprire i vecchi codici statistici", qtaIdCds);
+      m_appmain.messageDialog(AlertType.WARNING, szMsg);
+      return;
+    }
+    model.azzeraRifACodStat();
+    treedata.readTreeCodStats(importFile);
+    refreshTreeCodstat();
+    // m_appmain.messageDialog(AlertType.INFORMATION, "??? Funzione Import da implementare");
   }
+
   //
   //  @FXML
   //  void btSaveCodStatSuDBClick(ActionEvent event) {

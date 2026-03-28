@@ -38,11 +38,17 @@ public interface ISQLGest {
 
   boolean insertMovimento(RigaBanca p_rig);
 
+  int getQtaIdCodstatsInMov();
+
   // --------------  CODICI STATISTICI ------------
 
   boolean updateCodStat(RigaBanca rig);
 
   boolean updateCodStat(List<RigaBanca> liRb);
+  
+  int azzeraIdCodStats();
+  
+  // ---------------------------------------------
 
   List<String> getListTipoCard();
 
@@ -55,5 +61,6 @@ public interface ISQLGest {
   List<String> getListCausABI();
 
   String getDescrCausABI(String causABI);
+
 
 }

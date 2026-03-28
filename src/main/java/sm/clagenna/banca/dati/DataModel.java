@@ -60,14 +60,16 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   public static final String EVT_GUESSDATA_CREATED   = "guessdataCreated";
 
   //  public static final String  FILE_CODSTAT    = "CodStat.properties";
-  private static final String QRY_TOT_CODSTAT = //
-      "SELECT coalesce(Codstat, '99') as codstat, SUM(dare) as totDare, SUM(avere) as totAvere" + //
-          "  FROM listaMovimenti" + //
-          "  %s" + //
-          "  GROUP BY codstat" + //
-          "  ORDER BY codstat";
+  private static final String QRY_TOT_CODSTAT = """
+      SELECT coalesce(Codstat, '99') as codstat, SUM(dare) as totDare, SUM(avere) as totAvere
+           FROM listaMovimenti
+             %s
+         GROUP BY codstat
+         ORDER BY codstat""";
 
   private static DataModel      s_inst;
+  @Getter @Setter
+  private static boolean        jUnit;
   @Getter @Setter
   private DBConn                dbConn;
   private Path                  lastDir;
@@ -282,6 +284,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       System.exit(1957);
     }
     sqlgest = SqlGestFactory.get(dbConn.getServerId());
+    sqlgest.setDbconn(dbConn);
   }
 
   @Override
@@ -320,7 +323,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
 
   public void setOverwrite(boolean bv) {
     overwrite = bv;
-    System.out.printf("DataController.setOverwrite(%s)\n", Boolean.valueOf(bv).toString());
+    s_log.debug("Controller set Overwrite DB = {}", Boolean.valueOf(bv).toString());
   }
 
   public void addExcludeCol(EColsTableView p_colNam, boolean bv) {
@@ -374,6 +377,11 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     String szOldCds = codStatData.getCodStat();
     codStatData.setCodStat(value);
     firePropertyChange(DataModel.EVT_CODSTAT_STRING, szOldCds, value);
+  }
+
+  public void azzeraRifACodStat() {
+    sqlgest.azzeraIdCodStats();
+    refreshCodstatData();
   }
 
   public void azzeraTotaliCodStat() {
