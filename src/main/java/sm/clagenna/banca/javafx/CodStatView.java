@@ -25,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -36,6 +37,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
@@ -124,6 +126,12 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private Stage            stageModCodStat;
   private ModTreeCodStat   modTreeView;
 
+  // menu contestuale del tree view  
+  private MenuItem mnuFiltraMovimenti;
+  private MenuItem mnuModifica;
+  private MenuItem mnuAggiungi;
+  private MenuItem mnuElimina;
+
   public CodStatView() {
     styMatchDescr = "gold";
     //
@@ -152,7 +160,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       lstage.setOnCloseRequest(_ -> {
         closeApp(mainProps);
       });
-    getMyScene().setOnKeyReleased(e -> premutoTasto(e));
+    getMyScene().setOnKeyPressed(e -> premutoTasto(e));
+    getMyScene().setOnKeyReleased(e -> rilascioTasto(e));
   }
 
   private void impostaTreeView(AppProperties p_props) {
@@ -197,7 +206,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         }
       }
     });
-
+    // Cell factory per evidenziare i match della descrizione
     treeview.setRowFactory(_ -> new TreeTableRow<CodStat>() {
 
       @Override
@@ -222,6 +231,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         super.updateItem(item, empty);
       }
     });
+    // Listener per selezione nodo e diffusione del codice Stat selezionato
     treeview.getSelectionModel().selectedItemProperty().addListener((_, _, nv) -> {
       if (null != nv && nv.getValue().getCod1() != 0) {
         String sel = nv.getValue().getCodice();
@@ -230,25 +240,27 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       }
     });
 
-    // Context menu open document
-    MenuItem mi1 = new MenuItem("Filtra Movimenti");
-    mi1.setOnAction((ActionEvent _) -> {
+    mnuFiltraMovimenti = new MenuItem("Filtra Movimenti");
+    mnuFiltraMovimenti.setOnAction((ActionEvent _) -> {
       treeView_filtra(null);
     });
 
-    MenuItem mi2 = new MenuItem("modifica");
-    mi2.setOnAction((ActionEvent _) -> {
+    mnuModifica = new MenuItem("Modifica");
+    mnuModifica.setOnAction((ActionEvent _) -> {
       treeView_modTree(true);
     });
 
-    MenuItem mi3 = new MenuItem("Aggiungi");
-    mi3.setOnAction((ActionEvent _) -> {
+    mnuAggiungi = new MenuItem("Aggiungi");
+    mnuAggiungi.setOnAction((ActionEvent _) -> {
       treeView_modTree(false);
     });
 
-    MenuItem mi4 = new MenuItem("Elimina");
-    mi4.setOnAction((ActionEvent _) -> {
-      treeView_eliminaCodstat();
+    mnuElimina = new MenuItem("Elimina");
+    mnuElimina.setOnAction((ActionEvent _) -> {
+      if (treeview.getSelectionModel().getSelectedItems().size() > 1)
+        treeView_eliminaCodstatMulti();
+      else
+        treeView_eliminaCodstat();
     });
 
     SeparatorMenuItem sp1 = new SeparatorMenuItem();
@@ -259,7 +271,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     });
 
     ContextMenu menu = new ContextMenu();
-    menu.getItems().addAll(mi1, mi2, mi3, mi4, sp1, mi5);
+    menu.getItems().addAll(mnuFiltraMovimenti, mnuModifica, mnuAggiungi, mnuElimina, sp1, mi5);
     // liBanca.setContextMenu(menu);
     treeview.setContextMenu(menu);
 
@@ -268,6 +280,10 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     refreshTreeCodstat();
   }
 
+  /**
+   * Refresh dell'albero dei codici statistici, mantenendo la selezione se
+   * possibile
+   */
   private void refreshTreeCodstat() {
     // System.out.println("CodStatView.refreshTreeCodstat()");
     TreeItem<CodStat> cds = treeview.getSelectionModel().getSelectedItem();
@@ -281,7 +297,13 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     }
   }
 
-  private void treeView_filtra(Object object) {
+  /**
+   * Filtra i movimenti in base al codice Stat selezionato dal menu contestuale
+   * dell'albero dei codici statistici MenuItem("Filtra Movimenti");
+   *
+   * @param value
+   */
+  private void treeView_filtra(Object value) {
     // System.out.println("CodStatView.treeView_filtra()");
     TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
     CodStat cds = null;
@@ -290,6 +312,14 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     model.firePropertyChange(DataModel.EVT_FILTER_CODSTAT, null, cds);
   }
 
+  /**
+   * Apre la finestra di modifica del codice Stat selezionato dal menu
+   * contestuale dell'albero dei codici statistici MenuItem("modifica");
+   *
+   * @param bModif
+   *          se true modifica, se false aggiunge un figlio al codice
+   *          selezionato
+   */
   private void treeView_modTree(boolean bModif) {
     URL url = getClass().getResource(ModTreeCodStat.CSZ_FXMLNAME);
     if (url == null)
@@ -344,6 +374,10 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     stageModCodStat.show();
   }
 
+  /**
+   * Elimina il codice Stat selezionato dal menu contestuale dell'albero dei
+   * codici statistici MenuItem("Elimina");
+   */
   private void treeView_eliminaCodstat() {
     // m_appmain.messageDialog(AlertType.WARNING, "Cancella Cod. Stat. ancora da implementare");
     TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
@@ -358,6 +392,27 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     TreeCodStat treedata = model.getCodStatData();
     treedata.delete(cds);
     model.firePropertyChange(DataModel.EVT_TREECODSTAT_CHANGED, null, cds);
+    m_appmain.messageDialog(AlertType.INFORMATION, szMsg);
+  }
+
+  private void treeView_eliminaCodstatMulti() {
+    ObservableList<TreeItem<CodStat>> sels = treeview.getSelectionModel().getSelectedItems();
+    String allStats = sels.stream().map(s -> s.getValue().toStringEx()).reduce((a, b) -> a + "<br/>" + b).orElse("");
+    String szMsg = String.format("Sei sicuro di voler eliminare i codici Stat.:<br/><b> %s</b>", allStats);
+    Optional<ButtonType> btRet = m_appmain.messageDialog(AlertType.CONFIRMATION, szMsg, ButtonType.YES);
+    if (btRet.isEmpty() || btRet.get().equals(ButtonType.NO))
+      return;
+    s_log.debug("Da CodStatView elimina Codstat multipli: {}", allStats.replaceAll("<br/>", ", "));
+    SqlGest sqlg = model.getCodStatData().getSqlGest();
+    for (TreeItem<CodStat> mcds : sels) {
+      CodStat cds = mcds.getValue();
+      String msg = sqlg.deleteCodStat(cds);
+      s_log.debug("Eliminazione CodStat {}, msg={}", cds.toStringEx(), msg);
+      TreeCodStat treedata = model.getCodStatData();
+      treedata.delete(cds);
+      model.firePropertyChange(DataModel.EVT_TREECODSTAT_CHANGED, null, cds);
+    }
+    szMsg = String.format("Eliminati i codici Stat.:<br/><b> %s</b>", allStats);
     m_appmain.messageDialog(AlertType.INFORMATION, szMsg);
   }
 
@@ -527,13 +582,45 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
   @FXML
   Object premutoTasto(KeyEvent p_e) {
-    System.out.printf("LoadAassController.premutoTasto(%s)\n", p_e.getCode().toString());
+    System.out.printf("CodstatView.premutoTasto(%s)\n", p_e.getCode().toString());
+    KeyCode key = p_e.getCode();
+    switch (key) {
+      case ENTER:
+      case F5:
+        // btCercaFileClick(null);
+        // refreshTreeCodstat();
+        break;
+      case CONTROL:
+      case SHIFT:
+        treeview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        enableMenuContestuale(false);
+        break;
+      default:
+        break;
+    }
+    return null;
+  }
+
+  private void enableMenuContestuale(boolean bSel) {
+    mnuFiltraMovimenti.setDisable( !bSel);
+    mnuModifica.setDisable( !bSel);
+    mnuAggiungi.setDisable( !bSel);
+  }
+
+  @FXML
+  Object rilascioTasto(KeyEvent p_e) {
+    System.out.printf("CodstatView.rilascioTasto(%s)\n", p_e.getCode().toString());
     KeyCode key = p_e.getCode();
     switch (key) {
       case ENTER:
       case F5:
         // btCercaFileClick(null);
         refreshTreeCodstat();
+        break;
+      case CONTROL:
+      case SHIFT:
+        treeview.getSelectionModel().setSelectionMode(javafx.scene.control.SelectionMode.SINGLE);
+        enableMenuContestuale(true);
         break;
       default:
         break;
@@ -616,12 +703,14 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     Optional<ButtonType> butt = null;
     if (qtaIdCds > 0) {
       String szMsg = String.format(
-          "Sono presenti %d movimenti con codici Statistici assegnati!<br/>Vuoi azzerare <b>TUTTE</b> le assegnazioni fatte", qtaIdCds);
+          "Sono presenti %d movimenti con codici Statistici assegnati!<br/>Vuoi azzerare <b>TUTTE</b> le assegnazioni fatte",
+          qtaIdCds);
       butt = m_appmain.messageDialog(AlertType.CONFIRMATION, szMsg, ButtonType.YES);
     }
     if (qtaIdCds > 0 && (butt.isEmpty() || butt.get() == ButtonType.NO)) {
       String szMsg = String.format(
-          "Sono presenti %d movimenti con codici Statistici assegnati!<br/>Non posso ricoprire i vecchi codici statistici", qtaIdCds);
+          "Sono presenti %d movimenti con codici Statistici assegnati!<br/>Non posso ricoprire i vecchi codici statistici",
+          qtaIdCds);
       m_appmain.messageDialog(AlertType.WARNING, szMsg);
       return;
     }
