@@ -609,7 +609,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
   @FXML
   Object rilascioTasto(KeyEvent p_e) {
-    System.out.printf("CodstatView.rilascioTasto(%s)\n", p_e.getCode().toString());
+    // System.out.printf("CodstatView.rilascioTasto(%s)\n", p_e.getCode().toString());
     KeyCode key = p_e.getCode();
     switch (key) {
       case ENTER:

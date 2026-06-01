@@ -107,13 +107,13 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     nomiCols.put(EColsTableView.dtmov,
         Arrays.asList(new String[] { EColsTableView.dtmov.toString(), "data", "Date", "Data transazione", "Created on", "" }));
     nomiCols.put(EColsTableView.dtval,
-        Arrays.asList(new String[] { EColsTableView.dtval.toString(), "valuta", "Data contabile", "Finished on" }));
+        Arrays.asList(new String[] { EColsTableView.dtval.toString(), "valuta", "Value", "Data contabile", "Finished on" }));
     nomiCols.put(EColsTableView.dare,
-        Arrays.asList(new String[] { EColsTableView.dare.toString(), "importo", "Amount", "Source amount (after fees)" }));
-    nomiCols.put(EColsTableView.avere, Arrays.asList(new String[] { EColsTableView.avere.toString(), "*no*", "*no*" }));
-    nomiCols.put(EColsTableView.descr, Arrays.asList(
-        new String[] { EColsTableView.descr.toString(), "causale", "descrizione", "Target name", "Esercente", "Merchant" }));
-    nomiCols.put(EColsTableView.abicaus, Arrays.asList(new String[] { "causabi", "causale abi", "categoria", "ID" }));
+        Arrays.asList(new String[] { EColsTableView.dare.toString(), "importo", "DEBIT", "Amount", "Source amount (after fees)" }));
+    nomiCols.put(EColsTableView.avere, Arrays.asList(new String[] { EColsTableView.avere.toString(), "*no*", "*no*", "CREDIT" }));
+    nomiCols.put(EColsTableView.descr, Arrays.asList(new String[] { EColsTableView.descr.toString(), "causale", "descrizione",
+        "TRANSACTION CODE", "Target name", "Esercente", "Merchant" }));
+    nomiCols.put(EColsTableView.abicaus, Arrays.asList(new String[] { "causabi", "ABI REASON CODE"  , "causale abi", "categoria", "ID" }));
 
     cntrl = DataModel.getInst();
     // Thread.setDefaultUncaughtExceptionHandler(this);
