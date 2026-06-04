@@ -76,12 +76,18 @@ import sm.clagenna.stdcla.utils.sys.ex.DatasetException;
 public class ResultView implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(ResultView.class);
 
-  public static final String  CSZ_FXMLNAME          = "ResultView.fxml";
-  private static final String CSZ_PROP_POSRESVIEW_X = "resview.x";
-  private static final String CSZ_PROP_POSRESVIEW_Y = "resview.y";
-  private static final String CSZ_PROP_DIMRESVIEW_X = "resview.lx";
-  private static final String CSZ_PROP_DIMRESVIEW_Y = "resview.ly";
-  private static final String CSZ_QRY_TRUE          = "1=1";
+  public static final String      CSZ_FXMLNAME          = "ResultView.fxml";
+  private static final String     CSZ_PROP_POSRESVIEW_X = "resview.x";
+  private static final String     CSZ_PROP_POSRESVIEW_Y = "resview.y";
+  private static final String     CSZ_PROP_DIMRESVIEW_X = "resview.lx";
+  private static final String     CSZ_PROP_DIMRESVIEW_Y = "resview.ly";
+  private static final String     CSZ_QRY_TRUE          = "1=1";
+  private static final String[][] shortcuts             = {                 //
+      { "F5", "Ripeti la ricerca" }, { "Ctrl+S", "Salva query" },           //
+      { "Ctrl+Enter", "Esegui ricerca" },                                   //
+      { "Num +", "Su riga di tabella dati - Indovina CodStat" },            //
+      { "Esc", "Chiudi Help" },                                             //
+  };
 
   @FXML
   protected ComboBox<String>  cbTipoBanca;
@@ -328,20 +334,47 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   private Object gestKey(KeyEvent ev) {
     // System.out.printf("ResultView.gestKey(%s)\n", ev.toString());
-    if (/* ev.isControlDown() && */ ev.getCode() == KeyCode.ENTER) {
-      ev.consume();
-      btCercaClick(null);
+    switch (ev.getCode()) {
+      case F5:
+        ev.consume();
+        btCercaClick(null);
+        break;
+      case S:
+        if (ev.isControlDown()) {
+          ev.consume();
+          btSaveQueryClick(null);
+        }
+        break;
+      case ENTER:
+        ev.consume();
+        btCercaClick(null);
+        break;
+      case QUOTE:
+        if (ev.isShiftDown()) {
+          ev.consume();
+          // caricaCercaCodStat();
+          LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
+        }
+        break;
+
     }
     return null;
   }
 
-  private Object tblRigaKeyPressed(KeyEvent e) {
+  private Object tblRigaKeyPressed(KeyEvent p_e) {
     // System.out.printf("ProvaGuess.tblRigaKeyPressed(%s)\n", e.toString());
-    switch (e.getCode()) {
+    switch (p_e.getCode()) {
       case KeyCode.ADD:
       case KeyCode.PLUS:
-        e.consume();
+        p_e.consume();
         caricaCercaCodStat();
+        break;
+      case QUOTE:
+        if (p_e.isShiftDown()) {
+          p_e.consume();
+          // caricaCercaCodStat();
+          LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
+        }
         break;
       default:
         break;

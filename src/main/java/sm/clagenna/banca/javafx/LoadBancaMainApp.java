@@ -19,15 +19,24 @@ import org.apache.logging.log4j.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.web.WebView;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import lombok.Getter;
 import lombok.Setter;
@@ -341,10 +350,14 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     alt.setHeaderText(tipo.toString());
     alt.setContentText(p_txt);
     Optional<ButtonType> result = alt.showAndWait();
-    if (tipo == AlertType.CONFIRMATION) {
-      bRet = result.get() == ButtonType.OK;
-    } else
-      s_log.error("Windows==null; msg={}", p_txt);
+    switch (tipo) {
+      case AlertType.CONFIRMATION:
+        bRet = !result.isEmpty() && result.get() == ButtonType.YES;
+        break;
+      default:
+        s_log.info("msg={}", p_txt);
+        break;
+    }
     return bRet;
   }
 
@@ -428,5 +441,70 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
         break;
     }
   }
+  
+  /**
+   * Mostra un popup con la guida alle scorciatoie da tastiera
+   *
+   * @param owner
+   *          stage proprietario del popup
+   */
+  public void showHelpPopup(Stage owner, String[][] shortcuts) {
+     Stage dialog = new Stage();
+     dialog.initOwner(owner);
+     dialog.initModality(Modality.APPLICATION_MODAL);
+     dialog.initStyle(StageStyle.UTILITY);
+     dialog.setTitle("Guida ai tasti");
+     dialog.setResizable(false);
+
+     // Titolo
+     Label title = new Label("Scorciatoie da tastiera");
+     title.setFont(Font.font("System", FontWeight.BOLD, 14));
+
+     // Griglia tasto → descrizione
+     GridPane grid = new GridPane();
+     grid.setHgap(16);
+     grid.setVgap(8);
+     grid.setPadding(new Insets(12, 0, 4, 0));
+
+     //     String[][] shortcuts = {
+     //         {"F5",      "Ripeti la ricerca"},
+     //         {"Enter",   "Esegui la ricerca o conferma la selezione"},
+     //         {"Shift",   "Attiva la selezione multipla su piu righe consecutive"},
+     //         {"Ctrl",    "Attiva la selezione multipla non consecutive"},
+     //         {"Doppio click", "Modifica il codice Stat. selezionato"},
+     //         {"Ctrl + Doppio click", "Aggiunge un figlio al codice Stat. selezionato"},
+     //         {"?",       "Mostra questo aiuto"},
+     //         {"Esc",     "Chiudi Help"},
+     //     };
+
+     for (int i = 0; i < shortcuts.length; i++) {
+         Label key  = new Label(shortcuts[i][0]);
+         Label desc = new Label(shortcuts[i][1]);
+         key.setFont(Font.font("Monospaced", 13));
+         key.setStyle(
+             "-fx-background-color: #e8e8e8;" +
+             "-fx-border-color: #aaa;" +
+             "-fx-border-radius: 4;" +
+             "-fx-background-radius: 4;" +
+             "-fx-padding: 2 8 2 8;"
+         );
+         grid.add(key,  0, i);
+         grid.add(desc, 1, i);
+     }
+
+     VBox root = new VBox(8, title, grid);
+     root.setPadding(new Insets(16, 20, 16, 20));
+
+     Scene scene = new Scene(root);
+
+     // Chiudi con Escape o cliccando fuori
+     scene.setOnKeyPressed(e -> {
+         if (e.getCode() == KeyCode.ESCAPE) dialog.close();
+     });
+
+     dialog.setScene(scene);
+     dialog.showAndWait();
+  }
+
 
 }

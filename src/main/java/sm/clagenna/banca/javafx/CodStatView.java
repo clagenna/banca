@@ -77,11 +77,19 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   //  private static final String CSZ_PROP_POScdstt_Y = "cdstt.y";
   //  private static final String CSZ_PROP_DIMcdstt_X = "cdstt.lx";
   //  private static final String CSZ_PROP_DIMcdstt_Y = "cdstt.ly";
-  private static final String CSZ_PROP_DIM_COL1  = "cdstt.col1";
-  private static final String CSZ_PROP_DIM_COL2  = "cdstt.col2";
-  private static final String CSZ_PROP_DIM_DARE  = "cdstt.dare";
-  private static final String CSZ_PROP_DIM_AVERE = "cdstt.avere";
-  private static final String CSZ_PROP_DIM_SALDO = "cdstt.saldo";
+  private static final String     CSZ_PROP_DIM_COL1  = "cdstt.col1";
+  private static final String     CSZ_PROP_DIM_COL2  = "cdstt.col2";
+  private static final String     CSZ_PROP_DIM_DARE  = "cdstt.dare";
+  private static final String     CSZ_PROP_DIM_AVERE = "cdstt.avere";
+  private static final String     CSZ_PROP_DIM_SALDO = "cdstt.saldo";
+  private static final String[][] shortcuts          = { //
+      { "F5", "Ripeti la ricerca" },
+      { "Ctrl", "Attiva la selezione multipla non consecutive" },
+      { "Shift", "Attiva la selezione multipla su piu righe consecutive" },
+      { "Enter", "Esegui la ricerca o conferma la selezione" }, { "Doppio click", "Modifica il codice Stat. selezionato" },
+      { "Ctrl + Doppio click", "Aggiunge un figlio al codice Stat. selezionato" }, { "?", "Mostra questo aiuto" },
+      { "Esc", "Chiudi Help" }, //
+      };
 
   // private static final AlertType AlertType = null;
 
@@ -126,7 +134,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private Stage            stageModCodStat;
   private ModTreeCodStat   modTreeView;
 
-  // menu contestuale del tree view  
+  // menu contestuale del tree view
   private MenuItem mnuFiltraMovimenti;
   private MenuItem mnuModifica;
   private MenuItem mnuAggiungi;
@@ -402,7 +410,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     Optional<ButtonType> btRet = m_appmain.messageDialog(AlertType.CONFIRMATION, szMsg, ButtonType.YES);
     if (btRet.isEmpty() || btRet.get().equals(ButtonType.NO))
       return;
-    s_log.debug("Da CodStatView elimina Codstat multipli: {}", allStats.replaceAll("<br/>", ", "));
+    s_log.debug("Da CodStatView elimina Codstat multipli: {}", allStats.replace("<br/>", ", "));
     SqlGest sqlg = model.getCodStatData().getSqlGest();
     for (TreeItem<CodStat> mcds : sels) {
       CodStat cds = mcds.getValue();
@@ -582,7 +590,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
   @FXML
   Object premutoTasto(KeyEvent p_e) {
-    System.out.printf("CodstatView.premutoTasto(%s)\n", p_e.getCode().toString());
+    System.out.printf("CodstatView.premutoTasto(%s, cc=%s)=%s\n", p_e.getCode().toString(), p_e.getCharacter(), p_e.toString());
     KeyCode key = p_e.getCode();
     switch (key) {
       case ENTER:
@@ -595,11 +603,77 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         treeview.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         enableMenuContestuale(false);
         break;
+      case QUOTE:
+        if (p_e.isShiftDown()) {
+          //          String szMsg = "Tasti rapidi:<br/>" + //
+          //              "ENTER o F5: Ricarica albero da file<br/>" + //
+          //              "CTRL o SHIFT: Selezione multipla per eliminazione multipla<br/>" + //
+          //              "Doppio click su nodo: Modifica codice Stat.\n" + //
+          //              "CTRL+Doppio click su nodo: Aggiunge figlio al codice Stat.\n";
+          //          m_appmain.messageDialog(AlertType.INFORMATION, szMsg);
+          //          showHelpPopup(lstage);
+          LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
+        }
+        break;
       default:
         break;
     }
     return null;
   }
+
+  /**
+   * Mostra un popup con la guida alle scorciatoie da tastiera
+   *
+   * @param owner
+   *          stage proprietario del popup
+   */
+  //private void   showHelpPopup(Stage owner) {
+  //   Stage dialog = new Stage();
+  //   dialog.initOwner(owner);
+  //   dialog.initModality(Modality.APPLICATION_MODAL);
+  //   dialog.initStyle(StageStyle.UTILITY);
+  //   dialog.setTitle("Guida ai tasti");
+  //   dialog.setResizable(false);
+  //
+  //   // Titolo
+  //   Label title = new Label("Scorciatoie da tastiera");
+  //   title.setFont(Font.font("System", FontWeight.BOLD, 14));
+  //
+  //   // Griglia tasto → descrizione
+  //   GridPane grid = new GridPane();
+  //   grid.setHgap(16);
+  //   grid.setVgap(8);
+  //   grid.setPadding(new Insets(12, 0, 4, 0));
+  //
+  //
+  //   for (int i = 0; i < shortcuts.length; i++) {
+  //       Label key  = new Label(shortcuts[i][0]);
+  //       Label desc = new Label(shortcuts[i][1]);
+  //       key.setFont(Font.font("Monospaced", 13));
+  //       key.setStyle(
+  //           "-fx-background-color: #e8e8e8;" +
+  //           "-fx-border-color: #aaa;" +
+  //           "-fx-border-radius: 4;" +
+  //           "-fx-background-radius: 4;" +
+  //           "-fx-padding: 2 8 2 8;"
+  //       );
+  //       grid.add(key,  0, i);
+  //       grid.add(desc, 1, i);
+  //   }
+  //
+  //   VBox root = new VBox(8, title, grid);
+  //   root.setPadding(new Insets(16, 20, 16, 20));
+  //
+  //   Scene scene = new Scene(root);
+  //
+  //   // Chiudi con Escape o cliccando fuori
+  //   scene.setOnKeyPressed(e -> {
+  //       if (e.getCode() == KeyCode.ESCAPE) dialog.close();
+  //   });
+  //
+  //   dialog.setScene(scene);
+  //   dialog.showAndWait();
+  //}
 
   private void enableMenuContestuale(boolean bSel) {
     mnuFiltraMovimenti.setDisable( !bSel);

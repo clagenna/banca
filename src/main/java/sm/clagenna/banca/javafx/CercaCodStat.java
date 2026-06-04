@@ -117,6 +117,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   }
 
   private Object rowSelecion(ObservableValue<? extends CodStat> ob, CodStat ov, CodStat nv) {
+    System.out.printf("CercaCodStat.rowSelecion(ov=%s, nv=%s)\n", ov, nv);
     dataCntrl.firePropertyChange(DataModel.EVT_SELCODSTAT, ov, nv);
     return null;
   }
