@@ -51,6 +51,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   public static final String EVT_DBCHANGE            = "dbchange";
   public static final String EVT_CODSTAT_STRING      = "codstat";
   public static final String EVT_SELCODSTAT          = "selcodstat";
+  public static final String EVT_CERCACODSTAT        = "cercacodstat";
   public static final String EVT_NEW_QUERY_RESULT    = "dtsresult";
   public static final String EVT_TOTCODSTAT          = "totcodstats";
   public static final String EVT_DBCODSTAT_CHANGED   = "DBCodstat";
@@ -360,6 +361,9 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   }
 
   public void addPropertyChangeListener(PropertyChangeListener pcl) {
+    if ( propsChange.getPropertyChangeListeners() != null && //
+        Arrays.asList(propsChange.getPropertyChangeListeners()).contains(pcl))
+      return;
     propsChange.addPropertyChangeListener(pcl);
   }
 

@@ -1,6 +1,8 @@
 package sm.clagenna.banca.javafx;
 
 import java.beans.PropertyChangeEvent;
+
+
 import java.beans.PropertyChangeListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -48,6 +50,17 @@ import sm.clagenna.stdcla.sql.EServerId;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
+
+// FIXME su ResView se apro CodStatView poi cerco con CercaCodStat mi sdoppia le colonne del tblView
+// FIXME ci sono piu voci identiche per tipo,dtmov,dtval,dare,descr
+// FIXME nei dati se nel combo del anno si mette l'anno a null la query continua a mantenere la precedente
+// FIXME nel form indovina mettere un combo con l'anno di competenza
+// FIXME nel form indovina mettere lo stesso cerca codice con il + 
+// FIXME nel form indovina manca la context menu per "apri documento"
+
+
+
+
 
 public class LoadBancaMainApp extends Application implements IStartApp, PropertyChangeListener {
   private static final Logger s_log            = LogManager.getLogger(LoadBancaMainApp.class);

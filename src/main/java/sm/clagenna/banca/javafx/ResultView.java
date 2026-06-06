@@ -71,8 +71,10 @@ import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
+import sm.clagenna.stdcla.utils.sys.StackViewer;
 import sm.clagenna.stdcla.utils.sys.ex.DatasetException;
 
+// FIXME se seleziono una query dal combo questa non viene recepita dal DB
 public class ResultView implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(ResultView.class);
 
@@ -157,6 +159,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private boolean                csvBlankOnZero;
   private String                 m_codStatSel;
   private boolean                bSemaf;
+  private boolean                bSemafCercaClick;
   private Double                 precDare;
   private Double                 precAvere;
 
@@ -334,6 +337,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   private Object gestKey(KeyEvent ev) {
     // System.out.printf("ResultView.gestKey(%s)\n", ev.toString());
+    
     switch (ev.getCode()) {
       case F5:
         ev.consume();
@@ -355,6 +359,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
           // caricaCercaCodStat();
           LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
         }
+        break;
+      default:
         break;
 
     }
@@ -497,14 +503,16 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @FXML
   private void btCercaClick(ActionEvent event) {
-    if (bSemaf)
+    // System.out.printf("ResultView.btCercaClick(semaf=%s)\n", Boolean.toString(bSemafCercaClick));
+    // System.out.println(StackViewer.viewStackTrace("btCercaClick()"));
+    if (bSemafCercaClick)
       return;
     // chiamando btCercaClick() dal propertyChange( EVT_FILTER_CODSTAT )(piu sotto)
     // ricevo 2 chiamate consecutive !?! Per cui bSema viene spento solo alla fine del thread
     // creaTableResultThread(szQryFltr);
-    //    System.out.printf("ResultView.btCercaClick(semaf=%s)\n", Boolean.toString(bSemaf));
+    //    System.out.printf("ResultView.btCercaClick(semaf=%s)\n", Boolean.toString(bSemafCercaClick));
     //    printStackTrace();
-    bSemaf = true;
+    bSemafCercaClick = true;
     try {
       if (null != event) {
         if (event.getSource() instanceof String szCodstat) {
@@ -513,7 +521,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         }
       }
     } finally {
-      // bSemaf = false;
+      // bSemafCercaClick = false;
     }
     try {
       String szQryFltr = creaQuery();
@@ -526,8 +534,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
-      bSemaf = false;
-    }
+      bSemafCercaClick = false;
+      // System.out.println("FINE ResultView.btCercaClick()\n");
+      }
   }
 
   @SuppressWarnings("unused")
@@ -581,7 +590,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   }
 
   @FXML
-  void btAssignCodStatClick(ActionEvent event) {
+  void btAssignCodStatClick(ActionEvent event) { 
+    // s_log.debug("ResultView.btAssignCodStatClick() - codStatSel={}", m_codStatSel);
+    // System.out.println(StackViewer.viewStackTrace("btAssignCodStatClick()"));
     if ( !Utils.isValue(m_codStatSel))
       return;
     ObservableList<List<Object>> locLi = tblview.getSelectionModel().getSelectedItems();
@@ -617,10 +628,12 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     }
     s_log.info("Aggegnato cod. stat. {} a {} records", m_codStatSel, liSelRowsForCodStat.size());
     Platform.runLater(() -> {
-      btCercaClick(null);
-      lstage.getScene().setCursor(Cursor.DEFAULT);
       btAssignCodStat.setDisable(false);
+      lstage.getScene().setCursor(Cursor.DEFAULT);
+      btCercaClick(null);
     });
+    
+    // s_log.debug("END -- btAssignCodStatClick() (lanciato btCercaClick() alla fine)");
   }
 
   @FXML
@@ -834,6 +847,17 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         }
         break;
 
+      case DataModel.EVT_CERCACODSTAT:
+        if (evt.getNewValue() instanceof CodStat cds) {
+          m_codStatSel = cds.getCodice();
+          String szLb = "...";
+          if (null != cds)
+            szLb = cds.getDescr();
+          btAssignCodStat.setText(m_codStatSel);
+          lbAssignCodStat.setText(szLb);
+          btAssignCodStatClick(null);
+        }
+        break;
       case DataModel.EVT_SELCODSTAT:
         if (evt.getNewValue() instanceof CodStat cds) {
           m_codStatSel = cds.getCodice();
