@@ -27,6 +27,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -79,6 +80,8 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   @FXML
   protected TextField                        txParola;
   @FXML
+  protected ComboBox<Integer>                cbAnnoComp;
+  @FXML
   protected DatePicker                       txDtDa;
   @FXML
   protected DatePicker                       txDtA;
@@ -123,6 +126,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   private DBConn           dbconn;
   private ISQLGest         m_db;
   private AppProperties    mainProps;
+  private Integer          m_annoComp;
   private boolean          bSemaf;
   private String           m_codStatSel;
   private AnalizzaCodStats m_tbvf;
@@ -150,6 +154,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     m_db.setDbconn(dbconn);
 
     impostaForma(mainProps);
+    caricaComboAnno();
     buildTableView();
     // txParola.textProperty().addListener((obj, old, nv) -> txParolaSel(obj, old, nv));
 
@@ -189,12 +194,57 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     myScene.addEventFilter(KeyEvent.KEY_PRESSED, ev -> gestKey(ev));
   }
 
+  private void caricaComboAnno() {
+    List<Integer> li = m_db.getListAnni();
+    cbAnnoComp.getItems().clear();
+    cbAnnoComp.getItems().add((Integer) null);
+    cbAnnoComp.getItems().addAll(li);
+  }
+
+  @FXML
+  void cbAnnoComp_Click(ActionEvent event) {
+    m_annoComp = cbAnnoComp.getSelectionModel().getSelectedItem();
+    if ( !Utils.isValue(m_annoComp))
+      return;
+    LocalDateTime dtDa = LocalDateTime.of(m_annoComp, 1, 1, 0, 0);
+    LocalDateTime dtA = LocalDateTime.of(m_annoComp, 12, 31, 23, 59);
+    txDtDa.setValue(dtDa.toLocalDate());
+    txDtA.setValue(dtA.toLocalDate());
+  }
+
   private Object gestKey(KeyEvent ev) {
     // System.out.printf("ResultView.gestKey(%s)\n", ev.toString());
-    if (txParola.isFocused() && ev.getCode() == KeyCode.ENTER) {
-      ev.consume();
-      btCercaClick(null);
+    switch (ev.getCode()) {
+      case ENTER:
+        if (ev.isShiftDown()) {
+          ev.consume();
+          btSalvaClick(null);
+          break;
+        }
+        if (txParola.isFocused()) {
+          ev.consume();
+          btCercaClick(null);
+          break;
+        }
+        if (cbAnnoComp.isFocused()) {
+          ev.consume();
+          btCercaClick(null);
+          break;
+        }
+        break;
+
+      case ADD:
+      case PLUS:
+        if (tblview.isFocused()) {
+          ev.consume();
+          caricaCercaCodStat();
+        }
+        break;
+
+      default:
+        break;
     }
+
     return null;
   }
 
@@ -203,8 +253,8 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     // if ( e.isShiftDown() || e.isControlDown() || e.isAltDown())
     //   return null;
     switch (e.getCode()) {
-
-      case KeyCode.PLUS:
+      case ADD:
+      case PLUS:
         e.consume();
         caricaCercaCodStat();
         break;
@@ -235,10 +285,11 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       stage.initOwner(lstage);
       stage.setOnCloseRequest(_ -> {
         cercaCodStatForm = null;
-        System.out.println("GuessCodStatView.caricaCercaCodStat(destroy)");
+        
       });
       stage.show();
       CercaCodStat figlio = fxmll.getController();
+      model.setPadreCercaCodstat(myScene);
       figlio.initApp(mainProps);
 
       ObservableList<GuessCodStat> li = tblview.getSelectionModel().getSelectedItems();
@@ -466,7 +517,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
 
   @FXML
   private void btSalvaClick(ActionEvent event) {
-    System.out.println("GuessCodStatView.btSalvaClick()");
+    s_log.debug("GuessCodStatView.btSalvaClick()");
     List<GuessCodStat> li = tblview.getItems().stream().filter(s -> s.isAssigned()).collect(Collectors.toList());
     m_tbvf.saveSuDb(li);
     btCercaClick(null);
@@ -706,11 +757,26 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
         buildTableView();
         break;
 
+      case DataModel.EVT_CERCACODSTAT:
       case DataModel.EVT_SELCODSTAT:
-        if (evt.getNewValue() instanceof CodStat cds) {
-          m_codStatSel = cds.getCodice();
-          btAssignCodStatClick(null);
+        //        if (myScene.focusOwnerProperty().get() instanceof TableView<?> tbl) {
+        //          if (tbl == tblview) {
+        //            System.out.println("GuesCodstatView. EVT_CERCACODSTAT - Focus sulla GUESS");
+        //            break;
+        //          }
+        //        }
+
+        // if (myScene.focusOwnerProperty().get() instanceof TableView<?> tbl) {
+        //   if (tbl == tblview) {
+        if (model.isPadreCercaCodstat(myScene)) {
+          // if (tblview.getSelectionModel().getSelectedItems().size() != 0) {
+          if (evt.getNewValue() instanceof CodStat cds) {
+            m_codStatSel = cds.getCodice();
+            btAssignCodStat.setText(m_codStatSel);
+            btAssignCodStatClick(null);
+          }
         }
+
         break;
 
     }

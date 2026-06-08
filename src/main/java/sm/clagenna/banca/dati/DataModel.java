@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.scene.Scene;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.javafx.EColsTableView;
@@ -77,7 +78,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   @Getter @Setter
   private ObservableList<Path>  selPaths;
   @Getter @Setter
-  private int                   annoComp;
+  private Integer               annoComp;
   @Getter @Setter
   private String                comboQuery;
   @Getter @Setter
@@ -110,6 +111,9 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   private PropertyChangeSupport propsChange;
   @Getter
   private ISQLGest              sqlgest;
+  /** qui registro chi ha avviato la form di CercaCodStat */
+  @Getter @Setter
+  private Scene                 padreCercaCodstat;
 
   public DataModel() {
     if (null != s_inst) {
@@ -361,7 +365,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   }
 
   public void addPropertyChangeListener(PropertyChangeListener pcl) {
-    if ( propsChange.getPropertyChangeListeners() != null && //
+    if (propsChange.getPropertyChangeListeners() != null && //
         Arrays.asList(propsChange.getPropertyChangeListeners()).contains(pcl))
       return;
     propsChange.addPropertyChangeListener(pcl);
@@ -470,6 +474,10 @@ public class DataModel implements IStartApp, PropertyChangeListener {
         break;
     }
 
+  }
+  
+  public boolean isPadreCercaCodstat(Scene sc) {
+    return padreCercaCodstat != null && padreCercaCodstat.equals(sc);
   }
 
 }

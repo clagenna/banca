@@ -21,6 +21,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
+import lombok.Getter;
+import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.TreeCodStat;
@@ -34,11 +36,11 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   @SuppressWarnings("unused")
   private static final Logger s_log = LogManager.getLogger(CercaCodStat.class);
 
-  public static final String            CSZ_FXMLNAME = "CercaCodStat.fxml";
-  private static final String           KEY_POS      = "cercacdst";
-  private static final String           KEY_COL      = "cercacdst.col%s";
+  public static final String           CSZ_FXMLNAME = "CercaCodStat.fxml";
+  private static final String          KEY_POS      = "cercacdst";
+  private static final String          KEY_COL      = "cercacdst.col%s";
   @FXML
-  private TextField                     txParola;
+  private TextField                    txParola;
   @FXML
   private TableView<CodStat>           tblCodstat;
   @FXML
@@ -46,10 +48,10 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   @FXML
   private TableColumn<CodStat, String> colDescr;
 
-  private AppProperties  props;
-  private DataModel dataCntrl;
+  private AppProperties props;
+  private DataModel     dataCntrl;
   private TreeCodStat   treeData;
-  private Stage          primStage;
+  private Stage         primStage;
 
   public CercaCodStat() {
     //
@@ -113,7 +115,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
     if (vv > 0)
       colDescr.setPrefWidth(vv);
 
-    getStage().setOnHiding( _ -> closeApp(p_props));
+    getStage().setOnHiding(_ -> closeApp(p_props));
   }
 
   private Object rowSelecion(ObservableValue<? extends CodStat> ob, CodStat ov, CodStat nv) {
@@ -160,12 +162,13 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
 
   @Override
   public void closeApp(AppProperties p_props) {
-    // System.out.println("CercaCodStat.closeApp()");
+    System.out.println("CercaCodStat.closeApp()");
     JFXUtils.savePosStage(primStage, props, KEY_POS);
     String szKey = String.format(KEY_COL, "CodStat2");
     p_props.setProperty(szKey, Double.valueOf(colCode.getWidth()).intValue());
     szKey = String.format(KEY_COL, "descr");
     p_props.setProperty(szKey, Double.valueOf(colDescr.getWidth()).intValue());
+    DataModel.getInst().setPadreCercaCodstat(null);
   }
 
   @Override

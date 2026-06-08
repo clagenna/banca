@@ -72,6 +72,8 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   private ObservableList<GuessCodStat> dati;
   @Getter @Setter
   private String                       parola;
+//  @Getter @Setter
+//  private Integer                      annoComp;
   @Getter @Setter
   private LocalDateTime                dtDa;
   @Getter @Setter

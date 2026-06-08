@@ -71,10 +71,10 @@ import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
-import sm.clagenna.stdcla.utils.sys.StackViewer;
 import sm.clagenna.stdcla.utils.sys.ex.DatasetException;
 
 // FIXME se seleziono una query dal combo questa non viene recepita dal DB
+// FIXME Aggiungere la colonna della decodifica del CodStat (se presente)
 public class ResultView implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(ResultView.class);
 
@@ -248,6 +248,10 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   }
 
   private void caricaComboMesecomp() {
+    if ( !Utils.isValue(m_fltrAnnoComp)) {
+      cbMeseComp.getItems().clear();
+      return;
+    }
     List<String> li = m_db.getListMeseComp(m_fltrAnnoComp);
     cbMeseComp.getItems().clear();
     cbMeseComp.getItems().add((String) null);
@@ -329,6 +333,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       stage.initOwner(lstage);
       stage.show();
       CercaCodStat figlio = fxmll.getController();
+      model.setPadreCercaCodstat(myScene);
       figlio.initApp(mainProps);
     } catch (Exception e) {
       s_log.error("Errore caricamento CercaCodStat, msg = {}", e.getMessage(), e);
@@ -337,7 +342,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   private Object gestKey(KeyEvent ev) {
     // System.out.printf("ResultView.gestKey(%s)\n", ev.toString());
-    
+
     switch (ev.getCode()) {
       case F5:
         ev.consume();
@@ -436,8 +441,13 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   @FXML
   void cbAnnoCompSel(ActionEvent event) {
     Integer ii = cbAnnoComp.getSelectionModel().getSelectedItem();
-    if (null == ii)
+    if (null == ii) {
+      m_fltrAnnoComp = null;
+      model.setAnnoComp(m_fltrAnnoComp);
+      caricaComboMesecomp();
+      abilitaBottoni();
       return;
+    }
     m_fltrAnnoComp = ii;
     model.setAnnoComp(m_fltrAnnoComp);
     s_log.debug("ResultView.cbAnnoCompSel({}):", m_fltrAnnoComp);
@@ -461,7 +471,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       m_qry = null;
     else
       m_qry = m_mapQry.get(szK);
-    model.setComboQuery(m_qry);
+    model.setComboQuery(m_qry); // ??
     s_log.debug("ResultView.cbQuerySel():" + szK);
     abilitaBottoni();
   }
@@ -536,7 +546,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     } finally {
       bSemafCercaClick = false;
       // System.out.println("FINE ResultView.btCercaClick()\n");
-      }
+    }
   }
 
   @SuppressWarnings("unused")
@@ -590,7 +600,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   }
 
   @FXML
-  void btAssignCodStatClick(ActionEvent event) { 
+  void btAssignCodStatClick(ActionEvent event) {
     // s_log.debug("ResultView.btAssignCodStatClick() - codStatSel={}", m_codStatSel);
     // System.out.println(StackViewer.viewStackTrace("btAssignCodStatClick()"));
     if ( !Utils.isValue(m_codStatSel))
@@ -632,7 +642,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       lstage.getScene().setCursor(Cursor.DEFAULT);
       btCercaClick(null);
     });
-    
+
     // s_log.debug("END -- btAssignCodStatClick() (lanciato btCercaClick() alla fine)");
   }
 
@@ -848,15 +858,26 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         break;
 
       case DataModel.EVT_CERCACODSTAT:
-        if (evt.getNewValue() instanceof CodStat cds) {
-          m_codStatSel = cds.getCodice();
-          String szLb = "...";
-          if (null != cds)
-            szLb = cds.getDescr();
-          btAssignCodStat.setText(m_codStatSel);
-          lbAssignCodStat.setText(szLb);
-          btAssignCodStatClick(null);
+        // FIXATO dare seguito all'evento solo se *NON* e' aperta la GuessCodStatView
+//        if (myScene.focusOwnerProperty().get() instanceof TableView<?> tbl) {
+//          if (tbl == tblview) {
+//            System.out.println("ResultView. EVT_CERCACODSTAT - Focus sulla TableView");
+//            break;
+//          }
+//        }
+        // if ( !LoadBancaMainApp.getInst().isGuessCodStatViewOpened()) {
+        if ( model.isPadreCercaCodstat(myScene)) {
+          if (evt.getNewValue() instanceof CodStat cds) {
+            m_codStatSel = cds.getCodice();
+            String szLb = "...";
+            if (null != cds)
+              szLb = cds.getDescr();
+            btAssignCodStat.setText(m_codStatSel);
+            lbAssignCodStat.setText(szLb);
+            btAssignCodStatClick(null);
+          }
         }
+
         break;
       case DataModel.EVT_SELCODSTAT:
         if (evt.getNewValue() instanceof CodStat cds) {

@@ -1,8 +1,6 @@
 package sm.clagenna.banca.javafx;
 
 import java.beans.PropertyChangeEvent;
-
-
 import java.beans.PropertyChangeListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -51,16 +49,11 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-// FIXME su ResView se apro CodStatView poi cerco con CercaCodStat mi sdoppia le colonne del tblView
 // FIXME ci sono piu voci identiche per tipo,dtmov,dtval,dare,descr
-// FIXME nei dati se nel combo del anno si mette l'anno a null la query continua a mantenere la precedente
+// FISTO nei dati se nel combo del anno si mette l'anno a null la query continua a mantenere la precedente
 // FIXME nel form indovina mettere un combo con l'anno di competenza
-// FIXME nel form indovina mettere lo stesso cerca codice con il + 
+// FIXME nel form indovina mettere lo stesso cerca codice con il +
 // FIXME nel form indovina manca la context menu per "apri documento"
-
-
-
-
 
 public class LoadBancaMainApp extends Application implements IStartApp, PropertyChangeListener {
   private static final Logger s_log            = LogManager.getLogger(LoadBancaMainApp.class);
@@ -348,7 +341,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     Scene sce = getPrimaryStage().getScene();
     if (null == sce) {
       // Cerchiamo di dare un'ancora all'alert se possibile
-      Stage.getWindows().stream().filter(Window::isShowing).findFirst().ifPresent(alt::initOwner);
+      Window.getWindows().stream().filter(Window::isShowing).findFirst().ifPresent(alt::initOwner);
     }
     if (null != p_ico) {
       URL resico = getClass().getResource(p_ico);
@@ -434,6 +427,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   }
 
   public void removeGuessCodStatView(GuessCodStatView view) {
+    s_log.info("Rimuovo vista GuessCodStatView view");
     m_viewGuessCodStat = null;
   }
 
@@ -454,7 +448,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
         break;
     }
   }
-  
+
   /**
    * Mostra un popup con la guida alle scorciatoie da tastiera
    *
@@ -462,62 +456,57 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
    *          stage proprietario del popup
    */
   public void showHelpPopup(Stage owner, String[][] shortcuts) {
-     Stage dialog = new Stage();
-     dialog.initOwner(owner);
-     dialog.initModality(Modality.APPLICATION_MODAL);
-     dialog.initStyle(StageStyle.UTILITY);
-     dialog.setTitle("Guida ai tasti");
-     dialog.setResizable(false);
+    Stage dialog = new Stage();
+    dialog.initOwner(owner);
+    dialog.initModality(Modality.APPLICATION_MODAL);
+    dialog.initStyle(StageStyle.UTILITY);
+    dialog.setTitle("Guida ai tasti");
+    dialog.setResizable(false);
 
-     // Titolo
-     Label title = new Label("Scorciatoie da tastiera");
-     title.setFont(Font.font("System", FontWeight.BOLD, 14));
+    // Titolo
+    Label title = new Label("Scorciatoie da tastiera");
+    title.setFont(Font.font("System", FontWeight.BOLD, 14));
 
-     // Griglia tasto → descrizione
-     GridPane grid = new GridPane();
-     grid.setHgap(16);
-     grid.setVgap(8);
-     grid.setPadding(new Insets(12, 0, 4, 0));
+    // Griglia tasto → descrizione
+    GridPane grid = new GridPane();
+    grid.setHgap(16);
+    grid.setVgap(8);
+    grid.setPadding(new Insets(12, 0, 4, 0));
 
-     //     String[][] shortcuts = {
-     //         {"F5",      "Ripeti la ricerca"},
-     //         {"Enter",   "Esegui la ricerca o conferma la selezione"},
-     //         {"Shift",   "Attiva la selezione multipla su piu righe consecutive"},
-     //         {"Ctrl",    "Attiva la selezione multipla non consecutive"},
-     //         {"Doppio click", "Modifica il codice Stat. selezionato"},
-     //         {"Ctrl + Doppio click", "Aggiunge un figlio al codice Stat. selezionato"},
-     //         {"?",       "Mostra questo aiuto"},
-     //         {"Esc",     "Chiudi Help"},
-     //     };
+    //     String[][] shortcuts = {
+    //         {"F5",      "Ripeti la ricerca"},
+    //         {"Enter",   "Esegui la ricerca o conferma la selezione"},
+    //         {"Shift",   "Attiva la selezione multipla su piu righe consecutive"},
+    //         {"Ctrl",    "Attiva la selezione multipla non consecutive"},
+    //         {"Doppio click", "Modifica il codice Stat. selezionato"},
+    //         {"Ctrl + Doppio click", "Aggiunge un figlio al codice Stat. selezionato"},
+    //         {"?",       "Mostra questo aiuto"},
+    //         {"Esc",     "Chiudi Help"},
+    //     };
 
-     for (int i = 0; i < shortcuts.length; i++) {
-         Label key  = new Label(shortcuts[i][0]);
-         Label desc = new Label(shortcuts[i][1]);
-         key.setFont(Font.font("Monospaced", 13));
-         key.setStyle(
-             "-fx-background-color: #e8e8e8;" +
-             "-fx-border-color: #aaa;" +
-             "-fx-border-radius: 4;" +
-             "-fx-background-radius: 4;" +
-             "-fx-padding: 2 8 2 8;"
-         );
-         grid.add(key,  0, i);
-         grid.add(desc, 1, i);
-     }
+    for (int i = 0; i < shortcuts.length; i++) {
+      Label key = new Label(shortcuts[i][0]);
+      Label desc = new Label(shortcuts[i][1]);
+      key.setFont(Font.font("Monospaced", 13));
+      key.setStyle("-fx-background-color: #e8e8e8;" + "-fx-border-color: #aaa;" + "-fx-border-radius: 4;"
+          + "-fx-background-radius: 4;" + "-fx-padding: 2 8 2 8;");
+      grid.add(key, 0, i);
+      grid.add(desc, 1, i);
+    }
 
-     VBox root = new VBox(8, title, grid);
-     root.setPadding(new Insets(16, 20, 16, 20));
+    VBox root = new VBox(8, title, grid);
+    root.setPadding(new Insets(16, 20, 16, 20));
 
-     Scene scene = new Scene(root);
+    Scene scene = new Scene(root);
 
-     // Chiudi con Escape o cliccando fuori
-     scene.setOnKeyPressed(e -> {
-         if (e.getCode() == KeyCode.ESCAPE) dialog.close();
-     });
+    // Chiudi con Escape o cliccando fuori
+    scene.setOnKeyPressed(e -> {
+      if (e.getCode() == KeyCode.ESCAPE)
+        dialog.close();
+    });
 
-     dialog.setScene(scene);
-     dialog.showAndWait();
+    dialog.setScene(scene);
+    dialog.showAndWait();
   }
-
 
 }
