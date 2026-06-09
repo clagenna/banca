@@ -74,7 +74,7 @@ import sm.clagenna.stdcla.utils.Utils;
 import sm.clagenna.stdcla.utils.sys.ex.DatasetException;
 
 // FIXME se seleziono una query dal combo questa non viene recepita dal DB
-// FIXME Aggiungere la colonna della decodifica del CodStat (se presente)
+// FIXATO Aggiungere la colonna della decodifica del CodStat (se presente)
 public class ResultView implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(ResultView.class);
 

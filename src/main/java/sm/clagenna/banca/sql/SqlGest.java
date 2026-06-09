@@ -672,13 +672,14 @@ public abstract class SqlGest implements ISQLGest {
     Connection conn = dbconn.getConn();
     Map<String, String> liViews = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     // liViews.put((String)null, null);
-    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(getQryListVIEWS())) {
+    String szQryLiViewa = getQryListVIEWS();
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(szQryLiViewa)) {
       while (rs.next()) {
         String view = rs.getString(1);
         liViews.put(view, String.format(getQryListVIEW_PATT(), EColsTableView.allColumns(), view));
       }
     } catch (SQLException e) {
-      getLog().error("Query {}; err={}", getQryListVIEWS(), e.getMessage(), e);
+      getLog().error("Query {}; err={}", szQryLiViewa, e.getMessage(), e);
     }
     return liViews;
   }

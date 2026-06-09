@@ -20,7 +20,8 @@ public enum EColsTableView {
   costo(13), // Integer  (id=168)
   idcodstat(14), //  null
   codstat(15), //  null
-  flag(16); // confronto tra dare/avere consecutivi
+  descrstat(16), //  null
+  flag(17); // confronto tra dare/avere consecutivi
 
   private int                                 colNo;
   private static final String                 s_elencoCols;
