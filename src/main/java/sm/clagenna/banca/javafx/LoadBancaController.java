@@ -281,6 +281,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     tblvFiles.getColumns().addAll(colId, colName, colRelDir, colCardHold, colSize, colQtaRecs, colDtmin, colDtmax, colUltagg);
 
     tblvFiles.setRowFactory(_ -> new TableRow<ImpFile>() {
+      
       @Override
       public void updateItem(ImpFile item, boolean empty) {
         super.updateItem(item, empty);
@@ -305,6 +306,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         } else
           setStyle("");
       }
+      
     });
   }
 

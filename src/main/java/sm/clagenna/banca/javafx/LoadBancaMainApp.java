@@ -50,10 +50,10 @@ import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 // FIXME ci sono piu voci identiche per tipo,dtmov,dtval,dare,descr
-// FISTO nei dati se nel combo del anno si mette l'anno a null la query continua a mantenere la precedente
+// FIXTO nei dati se nel combo del anno si mette l'anno a null la query continua a mantenere la precedente
 // FIXME nel form indovina mettere un combo con l'anno di competenza
 // FIXME nel form indovina mettere lo stesso cerca codice con il +
-// FIXME nel form indovina manca la context menu per "apri documento"
+// FIXTO nel form indovina manca la context menu per "apri documento"
 
 public class LoadBancaMainApp extends Application implements IStartApp, PropertyChangeListener {
   private static final Logger s_log            = LogManager.getLogger(LoadBancaMainApp.class);

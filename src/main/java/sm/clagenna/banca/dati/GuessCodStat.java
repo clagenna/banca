@@ -19,6 +19,7 @@ import sm.clagenna.stdcla.utils.Utils;
 public class GuessCodStat implements Comparable<GuessCodStat> {
 
   public static final String COL_ID        = "id";
+  public static final String COL_IDFILE    = "idfile";
   public static final String COL_TIPO      = "tipo";
   public static final String COL_DTMOV     = "dtmov";
   public static final String COL_DTVAL     = "dtval";
@@ -32,6 +33,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
   public static final String COL_ASSIGNED  = "assigned";
 
   private SimpleIntegerProperty               id;
+  private SimpleIntegerProperty               idfile;
   private SimpleStringProperty                tipo;
   private SimpleObjectProperty<LocalDateTime> dtmov;
   private SimpleDoubleProperty                dare;
@@ -52,6 +54,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
 
   private void init() {
     id = new SimpleIntegerProperty(null, COL_ID);
+    idfile = new SimpleIntegerProperty(null, COL_IDFILE);
     tipo = new SimpleStringProperty(null, COL_TIPO);
     dtmov = new SimpleObjectProperty<LocalDateTime>(null, COL_DTMOV);
     dare = new SimpleDoubleProperty(null, COL_DARE);
@@ -64,10 +67,11 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
     assigned = new SimpleBooleanProperty(null, COL_ASSIGNED);
   }
 
-  public GuessCodStat(Integer id, String tipo, LocalDateTime dtmov, Double dare, Double avere, String cardid, String descr,
+  public GuessCodStat(Integer id, Integer idfile, String tipo, LocalDateTime dtmov, Double dare, Double avere, String cardid, String descr,
       Integer idcodstat, String codstat, String descrcds, boolean assigned) {
     init();
     setId(id);
+    setIdfile(idfile);
     setTipo(tipo);
     setDtmov(dtmov);
     setDare(dare);
@@ -84,6 +88,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
   public GuessCodStat(RigaBanca rb) {
     init();
     setId(rb.getRigaid());
+    setIdfile(rb.getIdfile());
     setTipo(rb.getTiporec());
     setDtmov(rb.getDtmov());
     setDare(rb.getDare());
@@ -147,6 +152,14 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
 
   public void setId(Integer ii) {
     id.set(ii);
+  }
+  
+  public Integer getIdfile() {
+    return idfile.get();
+  }
+  
+  public void setIdfile(Integer ii) {
+    idfile.set(ii);
   }
 
   public String getTipo() {
@@ -260,6 +273,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
     String vir = "";
     sb.append(String.format("%s%s=%s", vir, COL_ID, getId()));
     vir = ";\n";
+    sb.append(String.format("%s%s=%s", vir, COL_IDFILE, getIdfile()));
     sb.append(String.format("%s%s=%s", vir, COL_TIPO, getTipo()));
     sb.append(String.format("%s%s=%s", vir, COL_DTMOV, ParseData.formatDate(getDtmov())));
     sb.append(String.format("%s%s=%s", vir, COL_DARE, getDare() != null ? Utils.s_fmtDbl.format(getDare()) : "-"));

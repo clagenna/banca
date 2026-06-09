@@ -1,8 +1,11 @@
 package sm.clagenna.banca.javafx;
 
+import java.awt.Desktop;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,6 +40,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.KeyCode;
@@ -47,8 +51,10 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.AnalizzaCodStats;
 import sm.clagenna.banca.dati.CodStat;
+import sm.clagenna.banca.dati.CsvFileContainer;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.GuessCodStat;
+import sm.clagenna.banca.dati.ImpFile;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
@@ -285,7 +291,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       stage.initOwner(lstage);
       stage.setOnCloseRequest(_ -> {
         cercaCodStatForm = null;
-        
+
       });
       stage.show();
       CercaCodStat figlio = fxmll.getController();
@@ -603,8 +609,12 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     mi3.setOnAction((ActionEvent _) -> {
       accettaSel_click(null);
     });
+    MenuItem mi4 = new MenuItem("Vedi File CSV");
+    mi4.setOnAction((ActionEvent _) -> {
+      vediFileCSV_click(null);
+    });
     ContextMenu menu = new ContextMenu();
-    menu.getItems().addAll(mi3, mi1, mi2);
+    menu.getItems().addAll(mi3, mi1, mi2, mi4);
     // liBanca.setContextMenu(menu);
     tblview.setContextMenu(menu);
 
@@ -638,6 +648,35 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   private void accettaSel_click(Object object) {
     tblview.getSelectionModel().getSelectedItems().forEach(s -> s.setAssigned(true));
     Platform.runLater(() -> tblview.refresh());
+  }
+
+  private void vediFileCSV_click(Object object) {
+    GuessCodStat row = tblview.getSelectionModel().getSelectedItem();
+    if (null == row) {
+      s_log.warn("Nessuna riga selezionata per vedere il file CSV");
+      return;
+    }
+    Integer iif = row.getIdfile();
+    CsvFileContainer contFi = model.getContCsv();
+    ImpFile imf = contFi.getFromIndex(iif);
+    if (null == imf) {
+      s_log.error("Non trovo il file CSV per idfile={}", iif);
+      LoadBancaMainApp.getInst().messageDialog(AlertType.WARNING, "Non trovo il file CSV per idfile=" + iif);
+      return;
+    }
+    Path it = imf.fullPath(model.getLastDir());
+    // System.out.println("Ctx menu: path="+it);
+    try {
+      if (Desktop.isDesktopSupported()) {
+        s_log.info("Apro il documento {}", imf.getFileName());
+        Desktop.getDesktop().open(it.toFile());
+      } else {
+        s_log.error("Desktop not supported");
+      }
+    } catch (IOException e) {
+      s_log.error("Desktop launch error:{}", e.getMessage(), e);
+    }
+
   }
 
   private void riga_dblclick() {
