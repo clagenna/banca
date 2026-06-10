@@ -501,11 +501,22 @@ public abstract class SqlGest implements ISQLGest {
   //    }
   //    return lastRowid;
   //  }
+  // FIXME Creare il CodStat "99" se non esiste sul DB per la somma degli importi sconosciuti
 
+  /**
+   * Legge tutti i codici statistici presenti sul DB e li restituisce in una
+   * lista ordinata per codice. <br/>
+   * Inoltre se <b>non</b> esiste il codice statistico <code>"99"</code> lo crea
+   * con descrizione <code>"Spese Non Classificate"</code> per poter assegnare
+   * (sommare) gli importi senza codstat
+   * 
+   * @return
+   */
   public List<CodStat> getListCodStat() {
     Connection conn = dbconn.getConn();
+    CodStat cds99 = new CodStat(9999999, "99", "Spese Non Classificate");
+    boolean bNoCds99 = true;
     List<CodStat> liCodStat = new ArrayList<>();
-
     try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(getQrySELCodstat())) {
       while (rs.next()) {
         int k = 1;
@@ -513,15 +524,29 @@ public abstract class SqlGest implements ISQLGest {
         String cods = rs.getString(k++);
         String desc = rs.getString(k++);
         CodStat co = new CodStat(idCd, cods, desc);
-
+        if (co.getCodice().equals(cds99.getCodice()))
+          bNoCds99 = false;
         liCodStat.add(co);
       }
     } catch (SQLException e) {
       getLog().error("Query {}; err={}", getQrySELCodstat(), e.getMessage(), e);
     }
+    if (bNoCds99) {
+      // insertCodStat(cds99); per ora non lo inserisco, lo creo solo in memoria e lo aggiungo alla lista
+      liCodStat.add(cds99);
+    }
     return liCodStat;
   }
 
+  /**
+   * Verifica se esiste un codice statistico con lo stesso
+   * <b><code>idcodstat</code></b> di quello passato come parametro. Se si, restituisce
+   * true, altrimenti false. <br/>
+   * Se il codice statistico passato e' null o ha id=0, restituisce false.
+   * 
+   * @param cdsCurr
+   * @return
+   */
   public boolean existCodStat(CodStat cdsCurr) {
     boolean bRet = false;
     if (null == cdsCurr || cdsCurr.getIdCodStat() == 0)

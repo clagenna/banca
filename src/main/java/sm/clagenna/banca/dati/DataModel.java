@@ -39,6 +39,7 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class DataModel implements IStartApp, PropertyChangeListener {
   // FIXME Creare una classe che trasformi le 'descr' tranciando i valori presi da propr:descr.scrta.nn.x
+
   private static final Logger s_log                 = LogManager.getLogger(DataModel.class);
   private static final String CSZ_PROP_SCARTA       = "voci.scarta";
   private static final String CSZ_PROP_EXCLUDEDCOLS = "excludedcols";
