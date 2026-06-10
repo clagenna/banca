@@ -501,7 +501,7 @@ public abstract class SqlGest implements ISQLGest {
   //    }
   //    return lastRowid;
   //  }
-  // FIXME Creare il CodStat "99" se non esiste sul DB per la somma degli importi sconosciuti
+  // FIXTO Creare il CodStat "99" se non esiste sul DB per la somma degli importi sconosciuti
 
   /**
    * Legge tutti i codici statistici presenti sul DB e li restituisce in una

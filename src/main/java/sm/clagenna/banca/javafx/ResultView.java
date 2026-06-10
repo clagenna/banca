@@ -87,7 +87,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private static final String[][] shortcuts             = {                 //
       { "F5", "Ripeti la ricerca" }, { "Ctrl+S", "Salva query" },           //
       { "Ctrl+Enter", "Esegui ricerca" },                                   //
-      { "Num +", "Su riga di tabella dati - Indovina CodStat" },            //
+      { "Num +", "Su riga di tabella dati - cerca il CodStat" },            //
       { "Esc", "Chiudi Help" },                                             //
   };
 

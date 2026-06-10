@@ -5,7 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,12 +75,12 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   private ObservableList<GuessCodStat> dati;
   @Getter @Setter
   private String                       parola;
-//  @Getter @Setter
-//  private Integer                      annoComp;
+  //  @Getter @Setter
+  //  private Integer                      annoComp;
   @Getter @Setter
-  private LocalDateTime                dtDa;
+  private LocalDateTime dtDa;
   @Getter @Setter
-  private LocalDateTime                dtA;
+  private LocalDateTime dtA;
 
   private ISQLGest m_db;
 
@@ -123,6 +125,17 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
     }
   }
 
+  /**
+   * Scansiona i record senza <code>codstat</code> e cerca di indovinare
+   * (GuessCodStat) il codice statistico associato alla descrizione, se la
+   * percentuale di indovinamento è superiore alla soglia impostata viene
+   * assegnato il codice statistico, altrimenti viene lasciato vuoto per una
+   * successiva ricerca manuale. Se la percentuale è superiore a
+   * {@link DataModel#getPercIndov()} ma inferiore alla soglia viene evidenziato
+   * come possibile indovinamento, altrimenti viene lasciato come
+   * sconosciuto.
+   */
+
   private void scanUnknown() {
     listGuess = new ArrayList<GuessCodStat>();
     double dblPercIndovina = model.getPercIndov() / 100.;
@@ -133,11 +146,15 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
 
     if (null != dtDa)
       whe.append(String.format(" AND dtmov >= '%s'", ParseData.s_fmtTsT.format(dtDa)));
-    if (null != dtA)
-      whe.append(String.format(" AND dtmov <= '%s'", ParseData.s_fmtTsT.format(dtA)));
+    if (null != dtA) {
+      LocalDate ldt = dtA.toLocalDate();
+      LocalTime dtA = LocalTime.of(23, 59, 59);
+      LocalDateTime dtA2 = LocalDateTime.of(ldt, dtA);
+      whe.append(String.format(" AND dtmov <= '%s'", ParseData.s_fmtTsT.format(dtA2)));
+    }
     String qry = String.format(CSZ_QRY_UNKNOWN, whe.toString());
 
-    s_log.debug("Cerca Training con: {}", qry);
+    s_log.trace("Cerca Training con: {}", qry);
     try (PreparedStatement stmt = conn.prepareStatement(qry); ResultSet res = stmt.executeQuery()) {
       if (null == res || res.isClosed())
         return;

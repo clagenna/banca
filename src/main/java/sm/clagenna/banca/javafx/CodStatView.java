@@ -68,7 +68,8 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class CodStatView implements Initializable, IStartApp, PropertyChangeListener {
   // FIXME aggiungere bottone refresh da file di properties
-  // FIXME aggiungere tabella del codici statistici alimentati da CodStat2.properties
+  // FIXTO gestire (Shift/Cntrl) + Doppio Click per aggiungere un codstat figlio 
+  // FIXTO ??? aggiungere tabella del codici statistici alimentati da CodStat2.properties (per fare che'?)
   private static final Logger s_log = LogManager.getLogger(CodStatView.class);
 
   public static final String CSZ_FXMLNAME             = "CodStatView.fxml";
@@ -82,14 +83,17 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private static final String     CSZ_PROP_DIM_DARE  = "cdstt.dare";
   private static final String     CSZ_PROP_DIM_AVERE = "cdstt.avere";
   private static final String     CSZ_PROP_DIM_SALDO = "cdstt.saldo";
-  private static final String[][] shortcuts          = { //
-      { "F5", "Ripeti la ricerca" },
-      { "Ctrl", "Attiva la selezione multipla non consecutive" },
-      { "Shift", "Attiva la selezione multipla su piu righe consecutive" },
-      { "Enter", "Esegui la ricerca o conferma la selezione" }, { "Doppio click", "Modifica il codice Stat. selezionato" },
-      { "Ctrl + Doppio click", "Aggiunge un figlio al codice Stat. selezionato" }, { "?", "Mostra questo aiuto" },
-      { "Esc", "Chiudi Help" }, //
-      };
+  private static final String[][] shortcuts          = {                             //
+      { "F5", "Ripeti la ricerca" },                                                 //
+      { "Ctrl", "Attiva la selezione multipla non consecutive" },                    //
+      { "Shift", "Attiva la selezione multipla su piu righe consecutive" },          //
+      { "Enter", "Esegui la ricerca o conferma la selezione" },                      //
+      { "Doppio click", "Modifica il codice Stat. selezionato" },                    //
+      { "Shift + Doppio click", "Aggiunge un figlio al codice Stat. selezionato" },   //
+      { "Ctrl + Doppio click", "Aggiunge un figlio al codice Stat. selezionato" },   //
+      { "?", "Mostra questo aiuto" },                                                //
+      { "Esc", "Chiudi Help" },                                                      //
+  };
 
   // private static final AlertType AlertType = null;
 
@@ -210,7 +214,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         if (null != row) {
           CodStat cds = row.getValue();
           System.out.println("Doppio click su:" + cds.getCodice());
-          treeView_modTree(true);
+          // se è premuto Shift aggiungo un figlio, altrimenti modifico il codice Stat selezionato
+          treeView_modTree( ! (evt.isShiftDown() || evt.isControlDown()), cds);
         }
       }
     });
@@ -255,12 +260,12 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
     mnuModifica = new MenuItem("Modifica");
     mnuModifica.setOnAction((ActionEvent _) -> {
-      treeView_modTree(true);
+      treeView_modTree(true, null);
     });
 
     mnuAggiungi = new MenuItem("Aggiungi");
     mnuAggiungi.setOnAction((ActionEvent _) -> {
-      treeView_modTree(false);
+      treeView_modTree(false, null);
     });
 
     mnuElimina = new MenuItem("Elimina");
@@ -328,7 +333,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
    *          se true modifica, se false aggiunge un figlio al codice
    *          selezionato
    */
-  private void treeView_modTree(boolean bModif) {
+  private void treeView_modTree(boolean bModif, CodStat cds) {
     URL url = getClass().getResource(ModTreeCodStat.CSZ_FXMLNAME);
     if (url == null)
       url = getClass().getClassLoader().getResource(ModTreeCodStat.CSZ_FXMLNAME);
@@ -355,28 +360,41 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     stageModCodStat.setX(20.);
     stageModCodStat.setY(20.);
     JFXUtils.readPosStage(stageModCodStat, mainProps, ModTreeCodStat.PROP_POSVIEW_modcodstat);
-    CodStat cds = null;
+    //    CodStat cds = null;
+    CodStat cdsLavoro = null;
+    try {
+      cdsLavoro = null != cds ? (CodStat) cds.clone() : null;
+    } catch (CloneNotSupportedException e) {
+      e.printStackTrace();
+    }
     if (modTreeView != null) {
-      TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
-      try {
-        // faccio una copia di lavoro
-        if (null != tricds) {
-          cds = (CodStat) tricds.getValue().clone();
-        }
-      } catch (CloneNotSupportedException e) {
-        s_log.error("Clonazione CodStat, err={}", e.getMessage());
-      }
+      //      TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
+      //      try {
+      //        // faccio una copia di lavoro
+      //        if (null != tricds) {
+      //          cds = (CodStat) tricds.getValue().clone();
+      //        }
+      //      } catch (CloneNotSupportedException e) {
+      //        s_log.error("Clonazione CodStat, err={}", e.getMessage());
+      //      }
       modTreeView.setMyScene(scene);
-      if (bModif)
-        modTreeView.setCdsLavoro(cds);
-      else {
-        CodStat newc = CodStat.parse(cds.getCodice());
-        newc.setIdCodStat(0);
-        newc.setDescr("");
-        newc.setFather(cds);
-        modTreeView.setCdsLavoro(newc);
+
+      if (bModif) {
+        // vado in modifica dello stesso codice Stat, passo la copia di lavoro
+        modTreeView.setCdsLavoro(cdsLavoro);
+      } else {
+        cdsLavoro.setCod3(0);
+        cdsLavoro = model.getCodStatData().findFirstFreeCode(cdsLavoro);
+        cdsLavoro.setIdCodStat(0);
+        cdsLavoro.setDescr("");
+        modTreeView.setCdsLavoro(cdsLavoro);
+        //        CodStat newc = CodStat.parse(cds.getCodice());
+        //        newc.setIdCodStat(0);
+        //        newc.setDescr("");
+        //        newc.setFather(cds); ??
+        //        modTreeView.setCdsLavoro(newc);
       }
-      System.out.printf("Show ModTreeCodStat(%d)\n", modTreeView.hashCode() % 1023);
+      // System.out.printf("Show ModTreeCodStat(%d)\n", modTreeView.hashCode() % 1023);
       modTreeView.initApp(mainProps);
     }
     stageModCodStat.show();
@@ -605,13 +623,6 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         break;
       case QUOTE:
         if (p_e.isShiftDown()) {
-          //          String szMsg = "Tasti rapidi:<br/>" + //
-          //              "ENTER o F5: Ricarica albero da file<br/>" + //
-          //              "CTRL o SHIFT: Selezione multipla per eliminazione multipla<br/>" + //
-          //              "Doppio click su nodo: Modifica codice Stat.\n" + //
-          //              "CTRL+Doppio click su nodo: Aggiunge figlio al codice Stat.\n";
-          //          m_appmain.messageDialog(AlertType.INFORMATION, szMsg);
-          //          showHelpPopup(lstage);
           LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
         }
         break;

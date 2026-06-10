@@ -179,6 +179,37 @@ public class TreeCodStat {
     return null;
   }
 
+  public CodStat findFirstFreeCode(CodStat cds) {
+    CodStat ret = null;
+    if (null == cds)
+      return ret;
+    ret = new CodStat();
+    ret.assign(cds.getCod1(), cds.getCod2(), 0);
+    CodStat padre = cds.find(ret);
+    if (null == padre)
+      return padre;
+    int nMaxFiglio = 0;
+    int indxCod = padre.getCod2() == 0 ? 2 : 3;
+    for (CodStat no : padre.getFigli()) {
+      switch (indxCod) {
+        case 2:
+          nMaxFiglio = Math.max(nMaxFiglio, no.getCod2());
+          break;
+        case 3:
+          nMaxFiglio = Math.max(nMaxFiglio, no.getCod3());
+          break;
+        default:
+          continue;
+      }
+    }
+    if (indxCod == 2)
+      ret.assign(padre.getCod1(), nMaxFiglio + 1, 0);
+    else
+      ret.assign(padre.getCod1(), padre.getCod2(), nMaxFiglio + 1);
+    ret.setFather(padre);
+    return ret;
+  }
+
   public void clear() {
     if (null != mapCodStat)
       mapCodStat.clear();
