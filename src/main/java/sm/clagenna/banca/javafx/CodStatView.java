@@ -67,7 +67,7 @@ import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class CodStatView implements Initializable, IStartApp, PropertyChangeListener {
-  // FIXME aggiungere bottone refresh da file di properties
+  // FIXTO aggiungere bottone refresh da file di properties: Fatto con F5
   // FIXTO gestire (Shift/Cntrl) + Doppio Click per aggiungere un codstat figlio 
   // FIXTO ??? aggiungere tabella del codici statistici alimentati da CodStat2.properties (per fare che'?)
   private static final Logger s_log = LogManager.getLogger(CodStatView.class);
@@ -612,9 +612,10 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     KeyCode key = p_e.getCode();
     switch (key) {
       case ENTER:
+        break;
       case F5:
         // btCercaFileClick(null);
-        // refreshTreeCodstat();
+        refreshTreeCodstat();
         break;
       case CONTROL:
       case SHIFT:
