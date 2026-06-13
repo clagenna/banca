@@ -38,8 +38,6 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class DataModel implements IStartApp, PropertyChangeListener {
-  // FIXME Creare una classe che trasformi le 'descr' tranciando i valori presi da propr:descr.scrta.nn.x
-
   private static final Logger s_log                 = LogManager.getLogger(DataModel.class);
   private static final String CSZ_PROP_SCARTA       = "voci.scarta";
   private static final String CSZ_PROP_EXCLUDEDCOLS = "excludedcols";
@@ -48,6 +46,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   private static final String CSZ_FLAG_FILTRI  = "FLAG_FILTRI";
   private static final String CSZ_QTA_THREADS  = "QTA_THREADS";
   private static final String CSZ_PERC_INDOV   = "PERC_INDOV";
+  private static final String CSZ_SCARTA_DESCR = "scartaDescr";
   public static final String  CSZ_FILTER_FILES = "filter_files";
 
   public static final String EVT_DBCHANGE            = "dbchange";
@@ -219,6 +218,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     qtaThreads = props.getIntProperty(CSZ_QTA_THREADS, 1);
     percIndov = props.getIntProperty(CSZ_PERC_INDOV, 40);
     scartaVoci = new ArrayList<String>();
+    doScartaDescr = props.getBooleanProperty(CSZ_SCARTA_DESCR, false);
     String sz = props.getLastDir();
     if (Utils.isValue(sz))
       lastDir = Paths.get(sz);
@@ -306,6 +306,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     prop.setIntProperty(CSZ_FLAG_FILTRI, filtriQuery);
     prop.setIntProperty(CSZ_QTA_THREADS, qtaThreads);
     prop.setIntProperty(CSZ_PERC_INDOV, getPercIndov());
+    prop.setBooleanProperty(CSZ_SCARTA_DESCR, doScartaDescr);
     String sz;
     if (null != scartaVoci) {
       sz = String.join(",", scartaVoci);
@@ -476,7 +477,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     }
 
   }
-  
+
   public boolean isPadreCercaCodstat(Scene sc) {
     return padreCercaCodstat != null && padreCercaCodstat.equals(sc);
   }

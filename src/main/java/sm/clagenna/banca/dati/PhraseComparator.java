@@ -36,6 +36,8 @@ public class PhraseComparator {
   }
 
   public void addKnownPhrase(String p_sz, String key) {
+    if (null == p_sz)
+      return;
     Phrase phr = new Phrase(p_sz);
     phr.setKey(key);
     phr = tratta(phr);

@@ -66,6 +66,8 @@ public class Phrase implements Comparable<Phrase> {
   }
 
   private String semplify(String p_sz) {
+    if (null == p_sz)
+      return p_sz;
     String sz = p_sz.toLowerCase();
     for (Simplyf ss : allRegex)
       sz = ss.replaceAll(sz);
