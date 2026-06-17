@@ -620,6 +620,7 @@ public abstract class SqlGest implements ISQLGest {
     } catch (SQLException e) {
       getLog().error("Query {}; err={}", getQryListANNI(), e.getMessage(), e);
     }
+    Collections.sort(liAnno);
     return liAnno;
   }
 
@@ -638,6 +639,7 @@ public abstract class SqlGest implements ISQLGest {
     }
     if (null == pAnno)
       return liMesi;
+    Collections.sort(liMesi);
     List<String> li2 = liMesi //
         .stream() //
         .filter(s -> s.startsWith(pAnno.toString())) //

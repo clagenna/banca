@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="1188.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.ResultView">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="1188.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.ResultView">
 	<children>
 		<HBox prefHeight="40.0" prefWidth="846.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<children>
@@ -41,10 +41,6 @@
                </padding>
             </Label>
             <ComboBox fx:id="cbMeseComp" onAction="#cbMeseCompSel" prefHeight="25.0" prefWidth="198.0" />
-            <Label fx:id="lbAssignCodStat" prefHeight="17.0" prefWidth="234.0" text="Decode cod. stat." textAlignment="CENTER">
-               <padding>
-                  <Insets left="5.0" top="3.0" />
-               </padding></Label>
 			</children>
 			<padding>
 				<Insets bottom="5.0" left="5.0" right="9.0" top="7.0" />
@@ -100,12 +96,12 @@
                <tooltip>
                   <Tooltip text="Nel CSV di Export mette NULL al posto di 0.00 (Zero) cosi che nel foglio excel la cella risulta vuota" />
                </tooltip></CheckBox>
-            <Button fx:id="btMostraCodStat" layoutX="991.0" layoutY="4.0" mnemonicParsing="false" onAction="#btMostraCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Mostra Cod.Stat" AnchorPane.rightAnchor="87.0" AnchorPane.topAnchor="4.0">
+            <Button fx:id="btMostraCodStat" layoutX="991.0" layoutY="4.0" mnemonicParsing="false" onAction="#btMostraCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Mostra Cod.Stat" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="4.0">
                <tooltip>
                   <Tooltip text="Mostra la finestra per la selezione dei codici statistici" />
                </tooltip>
             </Button>
-            <Button fx:id="btAssignCodStat" layoutX="991.0" layoutY="35.0" mnemonicParsing="false" onAction="#btAssignCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Cod.Stat." AnchorPane.rightAnchor="87.0" AnchorPane.topAnchor="35.0">
+            <Button fx:id="btAssignCodStat" layoutX="991.0" layoutY="35.0" mnemonicParsing="false" onAction="#btAssignCodStatClick" prefHeight="25.0" prefWidth="110.0" text="Cod.Stat." AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="35.0">
                <tooltip>
                   <Tooltip text="Assegna il codice statistico evidenziato a tutte le righe selezionate " />
                </tooltip>
@@ -115,6 +111,10 @@
                   <Tooltip text="Apre la finestra del indovina codici statitici non assegnati" />
                </tooltip>
             </Button>
+            <Label fx:id="lbAssignCodStat" alignment="CENTER_RIGHT" layoutX="853.0" layoutY="64.0" prefHeight="20.0" prefWidth="371.0" text="Decode cod. stat." textAlignment="CENTER" AnchorPane.rightAnchor="11.0" AnchorPane.topAnchor="64.0">
+               <padding>
+                  <Insets left="5.0" top="3.0" />
+               </padding></Label>
          </children>
       </AnchorPane>
 	  <TableView fx:id="tblview" layoutY="129.0" maxHeight="1.7976931348623157E308" prefHeight="351.0" prefWidth="1188.0" AnchorPane.bottomAnchor="24.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="129.0">

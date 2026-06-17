@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
@@ -11,7 +12,7 @@
 <?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="689.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.CodStatView">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="504.0" prefWidth="689.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.CodStatView">
 	<children>
 		<TreeTableView fx:id="treeview" layoutY="91.0" maxHeight="1.7976931348623157E308" prefHeight="413.0" prefWidth="689.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="91.0">
          <columns>
@@ -36,7 +37,12 @@
             						<Tooltip text="Digita un testo da ricercare nelle causali dei movimenti, es: &quot;TitanCOOP&quot;" />
             					</tooltip>
             				</Label>
-            				<TextField fx:id="txDescr" layoutX="88.0" layoutY="18.0" prefHeight="25.0" prefWidth="588.0" promptText="Parola da cercare" AnchorPane.leftAnchor="88.0" AnchorPane.rightAnchor="13.0" AnchorPane.topAnchor="18.0" />
+            				<TextField fx:id="txDescr" layoutX="88.0" layoutY="18.0" prefHeight="25.0" prefWidth="343.0" promptText="Parola da cercare" AnchorPane.leftAnchor="88.0" AnchorPane.rightAnchor="258.0" AnchorPane.topAnchor="18.0" />
+                        <CheckBox fx:id="ckFiltra" layoutX="450.0" layoutY="22.0" mnemonicParsing="false" text="Filtra Movimenti" AnchorPane.rightAnchor="131.0" AnchorPane.topAnchor="22.0">
+                           <tooltip>
+                              <Tooltip text="Il check attiva la creazione automatica del filtro di ricerca sulla finestra ResultsView" />
+                           </tooltip>
+                        </CheckBox>
                      </children>
                   </AnchorPane>
             </content>

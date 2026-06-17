@@ -582,7 +582,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
           bSemaf = false;
         });
       });
-      m_tbvf.setOnFailed(tsk -> {
+      m_tbvf.setOnFailed(_ -> {
         s_log.debug("Cerca CodStat task failure");
         Exception ex = (Exception) m_tbvf.getException();
         s_log.error("Errore nel backgrnd Task", ex);

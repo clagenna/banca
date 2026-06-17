@@ -1,48 +1,61 @@
-@echo on
+@echo off
+set debug=1
+:: --------------------------------------------------------
+:: Usage: buildApp [-?] [-help]		- get help
+::                 [-updVers]       - update della versione con stdcla\bin\updVersione.cmd
+::                 [-buildStd]      - re-build degli STD cla nel repo MAVEN
+::
 :: --------------------------------------------------------
 :: (0) Init di alcune variabili [ESC, BaseDir, MvnCmd]
 :: - - - - - 
-:: (0,1) ESC
 
+:: (0,1) ESC
 for /F %%a in ('echo prompt $E ^| cmd') do @set "ESC=%%a["
+
 setlocal ENABLEEXTENSIONS
 if "%DEBUG%" == "1" echo on
-if "%1" == "" goto noOpt
+if "%1" == "" goto checkParms
+:: --------------------------------------------------------
+:: controllo congruenza dei parametri forniti
 if "%1" == "-?" goto help
 if "%1" == "-help" goto help
 if /i "%1" == "-updVers"  goto second
 if /i "%1" == "-buildStd"  goto second
 goto help
 :second
-if "%2" == ""  goto noOpt
-if /i "%2" == "-updVers"  goto noOpt
-if /i "%2" == "-buildStd"  goto noOpt
+if "%2" == ""  goto checkParms
+if /i "%2" == "-updVers"  goto checkParms
+if /i "%2" == "-buildStd"  goto checkParms
 goto help
+:: --------------------------------------------------------
 
-if "%DEBUG%" == "1" echo on
 
-:: - - - - - 
+ 
 :: (0,2) test parametri di lancio
-:noOpt
+:checkParms
+if "%DEBUG%" == "1" echo on
 set updVers=
 set buildStd=
+
 :testp
 if "%DEBUG%" == "1" @echo 1=%1 2=%2 3=%3 4=%4
 if /i "%1" EQU "-updVers" (
   	set updVers=1
 	shift /1
-	rem goto testp
 )
 if /i "%1" EQU "-buildStd" (
   	set buildStd=1
 	shift /1
-	goto testp
 )
+if /i "%1" EQU "-updVers" (
+  	set updVers=1
+	shift /1
+)
+
 if "%DEBUG%" == "1" ( 
 	@echo updVers=%updVers%
 	@echo buildStd=%buildStd%
 	pause
-	goto testp
 )
 
 :: - - - - - - - - - - - - - - - 
@@ -55,7 +68,7 @@ call :mioecho "Base Dir" %BaseDir%
 if "%DEBUG%" == "1" pause
 
 :: - - - - - 
-:: (0,4) Mvn.Cmd il comando batch di Maven
+:: (0,4) ricerca di Mvn.Cmd il comando batch di Maven
 set MvnCmd=
 for /F "usebackq tokens=*" %%i in (`where mvn.cmd` ) do set MvnCmd=%%i
 if   "%MvnCmd%" == "" goto nomvn
@@ -77,8 +90,17 @@ if "%DEBUG%" == "1" pause
 :: (2) Update della versione del progetto originale
 :seUpdV
 if "%updVers%" NEQ "1" goto build
-call :mioecho "Update versione.java" sotto %BaseDir%
-call ..\stdcla\bin\updVersione.cmd "%BaseDir%" 1
+set UpdvCmd=
+for /F "usebackq tokens=*" %%i in (`where updVersione.cmd` ) do set UpdvCmd=%%i
+if   "%UpdvCmd%" == "" goto noupdv
+call :mioecho updVersione in %UpdvCmd%
+if "%DEBUG%" == "1" @echo on
+if "%DEBUG%" == "1" pause
+
+:: l'uno '1' finale significa che modifico anche la versione nel POM
+:: call "%updvCmd%" "%BaseDir%" 1
+if "%DEBUG%" == "1" @echo on
+call "%updvCmd%" "%BaseDir%" 1
 @echo off
 if "%DEBUG%" == "1" echo on
 if "%DEBUG%" == "1" pause
@@ -128,6 +150,11 @@ goto fine
 ----------------------------------------------------
 :nomvn
 @echo %ESC%7;31mnon trovo Maven mvn.cmd%ESC%0m
+goto fine
+
+----------------------------------------------------
+:noupdv
+@echo %ESC%7;31mnon trovo updVersione.cmd%ESC%0m
 goto fine
 
 :fine

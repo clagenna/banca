@@ -35,6 +35,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
@@ -70,6 +71,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   // FIXTO aggiungere bottone refresh da file di properties: Fatto con F5
   // FIXTO gestire (Shift/Cntrl) + Doppio Click per aggiungere un codstat figlio 
   // FIXTO ??? aggiungere tabella del codici statistici alimentati da CodStat2.properties (per fare che'?)
+  // FIXME Proponi un checkbox per permette di filtrare su click di riga
   private static final Logger s_log = LogManager.getLogger(CodStatView.class);
 
   public static final String CSZ_FXMLNAME             = "CodStatView.fxml";
@@ -83,16 +85,16 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private static final String     CSZ_PROP_DIM_DARE  = "cdstt.dare";
   private static final String     CSZ_PROP_DIM_AVERE = "cdstt.avere";
   private static final String     CSZ_PROP_DIM_SALDO = "cdstt.saldo";
-  private static final String[][] shortcuts          = {                             //
-      { "F5", "Ripeti la ricerca" },                                                 //
-      { "Ctrl", "Attiva la selezione multipla non consecutive" },                    //
-      { "Shift", "Attiva la selezione multipla su piu righe consecutive" },          //
-      { "Enter", "Esegui la ricerca o conferma la selezione" },                      //
-      { "Doppio click", "Modifica il codice Stat. selezionato" },                    //
+  private static final String[][] shortcuts          = {                              //
+      { "F5", "Ripeti la ricerca" },                                                  //
+      { "Ctrl", "Attiva la selezione multipla non consecutive" },                     //
+      { "Shift", "Attiva la selezione multipla su piu righe consecutive" },           //
+      { "Enter", "Esegui la ricerca o conferma la selezione" },                       //
+      { "Doppio click", "Modifica il codice Stat. selezionato" },                     //
       { "Shift + Doppio click", "Aggiunge un figlio al codice Stat. selezionato" },   //
-      { "Ctrl + Doppio click", "Aggiunge un figlio al codice Stat. selezionato" },   //
-      { "?", "Mostra questo aiuto" },                                                //
-      { "Esc", "Chiudi Help" },                                                      //
+      { "Ctrl + Doppio click", "Aggiunge un figlio al codice Stat. selezionato" },    //
+      { "?", "Mostra questo aiuto" },                                                 //
+      { "Esc", "Chiudi Help" },                                                       //
   };
 
   // private static final AlertType AlertType = null;
@@ -107,6 +109,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private Button                           btSaveDB;
   @FXML
   private TextField                        txDescr;
+  @FXML
+  private CheckBox                         ckFiltra;
   @FXML
   private TreeTableView<CodStat>           treeview;
   @FXML
@@ -143,6 +147,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private MenuItem mnuModifica;
   private MenuItem mnuAggiungi;
   private MenuItem mnuElimina;
+
+  private TreeItem<CodStat> lastSelTricds;
 
   public CodStatView() {
     styMatchDescr = "gold";
@@ -247,8 +253,14 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     // Listener per selezione nodo e diffusione del codice Stat selezionato
     treeview.getSelectionModel().selectedItemProperty().addListener((_, _, nv) -> {
       if (null != nv && nv.getValue().getCod1() != 0) {
-        String sel = nv.getValue().getCodice();
+        lastSelTricds = nv;
+        String sel = lastSelTricds.getValue().getCodice();
         model.setCodStat(sel);
+        if (ckFiltra.isSelected()) {
+          Platform.runLater(() -> {
+            treeView_filtra((Object) null);
+          });
+        }
         // System.out.printf("CodStatView.impostaTreeView(\"%s\")\n", CodStat2);
       }
     });
@@ -300,14 +312,29 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private void refreshTreeCodstat() {
     // System.out.println("CodStatView.refreshTreeCodstat()");
     TreeItem<CodStat> cds = treeview.getSelectionModel().getSelectedItem();
+    if (null != cds) {
+      lastSelTricds = cds;
+    }
     TreeitemCodStat treeData = model.refreshCodstatData();
+
+    //    if (null != lastSelTricds) {
+    //      CodStat mtchd = treeData.find(lastSelTricds.getValue().getCodice());
+    //      if (null != mtchd)
+    //        mtchd.setMatched(true);
+    //    }
     TreeItem<CodStat> root = treeData.getTreeItemRoot();
     treeview.setRoot(root);
-    treeview.refresh();
-    if (null != cds) {
-      String ds = cds.getValue().getDescr();
-      txDescrSel(null, "", ds);
+    // se avevo un nodo selezionato, allora provo a ri-selezionarlo
+    if (null != lastSelTricds) {
+      String ds = lastSelTricds.getValue().getDescr();
+      // il nuovo nodo selezionato
+      CodStat found = treeData.find(ds);
+      if (null != found
+          )
+        treeData.expandNode(found);
+      // txDescrSel(null, "", ds);
     }
+    treeview.refresh();
   }
 
   /**
@@ -317,11 +344,10 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
    * @param value
    */
   private void treeView_filtra(Object value) {
-    // System.out.println("CodStatView.treeView_filtra()");
-    TreeItem<CodStat> tricds = treeview.getSelectionModel().getSelectedItem();
+    lastSelTricds = treeview.getSelectionModel().getSelectedItem();
     CodStat cds = null;
-    if (null != tricds)
-      cds = tricds.getValue();
+    if (null != lastSelTricds)
+      cds = lastSelTricds.getValue();
     model.firePropertyChange(DataModel.EVT_FILTER_CODSTAT, null, cds);
   }
 
@@ -555,12 +581,22 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     btImportFile.setDisable(true);
   }
 
+  /**
+   * Se scrivo un pezzo di testo nel text box della descrizione di CodStat
+   * ({@link #txDescr} allora evidenzio ed espando tutti quei nodi che hanno
+   * quel pezzo di testo
+   * 
+   * @param obj
+   * @param old
+   * @param nv
+   * @return
+   */
   private Object txDescrSel(ObservableValue<? extends String> obj, String old, String nv) {
     if ( !Utils.isValue(nv) || nv.length() <= 2)
       return null;
     // System.out.printf("CodStatView.txDescrSel(\"%s\")\n", nv);
     searchTree(treeview.getRoot(), nv);
-    treeview.refresh();
+    treeview.refresh(); // !! validato !!
     TreeItem<CodStat> ro = treeview.getRoot();
     Platform.runLater(() -> expandMatched(ro));
     return null;
@@ -615,7 +651,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         break;
       case F5:
         // btCercaFileClick(null);
-        refreshTreeCodstat();
+        // refreshTreeCodstat();
         break;
       case CONTROL:
       case SHIFT:
@@ -890,13 +926,18 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         break;
 
       case DataModel.EVT_TOTCODSTAT:
-        //        treeview.refresh();
-        //        break;
-        // fall down ...
         Platform.runLater(() -> {
           // treeview.setRoot(datacntrlr.getCodStatData().getTreeItemRoot());
           treeItems.refreshTreeItems();
           treeview.setRoot(treeItems.getTreeItemRoot());
+          if (null != lastSelTricds) {
+            final String szCd = lastSelTricds.getValue().getCodice();
+            CodStat found = treeItems.find(szCd);
+            if (null != found) {
+              found.setMatched(true);
+              expandMatched(treeItems.getTreeItemRoot());
+            }
+          }
           treeview.refresh();
         });
         break;
@@ -905,7 +946,6 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         if (obj instanceof CodStat cds) {
           System.out.printf("CodStatView.propertyChange(%s)\n", cds.toStringEx());
           Platform.runLater(() -> {
-            // refreshTreeCodstat();
             refreshTreeViewAfterUpdate(treeItems, cds);
           });
         }

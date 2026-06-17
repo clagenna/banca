@@ -255,6 +255,11 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     refreshCodstatData();
   }
 
+  /**
+   * Rileggo da capo tutti i CodStat e rinfresco {@link #codStatData}
+   * 
+   * @return
+   */
   public TreeitemCodStat refreshCodstatData() {
     codStatData = new TreeitemCodStat();
     codStatData.readTreeCodStats();
