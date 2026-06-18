@@ -1,4 +1,7 @@
-﻿Set-Location (Split-Path $PSCommandPath)
+﻿# per verificare la versione su GitHUB e se e' disponibile, si puo dare il comando:
+#     iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI"
+# --------------------------------------------------------------------------------
+Set-Location (Split-Path $PSCommandPath)
 Set-Location '..'
 Get-Location
 # ---------------------------------------

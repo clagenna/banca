@@ -10,6 +10,9 @@
 		<java.version>25</java.version>
 		<stdc.version>0.10-SNAPSHOT</stdc.version>
 		<lombok.version>1.18.40</lombok.version>
+		<maven.antrun.version>3.1.0</maven.antrun.version>
+		<shared.folder>F:/Google Drive/zips/Banca_Install</shared.folder>
+		<googl.folder>F:/Google Drive/Gennari/Banche</googl.folder>
 	</properties>
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
@@ -76,6 +79,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -83,17 +87,16 @@
 				<configuration>
 					<archive>
 						<!-- This is required by bnd-maven-plugin -->
-						<!--
- manifestFile >
-                          ${project.build.outputDirectory}/META-INF/MANIFEST.MF
-                        </manifestFile>
-                        <manifestEntries>
-                          <Automatic-Module-Name>commons.cli</Automatic-Module-Name>
-                        </manifestEntries 
-						-->
+						<!--  manifestFile > -->
+<!--                          ${project.build.outputDirectory}/META-INF/MANIFEST.MF -->
+<!--                        </manifestFile  -->
+<!--                        <manifestEntries  -->
+<!--                          <Automatic-Module-Name>commons.cli</Automatic-Module-Name -->
+<!--                        </manifestEntries -->
 					</archive>
 				</configuration>
 			</plugin>
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -106,6 +109,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -137,6 +141,7 @@
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+			
 			<plugin>
 				<groupId>org.openjfx</groupId>
 				<artifactId>javafx-maven-plugin</artifactId>
@@ -145,6 +150,7 @@
 					<mainClass>${mainClassName}</mainClass>
 				</configuration>
 			</plugin>
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -153,6 +159,47 @@
 					<skip>true</skip>
 				</configuration>
 			</plugin>
-		</plugins>
-	</build>
+			
+		  <!-- 
+		${project.build.directory} → usually target/
+		${project.build.finalName} → artifact name without extension (from <finalName> in pom.xml or defaults to ${artifactId}-${version})
+		Runs in the package phase so the JAR is already built.
+		Creates the destination folder if it doesn’t exist.
+		Copies and renames the JAR in one step.
+		
+          Copy and rename the generated JAR -->
+          
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>${maven.antrun.version}</version>
+            <executions>
+                <execution>
+                    <id>copy-jar</id>
+                    <phase>package</phase>
+                    <configuration>
+                        <target>
+                            <!-- Create destination folder if it doesn't exist -->
+                            <mkdir dir="${shared.folder}" />
+                            <!-- Copy and rename -->
+                            <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                  tofile="${shared.folder}/${project.build.finalName}-${project.version}.jar"
+                                  overwrite="true" />
+                            <copy file="${project.build.directory}/${project.build.finalName}.jar"
+                                  tofile="${googl.folder}/${project.build.finalName}.jar"
+                                  overwrite="true" />
+                        </target>
+                    </configuration>
+                    <goals>
+                        <goal>run</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+
+		
+    </plugins>
+</build>
+
+
 </project>
