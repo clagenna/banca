@@ -12,7 +12,7 @@ $JavaFXVers = '25.0.2'
 $javaDir = 'C:\Program Files\Java'
 $zipJdk = "${javaDir}\openjdk-${JdkVers}_windows-x64_bin.zip"
 $zipJfx = "${javaDir}\openjfx-${JavaFXVers}_windows-x64_bin-sdk.zip"
-
+# $prjDir = (get-item (get-location).path).fullName
 $zipFile = "${AppName}_Inst.zip"
 $appFile = "${AppName}_App.zip"
 

@@ -329,8 +329,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       String ds = lastSelTricds.getValue().getDescr();
       // il nuovo nodo selezionato
       CodStat found = treeData.find(ds);
-      if (null != found
-          )
+      if (null != found)
         treeData.expandNode(found);
       // txDescrSel(null, "", ds);
     }
@@ -447,6 +446,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     m_appmain.messageDialog(AlertType.INFORMATION, szMsg);
   }
 
+  /** Elimina piu cod stat dal tree */
   private void treeView_eliminaCodstatMulti() {
     ObservableList<TreeItem<CodStat>> sels = treeview.getSelectionModel().getSelectedItems();
     String allStats = sels.stream().map(s -> s.getValue().toStringEx()).reduce((a, b) -> a + "<br/>" + b).orElse("");

@@ -11,7 +11,7 @@
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.ConfOpzioniController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.ConfOpzioniController">
    <children>
       <TabPane layoutX="14.0" prefHeight="200.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <tabs>
@@ -62,16 +62,18 @@
             <content>
               <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <CheckBox fx:id="ckDtmov" layoutX="18.0" layoutY="43.0" mnemonicParsing="false" text="Data Movimento" />
-                        <CheckBox fx:id="ckDtval" layoutX="18.0" layoutY="72.0" mnemonicParsing="false" text="Data Valuta" />
-                        <CheckBox fx:id="ckImpdare" layoutX="18.0" layoutY="101.0" mnemonicParsing="false" text="Imp. Dare" />
-                        <CheckBox fx:id="ckImpavere" layoutX="167.0" layoutY="14.0" mnemonicParsing="false" text="Imp. Avere" />
-                        <CheckBox fx:id="ckDescr" layoutX="167.0" layoutY="43.0" mnemonicParsing="false" text="Descrizione" />
-                        <CheckBox fx:id="ckCausABI" layoutX="165.0" layoutY="72.0" mnemonicParsing="false" text="Causale ABI" />
-                        <CheckBox fx:id="ckcredhold" layoutX="166.0" layoutY="101.0" mnemonicParsing="false" text="Credit Holder" />
-                        <Button fx:id="btTutti" layoutX="32.0" layoutY="132.0" mnemonicParsing="false" onAction="#btTuttiClick" text="Tutti" />
-                        <Button fx:id="btNessuno" layoutX="104.0" layoutY="132.0" mnemonicParsing="false" onAction="#btNessunoClick" text="Nessuno" />
-                        <CheckBox fx:id="ckTipo" layoutX="18.0" layoutY="14.0" mnemonicParsing="false" text="Tipo Banca" />
+                        <CheckBox fx:id="ckTipo" layoutX="18.0" layoutY="63.0" mnemonicParsing="false" text="Tipo Banca" />
+                        <CheckBox fx:id="ckImpavere" layoutX="165.0" layoutY="63.0" mnemonicParsing="false" text="Imp. Avere" />
+                        <CheckBox fx:id="ckDtmov" layoutX="18.0" layoutY="92.0" mnemonicParsing="false" text="Data Movimento" />
+                        <CheckBox fx:id="ckDescr" layoutX="167.0" layoutY="92.0" mnemonicParsing="false" text="Descrizione" />
+                        <CheckBox fx:id="ckDtval" layoutX="18.0" layoutY="121.0" mnemonicParsing="false" text="Data Valuta" />
+                        <CheckBox fx:id="ckCausABI" layoutX="165.0" layoutY="121.0" mnemonicParsing="false" text="Causale ABI" />
+                        <CheckBox fx:id="ckImpdare" layoutX="18.0" layoutY="150.0" mnemonicParsing="false" text="Imp. Dare" />
+                        <CheckBox fx:id="ckcredhold" layoutX="166.0" layoutY="150.0" mnemonicParsing="false" text="Credit Holder" />
+                        <Button fx:id="btTutti" layoutX="32.0" layoutY="181.0" mnemonicParsing="false" onAction="#btTuttiClick" text="Tutti" />
+                        <Button fx:id="btNessuno" layoutX="104.0" layoutY="181.0" mnemonicParsing="false" onAction="#btNessunoClick" text="Nessuno" />
+                        <Label layoutX="32.0" layoutY="6.0" prefHeight="26.0" prefWidth="545.0" text="Campi che mi permettono di identificare univocamente un movimento" />
+                        <Label layoutX="32.0" layoutY="23.0" prefHeight="26.0" prefWidth="545.0" text="Durante una modifica, inserimento e/o cancellazione" />
                      </children>
                   </AnchorPane>
             </content>

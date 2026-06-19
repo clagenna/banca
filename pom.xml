@@ -1,4 +1,6 @@
-<project xmlns="https://maven.apache.org/POM/4.0.0" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project      xmlns="https://maven.apache.org/POM/4.0.0" 
+          xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>sm.clagenna</groupId>
 	<artifactId>banca</artifactId>
@@ -10,7 +12,7 @@
 		<java.version>25</java.version>
 		<stdc.version>0.10-SNAPSHOT</stdc.version>
 		<lombok.version>1.18.40</lombok.version>
-		<maven.antrun.version>3.1.0</maven.antrun.version>
+		<maven.antrun.version>3.2.0</maven.antrun.version>
 		<shared.folder>F:/Google Drive/zips/Banca_Install</shared.folder>
 		<googl.folder>F:/Google Drive/Gennari/Banche</googl.folder>
 	</properties>

@@ -1,5 +1,7 @@
 package sm.clagenna.banca.sql;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,7 +26,7 @@ import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.Utils;
 
-public abstract class SqlGest implements ISQLGest {
+public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
 
   public static List<String> allTables;
 
@@ -53,6 +55,8 @@ public abstract class SqlGest implements ISQLGest {
   private int                     lastRowid;
   private HashMap<String, String> m_mapCausABI;
 
+  private DataModel model;
+
   static {
     allTables = Arrays.asList(new String[] { //
         "impFiles", //
@@ -68,6 +72,7 @@ public abstract class SqlGest implements ISQLGest {
     deleted = 0;
     scarti = 0;
     added = 0;
+    model = DataModel.getInst();
   }
 
   public abstract Logger getLog();
@@ -172,17 +177,16 @@ public abstract class SqlGest implements ISQLGest {
   public boolean existMovimento(RigaBanca rig) {
     boolean bRet = false;
     int qta = 0;
-    // TimerMeter tm = new TimerMeter("Exist");
-    DataModel cntrl = DataModel.getInst();
+    // 
     StringBuilder qry = new StringBuilder();
     try {
       if (null == stmtSel) {
-        int fq = cntrl.getFiltriQuery();
+        int fq = model.getFiltriQuery();
         // resetto la ricerca sul campo "Id"
         if (ESqlFiltri.Id.isSet(fq))
-          cntrl.setFiltriQuery(fq & (ESqlFiltri.AllSets.getFlag() ^ ESqlFiltri.Id.getFlag()));
+          model.setFiltriQuery(fq & (ESqlFiltri.AllSets.getFlag() ^ ESqlFiltri.Id.getFlag()));
         qry.append(getQrySELMov());
-        qry.append(cntrl.getCampiFiltro());
+        qry.append(model.getCampiFiltro());
         getLog().debug("prepare existMov:{}", qry);
         Connection conn = dbconn.getConn();
         stmtSel = conn.prepareStatement(qry.toString());
@@ -193,7 +197,7 @@ public abstract class SqlGest implements ISQLGest {
     }
 
     try {
-      cntrl.applicaFiltri(stmtSel, 1, dbconn, rig);
+      model.applicaFiltri(stmtSel, 1, dbconn, rig);
       try (ResultSet res = stmtSel.executeQuery()) {
         while (res.next())
           qta = res.getInt(1);
@@ -255,12 +259,11 @@ public abstract class SqlGest implements ISQLGest {
   public int deleteMovimento(RigaBanca rig) {
     int qtaDel = 0;
     // TimerMeter tm = new TimerMeter("Delete");
-    DataModel cntrl = DataModel.getInst();
     StringBuilder qry = null;
     try {
       if (null == stmtDel) {
         qry = new StringBuilder(getQryDELMov());
-        qry.append(cntrl.getCampiFiltro());
+        qry.append(model.getCampiFiltro());
         Connection conn = dbconn.getConn();
         stmtDel = conn.prepareStatement(qry.toString());
       }
@@ -269,7 +272,7 @@ public abstract class SqlGest implements ISQLGest {
       return 0;
     }
     try {
-      cntrl.applicaFiltri(stmtDel, 1, dbconn, rig);
+      model.applicaFiltri(stmtDel, 1, dbconn, rig);
       qtaDel = stmtDel.executeUpdate();
     } catch (SQLException e) {
       getLog().error("Errore DELETE on {} with err={}", qry, e.getMessage());
@@ -282,11 +285,10 @@ public abstract class SqlGest implements ISQLGest {
   public boolean updateMovimento(RigaBanca p_rig) {
     boolean bRet = false;
     StringBuilder qry = null;
-    DataModel cntrl = DataModel.getInst();
     try {
       if (null == stmtMod) {
         qry = new StringBuilder(getQryMODMov());
-        qry.append(cntrl.getCampiFiltro());
+        qry.append(model.getCampiFiltro());
         Connection conn = dbconn.getConn();
         stmtMod = conn.prepareStatement(qry.toString());
       }
@@ -540,8 +542,8 @@ public abstract class SqlGest implements ISQLGest {
 
   /**
    * Verifica se esiste un codice statistico con lo stesso
-   * <b><code>idcodstat</code></b> di quello passato come parametro. Se si, restituisce
-   * true, altrimenti false. <br/>
+   * <b><code>idcodstat</code></b> di quello passato come parametro. Se si,
+   * restituisce true, altrimenti false. <br/>
    * Se il codice statistico passato e' null o ha id=0, restituisce false.
    * 
    * @param cdsCurr
@@ -711,4 +713,26 @@ public abstract class SqlGest implements ISQLGest {
     return liViews;
   }
 
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    String szEvtId = evt.getPropertyName();
+    // Object obj = evt.getNewValue();
+    switch (szEvtId) {
+      // devo ricreare/riaprire lo stmt se cambia il filtro
+      case DataModel.EVT_OPTZ_FILTR_CHANGE:
+        for (PreparedStatement pst : new PreparedStatement[] { stmtSel, stmtDel, stmtMod }) {
+          if (null != pst) {
+            try {
+              pst.close();
+            } catch (SQLException e) {
+              //
+            }
+          }
+        }
+        stmtSel = stmtDel = stmtMod = null;
+        break;
+      default:
+        break;
+    }
+  }
 }

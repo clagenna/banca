@@ -60,6 +60,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   public static final String EVT_FILTER_CODSTAT      = "filterCodstat";
   public static final String EVT_DATASET_CREATED     = "datasetCreated";
   public static final String EVT_GUESSDATA_CREATED   = "guessdataCreated";
+  public static final String EVT_OPTZ_FILTR_CHANGE   = "optzFiltrChange";
 
   //  public static final String  FILE_CODSTAT    = "CodStat.properties";
   private static final String QRY_TOT_CODSTAT = """
@@ -156,7 +157,8 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       filtriQuery |= pf.getFlag();
     else
       filtriQuery &= ESqlFiltri.AllSets.getFlag() ^ pf.getFlag();
-    System.out.printf("DataController.mettiFiltro(%06X)\n", filtriQuery);
+    firePropertyChange(EVT_OPTZ_FILTR_CHANGE, null, pf);
+    s_log.debug("DataController metti(cambia) Filtro(%06X)", filtriQuery);
   }
 
   public String getCampiFiltro() {
