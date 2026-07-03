@@ -24,6 +24,8 @@ import javafx.concurrent.Task;
 import javafx.scene.control.Alert.AlertType;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.dati.llm.Phrase;
+import sm.clagenna.banca.dati.llm.PhraseComparator;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;

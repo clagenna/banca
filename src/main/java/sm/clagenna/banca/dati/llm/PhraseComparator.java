@@ -1,4 +1,4 @@
-package sm.clagenna.banca.dati;
+package sm.clagenna.banca.dati.llm;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +11,8 @@ import org.apache.logging.log4j.Logger;
 
 import javafx.scene.control.Alert.AlertType;
 import lombok.Getter;
+import sm.clagenna.banca.dati.GuessCodStat;
+import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.stdcla.utils.Utils;
 

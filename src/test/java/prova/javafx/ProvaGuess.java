@@ -38,11 +38,9 @@ import javafx.stage.WindowEvent;
 import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.GuessCodStat;
-
-import sm.clagenna.banca.dati.PhraseComparator;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.dati.TreeCodStat;
-
+import sm.clagenna.banca.dati.llm.PhraseComparator;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.DBConnFactory;

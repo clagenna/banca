@@ -63,6 +63,7 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.dati.Consts;
 import sm.clagenna.banca.dati.CsvImportBanca;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.ImpFile;
@@ -1035,13 +1036,13 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     double currProgressNo = 0;
     switch (sz) {
 
-      case CsvImportBanca.EVT_SIZEDTS:
+      case Consts.EVT_SIZEDTS:
         endProgressNo = (double) val;
         currProgressNo = 0;
         Platform.runLater(() -> lbProgressione.setText(sz));
         break;
 
-      case CsvImportBanca.EVT_DTSROW:
+      case Consts.EVT_DTSROW:
         currProgressNo = (double) val;
         if (currProgressNo % 7 == 0) {
           double dbl = endProgressNo * 2 / currProgressNo * 100.;
@@ -1050,11 +1051,11 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         }
         break;
 
-      case CsvImportBanca.EVT_ENDDTSROW:
+      case Consts.EVT_ENDDTSROW:
         Platform.runLater(() -> lbProgressione.setText("50%"));
         break;
 
-      case CsvImportBanca.EVT_SAVEDBROW:
+      case Consts.EVT_SAVEDBROW:
         currProgressNo = (double) val + endProgressNo;
         if (currProgressNo % 7 == 0) {
           double dbl = currProgressNo / (endProgressNo * 2.) * 100.;
@@ -1063,7 +1064,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         }
         break;
 
-      case CsvImportBanca.EVT_ENDSAVEDB:
+      case Consts.EVT_ENDSAVEDB:
         Platform.runLater(() -> lbProgressione.setText("Done 100%"));
         break;
 

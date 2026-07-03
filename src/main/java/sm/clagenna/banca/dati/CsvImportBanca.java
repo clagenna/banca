@@ -12,11 +12,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,28 +39,6 @@ public class CsvImportBanca extends Task<String> implements Closeable {
 
   private static final Logger s_log = LogManager.getLogger(CsvImportBanca.class);
 
-  public static final String EVT_PARSECSV  = "parsecsv";
-  public static final String EVT_SIZEDTS   = "sizedts";
-  public static final String EVT_FUNCTYPE  = "functype";
-  public static final String EVT_DTSROW    = "dtsrow";
-  public static final String EVT_ENDDTSROW = "Endrow";
-  public static final String EVT_SAVEDB    = "savedb";
-  public static final String EVT_SAVEDBROW = "savedbrow";
-  public static final String EVT_ENDSAVEDB = "endsavedb";
-
-  public static final String BANCA_BSI           = "bsi";
-  public static final String BANCA_BSICREDIT     = "bsicredit";
-  public static final String BANCA_BSICREDIT_UND = "bsi_credit";
-  public static final String BANCA_CARISP        = "carisp";
-  public static final String BANCA_CARCREDIT     = "carispcredit";
-  public static final String BANCA_CARCREDIT_UND = "carisp_credit";
-  public static final String BANCA_CONTANTI      = "contanti";
-  public static final String BANCA_PAYPAL        = "paypal";
-  public static final String BANCA_SMAC          = "smac";
-  public static final String BANCA_WISE          = "wise";
-  public static final String BANCA_AMAZON        = "amzn";
-  public static final String BANCA_AMAZONL       = "amazon";
-
   private Path    csvFile;
   @Getter @Setter
   private String  sqlTableName;
@@ -74,14 +50,14 @@ public class CsvImportBanca extends Task<String> implements Closeable {
   private boolean skipSaveDB;
   private Dataset dtsCsv;
 
-  private PropertyChangeSupport             prchsupp;
-  private Map<EColsTableView, List<String>> nomiCols;
+  private PropertyChangeSupport prchsupp;
+  // private Map<EColsTableView, List<String>> nomiCols;
   @Getter
-  private List<RigaBanca>                   righeBanca;
-  private DBConn                            dbconn;
+  private List<RigaBanca> righeBanca;
+  private DBConn          dbconn;
   @Getter
-  private DataModel                         cntrl;
-  private double                            dblQtaRows;
+  private DataModel       cntrl;
+  private double          dblQtaRows;
 
   private ConvertCsv2RigaBanca cnvRb;
 
@@ -102,19 +78,6 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     // WARNING(?!?) : [this-escape] previous possible 'this' escape happens here via invocation
     prchsupp = new PropertyChangeSupport(this);
     Utils.setLocale(Locale.ITALY);
-    nomiCols = new HashMap<>();
-    nomiCols.put(EColsTableView.tipo, Arrays.asList(new String[] { EColsTableView.dtmov.toString(), "tipo", "" }));
-    nomiCols.put(EColsTableView.dtmov,
-        Arrays.asList(new String[] { EColsTableView.dtmov.toString(), "data", "Date", "Data transazione", "Created on", "" }));
-    nomiCols.put(EColsTableView.dtval,
-        Arrays.asList(new String[] { EColsTableView.dtval.toString(), "valuta", "Value", "Data contabile", "Finished on" }));
-    nomiCols.put(EColsTableView.dare,
-        Arrays.asList(new String[] { EColsTableView.dare.toString(), "importo", "DEBIT", "Amount", "Source amount (after fees)" }));
-    nomiCols.put(EColsTableView.avere, Arrays.asList(new String[] { EColsTableView.avere.toString(), "*no*", "*no*", "CREDIT" }));
-    nomiCols.put(EColsTableView.descr, Arrays.asList(new String[] { EColsTableView.descr.toString(), "causale", "descrizione",
-        "TRANSACTION CODE", "Target name", "Esercente", "Merchant" }));
-    nomiCols.put(EColsTableView.abicaus, Arrays.asList(new String[] { "causabi", "ABI REASON CODE"  , "causale abi", "categoria", "ID" }));
-
     cntrl = DataModel.getInst();
     // Thread.setDefaultUncaughtExceptionHandler(this);
   }
@@ -143,15 +106,16 @@ public class CsvImportBanca extends Task<String> implements Closeable {
   public void importCSV() {
     s_log.debug("Import CSV file {}", getCsvFile().toString());
     setTipoFile("csv");
-    firePropertyChange(EVT_PARSECSV, 0.);
+    firePropertyChange(Consts.EVT_PARSECSV, 0.);
     try (Dataset dts = new Dataset()) {
       dts.setIntToDouble(true);
       String szExt = Utils.getFileExtention(csvFile);
       switch (sqlTableName) {
-        case BANCA_WISE:
-        case BANCA_PAYPAL:
-        case BANCA_AMAZON:
-        case BANCA_AMAZONL:
+        case Consts.BANCA_AMAZON:
+        case Consts.BANCA_AMAZONL:
+        case Consts.BANCA_PAYPAL:
+        case Consts.BANCA_REVOLUT:
+        case Consts.BANCA_WISE:
           dts.setCsvdelim(",");
           Utils.setLocale(Locale.US);
           break;
@@ -167,7 +131,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
           dtsCsv = dts.readexcel(csvFile);
       }
       dblQtaRows = dts.size();
-      firePropertyChange(EVT_SIZEDTS, dblQtaRows);
+      firePropertyChange(Consts.EVT_SIZEDTS, dblQtaRows);
       s_log.debug("Readed {} recs from {}", dtsCsv.size(), getCsvFile().toString());
     } catch (Exception e) {
       s_log.error("Errore read csv, err={}", e.getMessage(), e);
@@ -177,36 +141,40 @@ public class CsvImportBanca extends Task<String> implements Closeable {
   public List<RigaBanca> analizzaBanca() {
     if (null == dtsCsv || dtsCsv.getQtaCols() == 0)
       throw new UnsupportedOperationException("CSV dataset not opened !");
-    if (sqlTableName.equals(BANCA_AMAZON) || sqlTableName.equals(BANCA_AMAZONL)) {
-      cnvRb = new ConvertCsv2RigaBanca(BANCA_AMAZON);
-      String propCols = String.format(ConvertCsv2RigaBanca.CSZ_FILE_COLS, BANCA_AMAZON);
+    if (sqlTableName.equals(Consts.BANCA_AMAZON) || //
+        sqlTableName.equals(Consts.BANCA_AMAZONL)) {
+      cnvRb = new ConvertCsv2RigaBanca(Consts.BANCA_AMAZON);
+      String propCols = String.format(ConvertCsv2RigaBanca.CSZ_FILE_COLS, Consts.BANCA_AMAZON);
       Path pthCols = Paths.get(propCols);
       cnvRb.readConvProperties(pthCols);
     }
     righeBanca = new ArrayList<RigaBanca>();
     Locale prevloc = Utils.getLocale();
-    firePropertyChange(EVT_FUNCTYPE, 0.);
+    // firePropertyChange(Consts.EVT_FUNCTYPE, 0.);
     int nRow = 0;
     try {
       for (DtsRow row : dtsCsv.getRighe()) {
-        firePropertyChange(EVT_DTSROW, (double) nRow++);
+        firePropertyChange(Consts.EVT_DTSROW, (double) nRow++);
         switch (sqlTableName) {
-          case BANCA_WISE:
+          case Consts.BANCA_WISE:
             studiaRigaWise(row);
             break;
-          case BANCA_SMAC:
+          case Consts.BANCA_REVOLUT:
+            studiaRigaRevolut(row);
+            break;
+          case Consts.BANCA_SMAC:
             studiaRigaSmac(row);
             break;
-          case BANCA_CONTANTI:
+          case Consts.BANCA_CONTANTI:
             studiaRigaContanti(row);
             break;
-          case BANCA_PAYPAL:
+          case Consts.BANCA_PAYPAL:
             // i decimali da PayPall hanno le 'virgole'?!?
             Utils.setLocale(Locale.ITALY);
             studiaRigaPayPal(row);
             break;
-          case BANCA_AMAZON:
-          case BANCA_AMAZONL:
+          case Consts.BANCA_AMAZON:
+          case Consts.BANCA_AMAZONL:
             studiaRigaAmazon(row);
             break;
 
@@ -219,10 +187,10 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       s_log.error("Errore studia riga, err={}", e.getMessage(), e);
     } finally {
       Utils.setLocale(prevloc);
-      firePropertyChange(EVT_ENDDTSROW, (double) dtsCsv.size());
+      firePropertyChange(Consts.EVT_ENDDTSROW, (double) dtsCsv.size());
       if ( !DataModel.isJUnit())
         updateProgress(nRow, nRow);
-      System.out.println("CsvImportBanca.analizzaBanca - " + EVT_ENDDTSROW);
+      System.out.println("CsvImportBanca.analizzaBanca - " + Consts.EVT_ENDDTSROW);
     }
     return righeBanca;
   }
@@ -251,7 +219,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     ISQLGest sqlg = SqlGestFactory.get(szDbType);
     CsvFileContainer contcsv = cntrl.getContCsv();
     ImpFile impf = contcsv.getFromPath(csvFile);
-    firePropertyChange(EVT_SAVEDB, dblQtaRows);
+    firePropertyChange(Consts.EVT_SAVEDB, dblQtaRows);
     if (null == impf)
       impf = contcsv.addFile(csvFile);
     impf.completaInfo(getRigheBanca());
@@ -279,7 +247,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       for (RigaBanca ri : getRigheBanca()) {
         ri.setIdfile(impf.getId());
         sqlg.writeMovimento(ri);
-        firePropertyChange(EVT_SAVEDBROW, (double) nRow++);
+        firePropertyChange(Consts.EVT_SAVEDBROW, (double) nRow++);
         if (nQtaTran++ > 100) {
           sqlg.commitTrans();
           sqlg.beginTrans();
@@ -291,8 +259,8 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       s_log.error("Error save DB : {}", e.getMessage());
     } finally {
       dtc.setFiltriQuery(qryFiltrBefore);
-      firePropertyChange(EVT_ENDSAVEDB, dblQtaRows * 2.);
-      s_log.debug("CsvImportBanca.saveSuDB() - " + EVT_ENDSAVEDB);
+      firePropertyChange(Consts.EVT_ENDSAVEDB, dblQtaRows * 2.);
+      s_log.debug("CsvImportBanca.saveSuDB() - " + Consts.EVT_ENDSAVEDB);
     }
   }
 
@@ -331,28 +299,31 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     }
 
     String sz = mat.group(1).toLowerCase();
-    if (sz.contains(BANCA_BSICREDIT) || sz.contains(BANCA_BSICREDIT_UND))
-      sqlTableName = BANCA_BSICREDIT;
-    else if (sz.contains(BANCA_BSI))
-      sqlTableName = BANCA_BSI;
-    else if (sz.contains(BANCA_CARCREDIT) || sz.contains(BANCA_CARCREDIT_UND))
-      sqlTableName = BANCA_CARCREDIT;
+    if (sz.contains(Consts.BANCA_BSICREDIT) || //
+        sz.contains(Consts.BANCA_BSICREDIT_UND))
+      sqlTableName = Consts.BANCA_BSICREDIT;
+    else if (sz.contains(Consts.BANCA_REVOLUT))
+      sqlTableName = Consts.BANCA_REVOLUT;
+    else if (sz.contains(Consts.BANCA_BSI))
+      sqlTableName = Consts.BANCA_BSI;
+    else if (sz.contains(Consts.BANCA_CARCREDIT) || sz.contains(Consts.BANCA_CARCREDIT_UND))
+      sqlTableName = Consts.BANCA_CARCREDIT;
     else if (sz.contains("tpay") || sz.contains("bkn3"))
-      sqlTableName = BANCA_CARCREDIT;
+      sqlTableName = Consts.BANCA_CARCREDIT;
     else if (sz.contains("cari"))
-      sqlTableName = BANCA_CARISP;
+      sqlTableName = Consts.BANCA_CARISP;
     else if (sz.contains("contant"))
-      sqlTableName = BANCA_CONTANTI;
-    else if (sz.contains(BANCA_PAYPAL))
-      sqlTableName = BANCA_PAYPAL;
-    else if (sz.contains(BANCA_WISE))
-      sqlTableName = BANCA_WISE;
-    else if (sz.contains(BANCA_SMAC))
-      sqlTableName = BANCA_SMAC;
-    else if (sz.contains(BANCA_AMAZON))
-      sqlTableName = BANCA_AMAZON;
-    else if (sz.contains(BANCA_AMAZONL))
-      sqlTableName = BANCA_AMAZON;
+      sqlTableName = Consts.BANCA_CONTANTI;
+    else if (sz.contains(Consts.BANCA_PAYPAL))
+      sqlTableName = Consts.BANCA_PAYPAL;
+    else if (sz.contains(Consts.BANCA_WISE))
+      sqlTableName = Consts.BANCA_WISE;
+    else if (sz.contains(Consts.BANCA_SMAC))
+      sqlTableName = Consts.BANCA_SMAC;
+    else if (sz.contains(Consts.BANCA_AMAZON))
+      sqlTableName = Consts.BANCA_AMAZON;
+    else if (sz.contains(Consts.BANCA_AMAZONL))
+      sqlTableName = Consts.BANCA_AMAZON;
 
     if (null == sqlTableName)
       throw new UnsupportedOperationException("Non trovo il nome Banca; Il nome file mal formato?");
@@ -383,10 +354,6 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     String caus = null;
     String cardid = null;
 
-    final String CAUS_POS = "43";
-    final String CAUS_TRANSF = "Z7";
-    final String CAUS_CASH = "18";
-
     Object val = getRowVal(EColsTableView.dtmov, row);
     if (null == val) {
       s_log.debug("Scarto riga Wise: {}", row.toString());
@@ -413,7 +380,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       dare = dbl;
     else
       dare = Utils.parseDouble(val.toString());
-    caus = CAUS_POS;
+    caus = Consts.ABICAUS_POS;
     String idTran = (String) row.get("ID");
     if (null == idTran)
       idTran = "*";
@@ -422,9 +389,9 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       // Balance cash back or Transfer
       avere = dare;
       dare = 0.;
-      caus = CAUS_TRANSF;
+      caus = Consts.ABICAUS_TRANSF;
       if (null != idTran && idTran.toLowerCase().contains("cashback")) {
-        caus = CAUS_CASH;
+        caus = Consts.ABICAUS_CASH;
         if (null == descr || descr.trim().length() == 0)
           descr = "cash back";
       }
@@ -447,6 +414,84 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       descr = val.toString().replace("\"", "");
     }
 
+    RigaBanca rigb = new RigaBanca(sqlTableName, dtmov, dtval, dare, avere, descr, caus, cardid, null);
+    if (null != cardIdent)
+      rigb.setCardid(cardIdent);
+    righeBanca.add(rigb);
+  }
+
+  /**
+   * Analizza il CSV della Revolut
+   * <pre>
+   * Tipo,Prodotto,Data di inizio,Data di completamento,Descrizione,Importo,Costo,Valuta,State,Saldo
+   * Pagamento,Attuale,2026-02-09 18:42:51,2026-02-09 18:42:51,Balance migration to another region or legal entity,-1.30,0.00,EUR,COMPLETATO,0.00
+   * Ricarica,Attuale,2026-02-26 19:52:01,2026-02-26 19:52:01,Pagamento da GENNARI ALESSANDRO,300.00,0.00,EUR,COMPLETATO,306.30
+   * Pagamento con carta,Attuale,2026-02-28 20:35:53,2026-03-01 11:30:38,Necessaire,-8.00,0.00,EUR,COMPLETATO,298.30
+   * Pagamento con carta,Attuale,2026-04-01 14:58:37,2026-04-02 17:08:32,Starbucks,-3.20,0.00,EUR,COMPLETATO,295.10
+   * </pre>
+   * @param row
+   */
+  private void studiaRigaRevolut(DtsRow row) {
+    LocalDateTime dtmov; // (1)
+    LocalDateTime dtval; // (2)
+    Double dare = null; // (3)
+    Double avere = null; // (4)
+    String descr = null; // (5)
+    String caus = null; // (6)
+    String cardid = null; // (7)
+
+    Object val = getRowVal(EColsTableView.dtmov, row);
+    if (null == val) {
+      s_log.debug("Scarto riga Revolut: {}", row.toString());
+      return;
+    }
+    // --> (1)
+    dtmov = ParseData.parseData(val.toString());
+    // --> (2)
+    val = getRowVal(EColsTableView.dtval, row);
+    if (null == val) {
+      dtval = dtmov;
+    } else
+      dtval = ParseData.parseData(val.toString());
+
+    // --> (3)
+    val = getRowVal(EColsTableView.dare, row);
+    if (null == val || val.toString().length() == 0)
+      dare = 0.;
+    else if (val instanceof Double dbl)
+      dare = dbl;
+    else
+      dare = Utils.parseDouble(val.toString());
+    // -> (4)
+    if (dare >= 0) {
+      avere = dare;
+      dare = 0.;
+    } else {
+      dare = -dare;
+      avere = 0.;
+    }
+
+    // -> (5)
+    val = getRowVal(EColsTableView.descr, row);
+    if (null == val) {
+      s_log.debug("Scarto riga : {}", row.toString());
+      return;
+    }
+    descr = val.toString().replace("\"", "");
+
+    // --> (6)
+    /* causale = Pagamento/Ricarica/Pagamento con Carta, etc... */
+    caus = Consts.ABICAUS_PAGARE;
+    String source = (String) row.get("Tipo");
+    if (null != source) {
+      source = source.toLowerCase().replace("\"", "");
+      if (source.toLowerCase().contains("pagamento con carta"))
+        caus = Consts.ABICAUS_POS;
+      else if (source.toLowerCase().contains("ricarica"))
+        caus = Consts.ABICAUS_TRANSF;
+      else if (source.toLowerCase().contains("rimborso su carta"))
+        caus = Consts.ABICAUS_STORNO;
+    }
     RigaBanca rigb = new RigaBanca(sqlTableName, dtmov, dtval, dare, avere, descr, caus, cardid, null);
     if (null != cardIdent)
       rigb.setCardid(cardIdent);
@@ -536,7 +581,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
 
   private void studiaRigaContanti(DtsRow row) {
     RigaBanca rb = new RigaBanca();
-    rb.setTiporec(BANCA_CONTANTI);
+    rb.setTiporec(Consts.BANCA_CONTANTI);
     Object val = getRowVal(EColsTableView.dtmov, row);
     if (null == val) {
       s_log.warn("Scarto riga contante: {}", row.toString());
@@ -706,7 +751,7 @@ public class CsvImportBanca extends Task<String> implements Closeable {
   }
 
   private Object getRowVal(EColsTableView p_nome, DtsRow p_row) {
-    List<String> colsn = nomiCols.get(p_nome);
+    List<String> colsn = Consts.getNomiCols().get(p_nome);
     if (null == colsn)
       throw new UnsupportedOperationException("Colname " + p_nome + " not recognized");
     Object val = null;

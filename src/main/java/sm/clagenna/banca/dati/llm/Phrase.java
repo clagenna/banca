@@ -1,4 +1,4 @@
-package sm.clagenna.banca.dati;
+package sm.clagenna.banca.dati.llm;
 
 import java.util.ArrayList;
 import java.util.List;
