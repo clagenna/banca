@@ -32,9 +32,9 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.sql.ESqlFiltri;
-import sm.clagenna.stdcla.sql.EServerId;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
+import sm.clagenna.stdcla.sql.EServerId;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class ConfOpzioniController implements Initializable, IStartApp {
@@ -134,15 +134,15 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   @FXML
   private Button              btSalva;
 
-  private AppProperties    m_mainProps;
-  private Stage            lstage;
-  private LoadBancaMainApp m_appmain;
+  private AppProperties        m_mainProps;
+  private Stage                lstage;
+  private LoadBancaMainApp     m_appmain;
   @Getter @Setter
-  private Scene            myScene;
-  private DataModel   dataCntr;
-  private boolean          bSema;
-  private static final boolean VERDE=true;
-  private static final boolean ROSSO=false;
+  private Scene                myScene;
+  private DataModel            model;
+  private boolean              bSema;
+  private static final boolean VERDE = true;
+  private static final boolean ROSSO = false;
 
   @Getter @Setter
   private EServerId serverId;
@@ -163,7 +163,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
 
   @Override
   public void initApp(AppProperties p_props) {
-    dataCntr = DataModel.getInst();
+    model = DataModel.getInst();
     m_appmain = LoadBancaMainApp.getInst();
     m_mainProps = m_appmain.getProps();
 
@@ -176,7 +176,7 @@ public class ConfOpzioniController implements Initializable, IStartApp {
 
   private void prepareFiltro() {
     bSema = ROSSO;
-    int filtr = dataCntr.getFiltriQuery();
+    int filtr = model.getFiltriQuery();
     ckTipo.setSelected(ESqlFiltri.tipo.isSet(filtr));
     ckDtmov.setSelected(ESqlFiltri.Dtmov.isSet(filtr));
     ckDtval.setSelected(ESqlFiltri.Dtval.isSet(filtr));
@@ -252,69 +252,69 @@ public class ConfOpzioniController implements Initializable, IStartApp {
   private void preparaExcludeCols() {
     ckExclId.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.id, n);
+        model.addExcludeCol(EColsTableView.id, n);
     });
     ckExclIdfile.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.idfile, n);
+        model.addExcludeCol(EColsTableView.idfile, n);
     });
     ckExclDtmov.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.dtmov, n);
+        model.addExcludeCol(EColsTableView.dtmov, n);
     });
     ckExclDtval.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.dtval, n);
+        model.addExcludeCol(EColsTableView.dtval, n);
     });
     ckExclDtmovstr.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.movstr, n);
+        model.addExcludeCol(EColsTableView.movstr, n);
     });
     ckExclDtvalstr.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.valstr, n);
+        model.addExcludeCol(EColsTableView.valstr, n);
     });
     ckExclDare.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.dare, n);
+        model.addExcludeCol(EColsTableView.dare, n);
     });
     ckExclAvere.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.avere, n);
+        model.addExcludeCol(EColsTableView.avere, n);
     });
     ckExclCardid.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.cardid, n);
+        model.addExcludeCol(EColsTableView.cardid, n);
     });
     ckExclDescr.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.descr, n);
+        model.addExcludeCol(EColsTableView.descr, n);
     });
     ckExclAbicaus.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.abicaus, n);
+        model.addExcludeCol(EColsTableView.abicaus, n);
     });
     ckExclDescrcaus.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.descrcaus, n);
+        model.addExcludeCol(EColsTableView.descrcaus, n);
     });
     ckExclCosto.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.costo, n);
+        model.addExcludeCol(EColsTableView.costo, n);
     });
     ckExclidCodstat.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.idcodstat, n);
+        model.addExcludeCol(EColsTableView.idcodstat, n);
     });
     ckExclCodstat.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.addExcludeCol(EColsTableView.codstat, n);
+        model.addExcludeCol(EColsTableView.codstat, n);
     });
 
-    List<EColsTableView> excl = dataCntr.getExcludeCols();
+    List<EColsTableView> excl = model.getExcludeCols();
     try {
       if (null != excl) {
-        bSema =  ROSSO; //    true;
+        bSema = ROSSO; //    true;
 
         for (EColsTableView ir : excl) {
           switch (ir) {
@@ -486,10 +486,10 @@ public class ConfOpzioniController implements Initializable, IStartApp {
 
     ckoverwrite.selectedProperty().addListener((_, _, n) -> {
       if (bSema) // VERDE
-        dataCntr.setOverwrite(n);
+        model.setOverwrite(n);
     });
-    int qtaTh = dataCntr.getQtaThreads();
-    int percIndov = dataCntr.getPercIndov();
+    int qtaTh = model.getQtaThreads();
+    int percIndov = model.getPercIndov();
     spinQtaThread.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, qtaTh, 1));
     spinQtaThread.valueProperty().addListener((_, _, nv) -> changeQtaThreads(nv));
     spinPercIndovina.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(5, 100, percIndov, 1));
@@ -503,42 +503,42 @@ public class ConfOpzioniController implements Initializable, IStartApp {
 
     ckTipo.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.mettiFiltro(ESqlFiltri.tipo, n);
+        model.mettiFiltro(ESqlFiltri.tipo, n);
     });
     ckDtmov.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.mettiFiltro(ESqlFiltri.Dtmov, n);
+        model.mettiFiltro(ESqlFiltri.Dtmov, n);
     });
     ckDtval.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.mettiFiltro(ESqlFiltri.Dtval, n);
+        model.mettiFiltro(ESqlFiltri.Dtval, n);
     });
     ckImpdare.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.mettiFiltro(ESqlFiltri.Dare, n);
+        model.mettiFiltro(ESqlFiltri.Dare, n);
     });
     ckImpavere.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.mettiFiltro(ESqlFiltri.Avere, n);
+        model.mettiFiltro(ESqlFiltri.Avere, n);
     });
     ckDescr.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.mettiFiltro(ESqlFiltri.Descr, n);
+        model.mettiFiltro(ESqlFiltri.Descr, n);
     });
     ckCausABI.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.mettiFiltro(ESqlFiltri.ABICaus, n);
+        model.mettiFiltro(ESqlFiltri.ABICaus, n);
     });
     ckcredhold.selectedProperty().addListener((_, _, n) -> {
       if (bSema)
-        dataCntr.mettiFiltro(ESqlFiltri.Cardid, n);
+        model.mettiFiltro(ESqlFiltri.Cardid, n);
     });
     int px = p_props.getIntProperty(CSZ_PROP_POSVIEW_X, 10);
     int py = p_props.getIntProperty(CSZ_PROP_POSVIEW_Y, 10);
     int dx = p_props.getIntProperty(CSZ_PROP_DIMVIEW_X, 300);
     int dy = p_props.getIntProperty(CSZ_PROP_DIMVIEW_Y, 240);
     var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
       lstage.setX(mm.poxX());
       lstage.setY(mm.posY());
       lstage.setWidth(mm.width());
@@ -568,13 +568,13 @@ public class ConfOpzioniController implements Initializable, IStartApp {
 
   private Object changeQtaThreads(Integer nv) {
     // System.out.printf("ConfOpzioniController.changeQtaThreads(%d)\n", nv);
-    dataCntr.setQtaThreads(nv);
+    model.setQtaThreads(nv);
     return null;
   }
-  
+
   private Object changePercIndov(Integer nv) {
     // System.out.printf("ConfOpzioniController.changeQtaThreads(%d)\n", nv);
-    dataCntr.setPercIndov(nv);
+    model.setPercIndov(nv);
     return null;
   }
 

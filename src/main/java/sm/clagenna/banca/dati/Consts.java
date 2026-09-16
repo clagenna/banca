@@ -60,9 +60,9 @@ public class Consts {
         Arrays.asList(new String[] { EColsTableView.dtval.toString(), "Data di completamento", "Data contabile", "Finished on",
             "valuta", "Value", "" }));
     nomiCols.put(EColsTableView.dare, //
-        Arrays.asList(new String[] { EColsTableView.dare.toString(), "importo", "DEBIT", "Amount", "Source amount (after fees)" }));
+        Arrays.asList(new String[] { EColsTableView.dare.toString(), "importo", "DEBIT", "Amount", "Source amount (after fees)", "Addebiti" }));
     nomiCols.put(EColsTableView.avere, //
-        Arrays.asList(new String[] { EColsTableView.avere.toString(), "*no*", "*no*", "CREDIT" }));
+        Arrays.asList(new String[] { EColsTableView.avere.toString(), "*no*", "*no*", "CREDIT", "Accrediti" }));
     nomiCols.put(EColsTableView.descr, // 
         Arrays.asList(new String[] { EColsTableView.descr.toString(), "causale", "descrizione", "TRANSACTION CODE", "Target name",
             "Esercente", "Merchant" }));

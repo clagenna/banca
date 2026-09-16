@@ -152,12 +152,12 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     return lastDir;
   }
 
-  public void mettiFiltro(ESqlFiltri pf, boolean bset) {
+  public void mettiFiltro( ESqlFiltri tipo, Boolean bset) {
     if (bset)
-      filtriQuery |= pf.getFlag();
+      filtriQuery |= tipo.getFlag();
     else
-      filtriQuery &= ESqlFiltri.AllSets.getFlag() ^ pf.getFlag();
-    firePropertyChange(EVT_OPTZ_FILTR_CHANGE, null, pf);
+      filtriQuery &= ESqlFiltri.AllSets.getFlag() ^ tipo.getFlag();
+    firePropertyChange(EVT_OPTZ_FILTR_CHANGE, null, tipo);
     s_log.debug("DataController metti(cambia) Filtro(%06X)", filtriQuery);
   }
 
@@ -259,7 +259,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
 
   /**
    * Rileggo da capo tutti i CodStat e rinfresco {@link #codStatData}
-   * 
+   *
    * @return
    */
   public TreeitemCodStat refreshCodstatData() {

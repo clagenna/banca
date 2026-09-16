@@ -159,6 +159,10 @@ public class CsvImportBanca extends Task<String> implements Closeable {
           case Consts.BANCA_WISE:
             studiaRigaWise(row);
             break;
+          case Consts.BANCA_BSICREDIT:
+          case Consts.BANCA_BSICREDIT_UND:
+            studiaRigaBSICredit(row);
+            break;
           case Consts.BANCA_REVOLUT:
             studiaRigaRevolut(row);
             break;
@@ -677,6 +681,51 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     righeBanca.add(rb);
   }
 
+  private void studiaRigaBSICredit(DtsRow row) {
+    RigaBanca rb = new RigaBanca();
+    rb.setTiporec(sqlTableName);
+    Object dt = row.get("Data");
+    Object val = row.get("Valuta");
+    if (null == dt || null == val) {
+      s_log.warn("Scarto riga BSI Credit (no date): {}", row.toString());
+      return;
+    }
+    LocalDateTime dtTrans = ParseData.parseData(dt.toString());
+    LocalDateTime dtValuta = ParseData.parseData(val.toString());
+    rb.setDtmov(dtTrans);
+    rb.setDtval(dtValuta);
+
+    val = row.get("Descrizione");
+    if (null == val || val.toString().trim().length() < 2) {
+      s_log.warn("Scarto riga BSI Credit (no descr): {}", row.toString());
+      return;
+    }
+    rb.setDescr(val.toString().trim());
+
+    rb.setAvere(0.);
+    rb.setDare(0.);
+    val = row.get("Addebiti");
+    if ( val instanceof Double dbl)
+      rb.setDare( Math.abs( dbl));
+    else if (null != val && val.toString().length() > 0)
+      rb.setDare(Math.abs( Utils.parseDouble(val.toString())));
+    val = row.get("Accrediti");
+    if ( val instanceof Double dbl)
+      rb.setAvere(dbl);
+    else if (null != val && val.toString().length() > 0)
+      rb.setAvere(Math.abs( Utils.parseDouble(val.toString())));
+    if (rb.getDare() == 0 && rb.getAvere() == 0) {
+      s_log.warn("Scarto riga BSI Credit (no dare/avere): {}", row.toString());
+      return;
+    }
+    
+    rb.setAbicaus("BSICC");
+
+    if (null != cardIdent)
+      rb.setCardid(cardIdent);
+    righeBanca.add(rb);
+  }
+
   private void studiaRigaAmazon(DtsRow row) {
     RigaBanca rb = new RigaBanca();
     rb.setRigaid(1);
@@ -698,14 +747,14 @@ public class CsvImportBanca extends Task<String> implements Closeable {
     String cardid = null;
     Object val = getRowVal(EColsTableView.dtmov, row);
     if (null == val) {
-      s_log.debug("Scarto riga : {}", row.toString());
+      s_log.debug("Scarto riga (no dtmov): {}", row.toString());
       return;
     }
     dtmov = ParseData.parseData(val.toString());
 
     val = getRowVal(EColsTableView.dtval, row);
     if (null == val) {
-      s_log.debug("Scarto riga : {}", row.toString());
+      s_log.debug("Scarto riga (no dtVal): {}", row.toString());
       return;
     }
     dtval = ParseData.parseData(val.toString());
@@ -729,10 +778,14 @@ public class CsvImportBanca extends Task<String> implements Closeable {
       avere = dbl;
     else
       avere = Utils.parseDouble(val.toString());
+//    if ( dare == 0 && avere == 0) {
+//      s_log.debug("Scarto perche dare == 0 avere == 0, riga : {}", row.toString());
+//      return;
+//    }
 
     val = getRowVal(EColsTableView.descr, row);
     if (null == val) {
-      s_log.debug("Scarto riga : {}", row.toString());
+      s_log.debug("Scarto riga (no descr): {}", row.toString());
       return;
     }
     descr = val.toString();
