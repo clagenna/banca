@@ -1,0 +1,264 @@
+package sm.clagenna.banca.dati.llm;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javafx.application.Platform;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
+import javafx.scene.control.Alert.AlertType;
+import lombok.Getter;
+import lombok.Setter;
+import sm.clagenna.banca.dati.CodStat;
+import sm.clagenna.banca.dati.Consts;
+import sm.clagenna.banca.dati.DataModel;
+import sm.clagenna.banca.dati.GuessCodStat;
+import sm.clagenna.banca.dati.RigaBanca;
+import sm.clagenna.banca.dati.TreeCodStat;
+import sm.clagenna.banca.javafx.LoadBancaMainApp;
+import sm.clagenna.banca.sql.ISQLGest;
+import sm.clagenna.banca.sql.SqlGestFactory;
+import sm.clagenna.stdcla.sql.DBConn;
+import sm.clagenna.stdcla.utils.AppProperties;
+import sm.clagenna.stdcla.utils.ParseData;
+import sm.clagenna.stdcla.utils.Utils;
+
+public class AnalizzaCodStats extends Task<String> implements ChangeListener<String> {
+  private static final Logger s_log = LogManager.getLogger(AnalizzaCodStats.class);
+
+//  /** query per i record gia riconosciuti per formare il vocabolario */
+//  private static final String CSZ_QRY_KNOWN   = """
+//      SELECT  descr
+//           ,codstat
+//           FROM ListaMovimenti
+//           WHERE 1=1
+//             AND codstat IS NOT NULL
+//           ORDER BY descr""";
+//  /** query per i record da indovinare */
+//  private static final String CSZ_QRY_UNKNOWN = """
+//      SELECT id
+//            ,idFile
+//            ,tipo
+//            ,dtmov
+//            ,dare
+//            ,avere
+//            ,cardid
+//            ,descr
+//           FROM ListaMovimenti
+//            WHERE 1=1
+//             %s
+//             AND (dare <> 0 OR avere <> 0)
+//             AND codstat IS NULL
+//          ORDER BY descr""";
+
+  @Getter @Setter
+  private DBConn     dbconn;
+  private Connection conn;
+  //  private Dataset                 m_dts;
+
+  private PhraseComparator             compr;
+  private LoadBancaMainApp             mainApp;
+  private DataModel                    model;
+  private TreeCodStat                  codStatData;
+  @Getter @Setter
+  private ArrayList<GuessCodStat>      listGuess;
+  @Getter
+  private ObservableList<GuessCodStat> dati;
+  @Getter @Setter
+  private String                       parola;
+  //  @Getter @Setter
+  //  private Integer                      annoComp;
+  @Getter @Setter
+  private LocalDateTime dtDa;
+  @Getter @Setter
+  private LocalDateTime dtA;
+
+  private ISQLGest m_db;
+
+  public AnalizzaCodStats(LoadBancaMainApp p_main) {
+    mainApp = p_main;
+    model = p_main.getModel();
+    dbconn = model.getDbConn();
+    codStatData = model.getCodStatData();
+  }
+
+  @Override
+  protected String call() throws Exception {
+    s_log.debug("Start dell'estrazione vocabolario X indovinare Codici Statistici");
+    openDataSet();
+    fillTableView();
+    return "...Fine";
+  }
+
+  public void openDataSet() {
+    conn = dbconn.getConn();
+    popolaKnownPhrase();
+    // creaDts();
+    scanUnknown();
+    creaDati();
+  }
+
+  private void popolaKnownPhrase() {
+    compr = new PhraseComparator();
+    try (PreparedStatement stmt = conn.prepareStatement(Consts.QRY_KNOWN_CODSTATS); ResultSet res = stmt.executeQuery()) {
+      if (null == res || res.isClosed())
+        return;
+      while (res.next()) {
+        String descr = res.getString(GuessCodStat.COL_DESCR);
+        if (model.isDoScartaDescr())
+          descr = model.getScartaDescr().convert(descr);
+        String codstat = res.getString(GuessCodStat.COL_CODSTAT);
+        compr.addKnownPhrase(descr, codstat);
+      }
+      compr.creaVectors();
+    } catch (SQLException e) {
+      s_log.error("Errore su query {}, msg={}", Consts.QRY_KNOWN_CODSTATS, e.getMessage());
+    }
+  }
+
+  /**
+   * Scansiona i record senza <code>codstat</code> e cerca di indovinare
+   * (GuessCodStat) il codice statistico associato alla descrizione, se la
+   * percentuale di indovinamento è superiore alla soglia impostata viene
+   * assegnato il codice statistico, altrimenti viene lasciato vuoto per una
+   * successiva ricerca manuale. Se la percentuale è superiore a
+   * {@link DataModel#getPercIndov()} ma inferiore alla soglia viene evidenziato
+   * come possibile indovinamento, altrimenti viene lasciato come sconosciuto.
+   */
+
+  private void scanUnknown() {
+    listGuess = new ArrayList<GuessCodStat>();
+    double dblPercIndovina = model.getPercIndov() / 100.;
+
+    StringBuilder whe = new StringBuilder();
+    if (Utils.isValue(parola))
+      whe.append(String.format(" AND descr LIKE('%%%s%%')", parola));
+
+    if (null != dtDa)
+      whe.append(String.format(" AND dtmov >= '%s'", ParseData.s_fmtTsT.format(dtDa)));
+    if (null != dtA) {
+      LocalDate ldt = dtA.toLocalDate();
+      LocalTime dtA = LocalTime.of(23, 59, 59);
+      LocalDateTime dtA2 = LocalDateTime.of(ldt, dtA);
+      whe.append(String.format(" AND dtmov <= '%s'", ParseData.s_fmtTsT.format(dtA2)));
+    }
+    String qry = String.format(Consts.QRY_UNKNOWN_CODSTATS, whe.toString());
+
+    s_log.trace("Cerca Training con: {}", qry);
+    try (PreparedStatement stmt = conn.prepareStatement(qry); ResultSet res = stmt.executeQuery()) {
+      if (null == res || res.isClosed())
+        return;
+      while (res.next()) {
+        Integer id = res.getInt(GuessCodStat.COL_ID);
+        Integer idFile = res.getInt(GuessCodStat.COL_IDFILE);
+        String tipo = res.getString(GuessCodStat.COL_TIPO);
+        Timestamp dt = res.getTimestamp(GuessCodStat.COL_DTMOV);
+        LocalDateTime dtmov = dt.toLocalDateTime();
+        Double dare = res.getDouble(GuessCodStat.COL_DARE);
+        Double avere = res.getDouble(GuessCodStat.COL_AVERE);
+        String cardid = res.getString(GuessCodStat.COL_CARDID);
+        String descr = res.getString(GuessCodStat.COL_DESCR);
+        if (model.isDoScartaDescr())
+          descr = model.getScartaDescr().convert(descr);
+        PhraseComparator.Similarity sim = compr.similarity(descr);
+        Phrase phr = sim.phrase();
+        GuessCodStat gcds = new GuessCodStat(id, idFile, tipo, dtmov, dare, avere, cardid, descr, null, null, null, false);
+        if (sim.percent() >= dblPercIndovina) {
+          String codstat = phr.getKey();
+          // String codstDescr = codstats.getProperty(codstat);
+
+          CodStat cds = codStatData.find(codstat);
+          String codstDescr = "???";
+          if (null != cds)
+            codstDescr = cds.getDescr();
+          //GuessCodStat gcds = new GuessCodStat(id, tipo, dtmov, dare, avere, cardid, descr, codstat, codstDescr, false);
+          gcds.setCodstat(codstat);
+          gcds.setDescrCds(codstDescr);
+
+          s_log.trace("MATCH! {} == ({}) {} \t({}={})" //
+              , descr, Utils.formatDouble(sim.percent()), phr.getPhrase() //
+              , codstat, codstDescr);
+        } else if (sim.percent() >= 0.1) {
+          // System.out.printf("\t%-20s != (%.2f) %s\n", descr, sim.percent(), phr.getPhrase());
+          s_log.trace("\t{} != ({}) {}", descr, Utils.formatDouble(sim.percent()), phr.getPhrase());
+        } else {
+          // System.out.printf("\t%-20s (%.2f) *sconosciuto* \n", descr, sim.percent());
+          s_log.trace("\t{} ({}) *sconosciuto*", descr, Utils.formatDouble(sim.percent()));
+        }
+        gcds.propertyCodstat().addListener(this);
+        listGuess.add(gcds);
+      }
+    } catch (SQLException e) {
+      s_log.error("Errore comparatore frasi, err={}", e.getMessage());
+    }
+  }
+
+  private void creaDati() {
+    dati = FXCollections.observableArrayList();
+    dati.addAll(listGuess);
+  }
+
+  private void fillTableView() {
+    Platform.runLater(() -> {
+      // tblview.getItems().clear();
+      //      ObservableList<GuessCodStat> dati = FXCollections.observableArrayList();
+      //      dati.addAll(listGuess);
+      // tblview.setItems(dati);
+      tableViewFilled();
+    });
+  }
+
+  public void tableViewFilled() {
+    model = DataModel.getInst();
+    model.firePropertyChange(Consts.EVT_GUESSDATA_CREATED, -1, dati.size());
+  }
+
+  @Override
+  public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+    if (observable instanceof StringProperty szp) {
+      if (szp.getName().equals(GuessCodStat.COL_CODSTAT)) {
+        CodStat cds = codStatData.find(newValue);
+        if (null == cds) {
+          // System.out.println("CodStat.changed()=NULL");
+          String szMsg = String.format("Il codice Statistico \"%s\" *NON* esiste !", newValue);
+          s_log.error(szMsg);
+          Platform.runLater(() -> mainApp.msgBox(szMsg, AlertType.ERROR));
+        }
+      }
+    }
+  }
+
+  public void saveSuDb(List<GuessCodStat> li) {
+    if (null == li || li.size() == 0)
+      return;
+    String szSQLType = mainApp.getProps().getProperty(AppProperties.CSZ_PROP_DB_Type);
+    m_db = SqlGestFactory.get(szSQLType);
+    m_db.setDbconn(model.getDbConn());
+    List<RigaBanca> liRb = new ArrayList<RigaBanca>();
+    for (GuessCodStat gcds : li) {
+      RigaBanca rb = new RigaBanca();
+      rb.setTiporec(gcds.getTipo());
+      rb.setRigaid(gcds.getId());
+      rb.setCodstat(gcds.getCodstat());
+      rb.setIdcodstat(gcds.getIdcodstat());
+      liRb.add(rb);
+    }
+    m_db.updateCodStat(liRb);
+  }
+
+}

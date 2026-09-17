@@ -158,7 +158,6 @@ public class GestResViewQueryParams implements IStartApp {
   }
 
   public void readQuery(String szNam) {
-    LoadBancaMainApp main = LoadBancaMainApp.getInst();
     if ( !Utils.isValue(szNam) || !mapName2Id.containsKey(szNam)) {
       //      main.messageDialog(AlertType.WARNING, String.format("Non hai nessun save query con nome {}", szNam));
       return;
@@ -168,32 +167,39 @@ public class GestResViewQueryParams implements IStartApp {
     // per il -1 vedi: https://stackoverflow.com/questions/34040614/split-strings-keeping-all-trailing-empty-elements
     String arr[] = szv.split(PROP_SEP, -1);
     if (arr.length <= col_where) {
-      main.messageDialog(AlertType.WARNING, String.format("Pochi parametri nella save query con nome {}", szNam));
+      MessageDialog.messageDialog(AlertType.WARNING, String.format("Pochi parametri nella save query con nome {}", szNam));
       return;
     }
     final var bDeb = false;
+    String szCol_tipo = arr[col_tipo];
+    String szCol_query = arr[col_query];
+    String szCol_annoComp = arr[col_annoComp];
+    String szCol_meseComp = arr[col_meseComp];
+    String szCol_parola = arr[col_parola];
+    String szCol_regexp = arr[col_regexp];
+    String szCol_where = arr[col_where];
     if (bDeb) {
       StringBuilder sb = new StringBuilder();
       sb.append(String.format("==== %s ====\n", szNam));
-      sb.append("tipo=").append(arr[col_tipo]).append("\n");
-      sb.append("quer=").append(arr[col_query]).append("\n");
-      sb.append("anno=").append(arr[col_annoComp]).append("\n");
-      sb.append("mese=").append(arr[col_meseComp]).append("\n");
-      sb.append("desc=").append(arr[col_parola]).append("\n");
-      sb.append("regx=").append(arr[col_regexp]).append("\n");
-      sb.append("wher=").append(arr[col_where]).append("\n");
+      sb.append("tipo=").append(szCol_tipo).append("\n");
+      sb.append("quer=").append(szCol_query).append("\n");
+      sb.append("anno=").append(szCol_annoComp).append("\n");
+      sb.append("mese=").append(szCol_meseComp).append("\n");
+      sb.append("desc=").append(szCol_parola).append("\n");
+      sb.append("regx=").append(szCol_regexp).append("\n");
+      sb.append("wher=").append(szCol_where).append("\n");
       System.out.println("GestResViewQueryParams.readQuery()\n" + sb.toString());
     }
-    var bRegEx = arr[col_regexp].equals("1");
+    var bRegEx = Utils.isValue(szCol_regexp) ? szCol_regexp.equals("1") : false;
     resview.setFltrParolaRegEx(bRegEx);
-    resview.cbTipoBanca.getSelectionModel().select(arr[col_tipo]);
-    resview.cbQuery.getSelectionModel().select(arr[col_query]);
-    Integer iAnnoComp = Utils.isValue(arr[col_annoComp]) ? Integer.valueOf(arr[col_annoComp]) : null;
+    resview.cbTipoBanca.getSelectionModel().select(szCol_tipo);
+    resview.cbQuery.getSelectionModel().select(szCol_query);
+    Integer iAnnoComp = Utils.isValue(szCol_annoComp) ? Integer.valueOf(szCol_annoComp) : null;
     resview.cbAnnoComp.getSelectionModel().select(iAnnoComp);
-    resview.cbMeseComp.getSelectionModel().select(arr[col_meseComp]);
-    resview.txParola.setText(arr[col_parola]);
+    resview.cbMeseComp.getSelectionModel().select(szCol_meseComp);
+    resview.txParola.setText(szCol_parola);
     resview.ckRegExp.setSelected(bRegEx);
-    resview.txWhere.setText(arr[col_where]);
+    resview.txWhere.setText(szCol_where);
   }
 
   private void readPropQryParams() {
@@ -204,6 +210,7 @@ public class GestResViewQueryParams implements IStartApp {
         qtaManca++;
         continue;
       }
+      qtaManca = 0;
       String szv = props.getProperty(szK);
       // il primo param e' il nome salvato
       int n = szv.indexOf(PROP_SEP);
@@ -256,7 +263,7 @@ public class GestResViewQueryParams implements IStartApp {
 
   @Override
   public void closeApp(AppProperties p_props) {
-    props.salvaSuProperties();
+    // nessuna azione da fare, le query salvate sono gia' nel file props
 
   }
 

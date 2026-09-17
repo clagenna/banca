@@ -2,10 +2,17 @@ package sm.clagenna.banca.dati;
 
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.Alert.AlertType;
 import lombok.Getter;
+import sm.clagenna.banca.javafx.MessageDialog;
+
 
 public class TreeitemCodStat extends TreeCodStat {
+  private static final Logger s_log = LogManager.getLogger(TreeitemCodStat.class);
 
   @Getter
   private TreeItem<CodStat> treeItemRoot;
@@ -17,7 +24,7 @@ public class TreeitemCodStat extends TreeCodStat {
   @Override
   public CodStat readTreeCodStats() {
     CodStat rad = super.readTreeCodStats();
-    refreshTreeItems(); // ??
+    refreshTreeItems(); 
     return rad;
   }
 
@@ -30,6 +37,21 @@ public class TreeitemCodStat extends TreeCodStat {
     refreshTreeItems(getRoot()); // ??
   }
 
+  public void updateTreeItem(CodStat cdsCurr) {
+    CodStat cds = find(cdsCurr.getCodice());
+    // se non lo trovo puo' essere cambiato il codice stat
+    // allora (se in modifica di un esistente) lo cerco col id 
+    if (null == cds)
+      cds = find(cdsCurr.getIdCodStat());
+    if (null != cds)
+      cds.assign(cdsCurr);
+    else {
+      String szMsg = String.format("Non trovo il CodStat = %s", cdsCurr.toStringEx());
+      s_log.warn(szMsg);
+      MessageDialog.messageDialog(AlertType.WARNING, szMsg);
+    }
+  }
+
   public void refreshTreeItems(CodStat cdsCurr) { // ??
     treeItemRoot = buildTree(getRoot()); // ??
     expandNodes(treeItemRoot, cdsCurr);
@@ -37,9 +59,9 @@ public class TreeitemCodStat extends TreeCodStat {
 
   public Object expandNode(CodStat cds) {
     TreeItem<CodStat> exp = treeFind(treeItemRoot, cds);
-    if ( null != exp)
+    if (null != exp)
       exp.getValue().setMatched(true);
-    while(  null != exp ) {
+    while (null != exp) {
       exp.setExpanded(true);
       exp = exp.getParent();
     }

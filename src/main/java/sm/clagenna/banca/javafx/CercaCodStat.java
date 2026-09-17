@@ -22,7 +22,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import sm.clagenna.banca.dati.CodStat;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.Consts;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.TreeCodStat;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
@@ -34,11 +35,11 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   @SuppressWarnings("unused")
   private static final Logger s_log = LogManager.getLogger(CercaCodStat.class);
 
-  public static final String            CSZ_FXMLNAME = "CercaCodStat.fxml";
-  private static final String           KEY_POS      = "cercacdst";
-  private static final String           KEY_COL      = "cercacdst.col%s";
+  public static final String           CSZ_FXMLNAME = "CercaCodStat.fxml";
+  private static final String          KEY_POS      = "cercacdst";
+  private static final String          KEY_COL      = "cercacdst.col%s";
   @FXML
-  private TextField                     txParola;
+  private TextField                    txParola;
   @FXML
   private TableView<CodStat>           tblCodstat;
   @FXML
@@ -46,10 +47,10 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   @FXML
   private TableColumn<CodStat, String> colDescr;
 
-  private AppProperties  props;
-  private DataController dataCntrl;
+  private AppProperties props;
+  private DataModel     model;
   private TreeCodStat   treeData;
-  private Stage          primStage;
+  private Stage         primStage;
 
   public CercaCodStat() {
     //
@@ -58,8 +59,8 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     // System.out.println("CercaCodStat.initialize()");
-    dataCntrl = DataController.getInst();
-    treeData = dataCntrl.getCodStatData();
+    model = DataModel.getInst();
+    treeData = model.getCodStatData();
 
     if (null == primStage) {
       Scene scene = txParola.getScene();
@@ -113,14 +114,24 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
     if (vv > 0)
       colDescr.setPrefWidth(vv);
 
-    getStage().setOnHiding( _ -> closeApp(p_props));
+    getStage().setOnHiding(_ -> closeApp(p_props));
   }
 
   private Object rowSelecion(ObservableValue<? extends CodStat> ob, CodStat ov, CodStat nv) {
-    dataCntrl.firePropertyChange(DataController.EVT_SELCODSTAT, ov, nv);
+    System.out.printf("CercaCodStat.rowSelecion(ov=%s, nv=%s)\n", ov, nv);
+    model.firePropertyChange(Consts.EVT_CERCACODSTAT, ov, nv);
     return null;
   }
 
+  /**
+   * Elenca i codici statistici che contengono nella descrizione la parola
+   * digitata. La ricerca viene fatta sul campo descrizione e non sul codice.
+   * 
+   * @param obj
+   * @param old
+   * @param nv
+   * @return
+   */
   private Object txParolaSel(ObservableValue<? extends String> obj, String old, String nv) {
     String szDesc = txParola.getText();
     if (Utils.isValue(szDesc) && szDesc.length() >= 2) {
@@ -153,18 +164,23 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
 
   @Override
   public void changeSkin() {
-    //
-
+    URL mainCSS = model.getMainCSS();
+    Scene myScene = getStage().getScene();
+    if (null == mainCSS || null == myScene)
+      return;
+    myScene.getStylesheets().clear();
+    myScene.getStylesheets().add(mainCSS.toExternalForm());
   }
 
   @Override
   public void closeApp(AppProperties p_props) {
-    // System.out.println("CercaCodStat.closeApp()");
+    System.out.println("CercaCodStat.closeApp()");
     JFXUtils.savePosStage(primStage, props, KEY_POS);
     String szKey = String.format(KEY_COL, "CodStat2");
     p_props.setProperty(szKey, Double.valueOf(colCode.getWidth()).intValue());
     szKey = String.format(KEY_COL, "descr");
     p_props.setProperty(szKey, Double.valueOf(colDescr.getWidth()).intValue());
+    // model.setPadreCercaCodstat(null);
   }
 
   @Override

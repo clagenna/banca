@@ -1,9 +1,14 @@
+.wix
+.vscode
 **/target
+**/*.bak
+**/*.csv
 **/*.exe
 **/*.jar
 **/*.json
 **/*.log
 **/*.tmp
+*.csv
 *.zip
 **/*.zipx
 **/old

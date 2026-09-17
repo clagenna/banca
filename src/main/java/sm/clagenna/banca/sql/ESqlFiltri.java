@@ -12,7 +12,8 @@ public enum ESqlFiltri {
   Descr(64, Types.VARCHAR), //
   ABICaus(128, Types.VARCHAR), //
   Cardid(256, Types.VARCHAR), //
-  AllSets(511, Types.NULL);
+  IdCodstat(512, Types.INTEGER), //
+  AllSets(1023, Types.NULL);
 
   private int flag;
   private int sqlType;

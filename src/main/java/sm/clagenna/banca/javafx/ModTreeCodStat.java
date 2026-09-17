@@ -20,22 +20,43 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.Consts;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.TreeitemCodStat;
+import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
 
+/**
+ * <pre>
+ * Test CodStat
+
+1) Modifica
+  modifica ed evidenza TreeView
+  e chiusura della form ModTreeView !
+  
+2) cambio codice
+  verificato cambio codice con clash
+  verificato evidenzia nuovo elem nel tree
+  
+3) Inserimento
+  verificato inserimento codice nuovo,
+  rimane evidenziato il codice corrente + quello modificato precedentemente
+4) cancellazione
+ * </pre>
+ */
 public class ModTreeCodStat implements Initializable, IStartApp {
+
   private static final Logger s_log = LogManager.getLogger(ModTreeCodStat.class);
 
-  public static final String  CSZ_FXMLNAME       = "ModTreeCodStat.fxml";
-  private static final String CSZ_PROP_POSVIEW_X = "modcodstat.x";
-  private static final String CSZ_PROP_POSVIEW_Y = "modcodstat.y";
-  private static final String CSZ_PROP_DIMVIEW_X = "modcodstat.lx";
-  private static final String CSZ_PROP_DIMVIEW_Y = "modcodstat.ly";
+  public static final String  CSZ_FXMLNAME  = "ModTreeCodStat.fxml";
+  private static final String BT_SAV_INSERT = "Inser.";
+  private static final String BT_SAV_MODIF  = "Modif.";
 
+  @FXML
+  private Label     lbIdCodstat;
   @FXML
   private TextField txCd1;
   @FXML
@@ -48,18 +69,20 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   private TextField txDescr;
   @FXML
   private Button    btSalva;
+  @FXML
+  private Label     lbMessage;
 
   private AppProperties    m_mainProps;
   private Stage            lstage;
   @Getter @Setter
   private Scene            myScene;
   private LoadBancaMainApp m_appmain;
-  private DataController   dataCntr;
-  private TreeitemCodStat codStatData;
+  private DataModel        model;
+  private TreeitemCodStat  codStatData;
+  private CodStat          cdsPadre;
   @Getter @Setter
-  private CodStat         cdsPadre;
-  private CodStat         cdsLavoro;
-  private CodStat         cdsTree;
+  private CodStat          cdsLavoro;
+  private CodStat          cdsTree;
 
   private boolean bSemaf;
 
@@ -69,11 +92,12 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   @Override
   public void initApp(AppProperties p_props) {
-    dataCntr = DataController.getInst();
-    codStatData = dataCntr.getCodStatData();
+    model = DataModel.getInst();
+    codStatData = model.getCodStatData();
     m_appmain = LoadBancaMainApp.getInst();
     m_mainProps = m_appmain.getProps();
-    cdsLavoro = new CodStat();
+    if (null == cdsLavoro)
+      cdsLavoro = new CodStat();
     impostaForma(m_mainProps);
   }
 
@@ -93,26 +117,12 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     txCd3.textProperty().addListener((_, _, nv) -> changedCd3(nv));
     txDescr.textProperty().addListener((_, _, nv) -> changedDescr(nv));
 
-    int px = p_props.getIntProperty(CSZ_PROP_POSVIEW_X, 10);
-    int py = p_props.getIntProperty(CSZ_PROP_POSVIEW_Y, 10);
-    int dx = p_props.getIntProperty(CSZ_PROP_DIMVIEW_X, 427);
-    int dy = p_props.getIntProperty(CSZ_PROP_DIMVIEW_Y, 150);
-    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
-      lstage.setX(mm.poxX());
-      lstage.setY(mm.posY());
-      lstage.setWidth(mm.width());
-      lstage.setHeight(mm.height());
-    }
+    JFXUtils.readPosStage(lstage, p_props, Consts.PROP_POSVIEW_modcodstat);
     lstage.setOnHiding(_ -> {
       closeApp(m_mainProps);
     });
     myScene.addEventFilter(KeyEvent.KEY_PRESSED, ev -> gestKey(ev));
-    URL url = m_appmain.getUrlCSS();
-    if (null != url)
-      myScene.getStylesheets().add(url.toExternalForm());
-    if (null != cdsPadre)
-      cdsLavoro.assign(cdsPadre);
+    changeSkin();
     try {
       bSemaf = true;
       updateTxAllCds();
@@ -131,14 +141,20 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   }
 
   private void updateTxAllCds() {
+    System.out.printf("Real ModTreeCodStat(%d)\n", hashCode() % 1023);
     // System.out.printf("ModTreeCodStat.updateTxAllCds(\"%s\")\n", cdsCurr.toStringEx());
+    lbIdCodstat.setText(cdsLavoro.isInDB() ? Utils.formatLong((long) cdsLavoro.getIdCodStat()) : "-");
     txCd1.setText(String.valueOf(cdsLavoro.getCod1()));
     txCd2.setText(String.valueOf(cdsLavoro.getCod2()));
     txCd3.setText(String.valueOf(cdsLavoro.getCod3()));
     txDescr.setText(String.valueOf(cdsLavoro.getDescr()));
+    btSalva.setText(cdsLavoro.isInDB() ? BT_SAV_MODIF : BT_SAV_INSERT);
     String sz = "** nessun nodo **";
-    if (null != cdsPadre)
-      sz = cdsPadre.getCodice() + " " + cdsPadre.getDescr();
+    if (null != cdsLavoro) {
+      cdsPadre = cdsLavoro.getPadre();
+      if (null != cdsPadre)
+        sz = cdsPadre.getCodice() + " " + cdsPadre.getDescr();
+    }
     lbDescr.setText(sz);
     btSalva.setDisable( !cdsLavoro.isValid());
   }
@@ -191,6 +207,59 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     return null;
   }
 
+  // 06.02.04 => 06.02.03 trova lo stesso ?!?
+  private void cercaCurrCodStat() {
+    System.out.printf("ModTreeCodStat.cercaCurrCodStat(%s)\n", null != cdsLavoro ? cdsLavoro.getCodice() : "*null*");
+    Platform.runLater(() -> lbMessage.setText(""));
+    CodStat root = codStatData.getRoot();
+    cdsTree = root.find(cdsLavoro);
+    // verifico che non ce ne sia uno in root con quel codice, altrimenti lo rifiuto
+    if (null != cdsTree) {
+      // test di clash con codice gia' esistente
+      if (cdsTree.getIdCodStat() != cdsLavoro.getIdCodStat()) {
+        String szMsg = String.format("Esiste altro codice con %s", cdsTree.toStringEx());
+        Platform.runLater(() -> lbMessage.setText(szMsg));
+        btSalva.setDisable(true);
+        return;
+      }
+    }
+    // cod.statis. in cdsLavoro non e' presente all'interno del albero !
+    btSalva.setDisable( !cdsLavoro.isValid());
+    // descrizione del padre
+    cdsPadre = cdsLavoro.getPadre();
+    if (null != cdsPadre)
+      cdsPadre = root.find(cdsPadre.getCodice());
+    String szTreeDescr = "** nessun nodo **";
+    if (null != cdsPadre)
+      szTreeDescr = cdsPadre.getCodice() + " " + cdsPadre.getDescr();
+    final String szDescrPadre = szTreeDescr;
+    Platform.runLater(() -> lbDescr.setText(szDescrPadre));
+    btSalva.setText(cdsLavoro.isInDB() ? BT_SAV_MODIF : "inser.");
+  }
+
+  @SuppressWarnings("unused")
+  private void cercaCurrCodStatX() {
+    cdsPadre = null;
+    CodStat root = codStatData.getRoot();
+    // ---- descrizione Nodo corrente (se c'è)
+    String szTreeDescr = "";
+    cdsTree = root.find(cdsLavoro.getCodice());
+    if (null != cdsTree)
+      szTreeDescr = cdsTree.getDescr();
+    final String szDescr = szTreeDescr;
+    Platform.runLater(() -> txDescr.setText(szDescr));
+    btSalva.setDisable( !cdsLavoro.isValid());
+    // ---- descrizione del padre
+    cdsPadre = cdsLavoro.getPadre();
+    if (null != cdsPadre)
+      cdsPadre = root.find(cdsPadre.getCodice());
+    szTreeDescr = "** nessun nodo **";
+    if (null != cdsPadre)
+      szTreeDescr = cdsPadre.getCodice() + " " + cdsPadre.getDescr();
+    final String szDescrPadre = szTreeDescr;
+    Platform.runLater(() -> lbDescr.setText(szDescrPadre));
+  }
+
   private boolean checkNumeric(TextField tx, String nv) {
     if (null == nv || nv.length() == 0)
       return false;
@@ -202,47 +271,28 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     return true;
   }
 
-  private void cercaCurrCodStat() {
-    cdsPadre = null;
-    CodStat root = codStatData.getRoot();
-    // ---- descrizione Nodo corrente (se c'è)
-    String sz = "";
-    cdsTree = root.find(cdsLavoro.getCodice());
-    if (null != cdsTree)
-      sz = cdsTree.getDescr();
-    //    System.out.printf("ModTreeCodStat.cercaCurrCodStat(for \"%s\")\n",
-    //        cdsTree != null ? cdsTree.toStringEx() : "Nuovo:" + cdsLavoro.getCodice());
-    final String szDescr = sz;
-    Platform.runLater(() -> txDescr.setText(szDescr));
-    btSalva.setDisable( !cdsLavoro.isValid());
-    // ---- descrizione del padre
-    cdsPadre = cdsLavoro.getPadre();
-    if (null != cdsPadre)
-      cdsPadre = root.find(cdsPadre.getCodice());
-    sz = "** nessun nodo **";
-    if (null != cdsPadre)
-      sz = cdsPadre.getCodice() + " " + cdsPadre.getDescr();
-    final String szDescrPadre = sz;
-    Platform.runLater(() -> lbDescr.setText(szDescrPadre));
-  }
-
   @FXML
-  void btSalvaClick(ActionEvent event) {
+  private void btSalvaClick(ActionEvent event) {
     if (btSalva.isDisabled())
       return;
-    CodStat root = codStatData.getRoot();
-    cdsTree = root.find(cdsLavoro);
-    if (null != cdsTree)
-      cdsTree.setDescr(cdsLavoro.getDescr());
-    else {
-      cdsTree = new CodStat();
-      cdsTree.assign(cdsLavoro);
-      codStatData.add(cdsTree);
+    DataModel model = DataModel.getInst();
+    SqlGest sqlg = (SqlGest) DataModel.getInst().getSqlgest();
+    sqlg.setDbconn(model.getDbConn());
+    // modalita INSERIMENTO
+    if (cdsLavoro.getIdCodStat() == 0) {
+      codStatData.add(cdsLavoro);
+      codStatData.refreshTreeItems(cdsLavoro);
+      sqlg.insertCodStat(cdsLavoro);
+      Platform.runLater(() -> lbIdCodstat.setText(String.valueOf(cdsLavoro.getIdCodStat())));
+      model.firePropertyChange(Consts.EVT_TREECODSTAT_CHANGED, null, cdsLavoro);
+      return;
     }
-    codStatData.refreshTreeItems(cdsTree);
-    codStatData.updateCodStat(cdsTree);
-    codStatData.saveAll();
-    dataCntr.firePropertyChange(DataController.EVT_TREECODSTAT_CHANGED, null, cdsTree);
+    codStatData.updateTreeItem(cdsLavoro);
+    codStatData.refreshTreeItems(cdsLavoro);
+    codStatData.updateCodStat(cdsLavoro, true);
+
+    sqlg.updadetCodStat(cdsLavoro);
+    model.firePropertyChange(Consts.EVT_TREECODSTAT_CHANGED, null, cdsLavoro);
   }
 
   @Override
@@ -253,7 +303,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   @Override
   public void changeSkin() {
-    URL url = m_appmain.getUrlCSS();
+    URL url = model.getMainCSS();
     if (null == url || null == myScene)
       return;
     myScene.getStylesheets().clear();
@@ -262,15 +312,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   @Override
   public void closeApp(AppProperties p_props) {
-    double px = myScene.getWindow().getX();
-    double py = myScene.getWindow().getY();
-    double dx = myScene.getWindow().getWidth();
-    double dy = myScene.getWindow().getHeight();
-
-    p_props.setProperty(CSZ_PROP_POSVIEW_X, (int) px);
-    p_props.setProperty(CSZ_PROP_POSVIEW_Y, (int) py);
-    p_props.setProperty(CSZ_PROP_DIMVIEW_X, (int) dx);
-    p_props.setProperty(CSZ_PROP_DIMVIEW_Y, (int) dy);
+    JFXUtils.savePosStage(lstage, p_props, Consts.PROP_POSVIEW_modcodstat);
   }
 
 }

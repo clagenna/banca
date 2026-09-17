@@ -38,10 +38,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
-import sm.clagenna.banca.dati.CsvImportBanca;
-import sm.clagenna.banca.dati.ImpFile;
-import sm.clagenna.banca.javafx.LoadBancaMainApp;
-import sm.clagenna.stdcla.sql.DBConn;
+import sm.clagenna.banca.dati.csv.CsvImpFile;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class ProvaProgrBarCla extends Application {
@@ -52,27 +49,27 @@ public class ProvaProgrBarCla extends Application {
   private static final String CSZ_MAIN_APP_CSS = "ProvaProgrBarCla.css";
 
   @FXML
-  private TextField                    txQta;
+  private TextField                       txQta;
   @FXML
-  private Button                       btStart;
+  private Button                          btStart;
   @FXML
-  private Button                       btStop;
+  private Button                          btStop;
   @FXML
-  private TableView<ImpFile>           tblvFiles;
-  private TableColumn<ImpFile, String> colId;
-  private TableColumn<ImpFile, String> colName;
-  private TableColumn<ImpFile, String> colRelDir;
-  private TableColumn<ImpFile, Number> colSize;
-  private TableColumn<ImpFile, Number> colQtaRecs;
-  private TableColumn<ImpFile, String> colDtmin;
-  private TableColumn<ImpFile, String> colDtmax;
-  private TableColumn<ImpFile, String> colUltagg;
+  private TableView<CsvImpFile>           tblvFiles;
+  private TableColumn<CsvImpFile, String> colId;
+  private TableColumn<CsvImpFile, String> colName;
+  private TableColumn<CsvImpFile, String> colRelDir;
+  private TableColumn<CsvImpFile, Number> colSize;
+  private TableColumn<CsvImpFile, Number> colQtaRecs;
+  private TableColumn<CsvImpFile, String> colDtmin;
+  private TableColumn<CsvImpFile, String> colDtmax;
+  private TableColumn<CsvImpFile, String> colUltagg;
   @FXML
-  private ProgressBar                  progb;
+  private ProgressBar                     progb;
 
   private Stage            primStage;
   private ProvaProgrBarCla controller;
-  private List<ImpFile>    elenco;
+  private List<CsvImpFile> elenco;
 
   private int qtaActiveTasks;
 
@@ -175,7 +172,7 @@ public class ProvaProgrBarCla extends Application {
 
   private void initData() {
     txQta.setText(CSZ_START_DIR);
-    ObservableList<ImpFile> li = loadListFiles();
+    ObservableList<CsvImpFile> li = loadListFiles();
     tblvFiles.getItems().clear();
     tblvFiles.getItems().addAll(li);
     tblvFiles.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -185,10 +182,11 @@ public class ProvaProgrBarCla extends Application {
 
   private void colorizeTblView() {
     // Default cell factory provides text field for editing and converts text in text field to int.
-    Callback<TableColumn<ImpFile, String>, TableCell<ImpFile, String>> defaultCellFactory = TextFieldTableCell.forTableColumn();
+    Callback<TableColumn<CsvImpFile, String>, TableCell<CsvImpFile, String>> defaultCellFactory = TextFieldTableCell
+        .forTableColumn();
     // Cell factory implementation that uses default cell factory above, and augments the implementation
-    Callback<TableColumn<ImpFile, String>, TableCell<ImpFile, String>> cellFactory = col -> {
-      TableCell<ImpFile, String> cell = defaultCellFactory.call(col);
+    Callback<TableColumn<CsvImpFile, String>, TableCell<CsvImpFile, String>> cellFactory = col -> {
+      TableCell<CsvImpFile, String> cell = defaultCellFactory.call(col);
       cell.itemProperty().addListener((_, _, newValue) -> {
         //        String szNa = obs.getClass().getSimpleName();
         //        String ov = "ov=*null*";
@@ -233,42 +231,44 @@ public class ProvaProgrBarCla extends Application {
     eseguiConversioneRunTask();
   }
 
+  @SuppressWarnings("unused")
   private void eseguiConversioneRunTask() {
-    ObservableList<ImpFile> sels = tblvFiles.getSelectionModel().getSelectedItems();
+    ObservableList<CsvImpFile> sels = tblvFiles.getSelectionModel().getSelectedItems();
     s_log.debug("conversione di {} CSV in background con {} threads", sels.size(), 1);
     ExecutorService backGrService = Executors.newFixedThreadPool(1);
-    for (ImpFile impf : sels) {
-      try {
-        CsvImportBanca cvsimp = new CsvImportBanca();
-        cvsimp.setSkipSaveDB(true);
-        cvsimp.setCsvFile(impf.fullPath(Paths.get(CSZ_START_DIR)));
-        progb.setProgress(0.);
-        progb.progressProperty().unbind();
-        progb.progressProperty().bind(cvsimp.progressProperty());
-        cvsimp.setOnRunning(_ -> {
-          setSemafore(1);
-        });
-        cvsimp.setOnSucceeded(_ -> {
-          setSemafore(0);
-          s_log.info("Fine del Task Background per {}", impf.toString());
-        });
-        cvsimp.setOnFailed(ev -> {
-          setSemafore(0);
-          Throwable ex = ev.getSource().getException();
-          s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
-        });
-        DBConn connSQL = LoadBancaMainApp.getInst().getConnSQL();
-        cvsimp.setConnSql(connSQL);
-        backGrService.execute(cvsimp);
-      } catch (Exception e) {
-        progb.progressProperty().unbind();
-        s_log.error("Errore {} su file {}", e.getMessage(), impf.toString(), e);
-      }
+    for (CsvImpFile impf : sels) {
+      //      try {
+      //        CsvImpFile cvsimp = new CsvImpFile();
+      //        cvsimp.setSkipSaveDB(true);
+      //        cvsimp.setCsvFile(impf.fullPath(Paths.get(CSZ_START_DIR)));
+      //        progb.setProgress(0.);
+      //        progb.progressProperty().unbind();
+      //        progb.progressProperty().bind(cvsimp.progressProperty());
+      //        cvsimp.setOnRunning(_ -> {
+      //          setSemafore(1);
+      //        });
+      //        cvsimp.setOnSucceeded(_ -> {
+      //          setSemafore(0);
+      //          s_log.info("Fine del Task Background per {}", impf.toString());
+      //        });
+      //        cvsimp.setOnFailed(ev -> {
+      //          setSemafore(0);
+      //          Throwable ex = ev.getSource().getException();
+      //          s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
+      //        });
+      //        DBConn connSQL = LoadBancaMainApp.getInst().getConnSQL();
+      //        cvsimp.setConnSql(connSQL);
+      //        backGrService.execute(cvsimp);
+      //      } catch (Exception e) {
+      //        progb.progressProperty().unbind();
+      //        s_log.error("Errore {} su file {}", e.getMessage(), impf.toString(), e);
+      //      }
     }
     backGrService.shutdown();
     initData();
   }
 
+  @SuppressWarnings("unused")
   private synchronized void setSemafore(int nTask) {
     // nTask : 1 - start, 0 - finish
     switch (nTask) {
@@ -303,8 +303,8 @@ public class ProvaProgrBarCla extends Application {
     }
   }
 
-  private ObservableList<ImpFile> loadListFiles() {
-    elenco = new ArrayList<ImpFile>();
+  private ObservableList<CsvImpFile> loadListFiles() {
+    elenco = new ArrayList<CsvImpFile>();
     String fltrFiles = "wise,estra";
     String szGlobMatch = String.format("glob:*:/**/{%s}*.{csv,xls,xlsx}", fltrFiles);
 
@@ -318,12 +318,12 @@ public class ProvaProgrBarCla extends Application {
     } catch (IOException e) {
       System.err.printf("Errore scan dir\"%s\" msg=%s\n", lastDir.toString(), e.getMessage());
     }
-    ObservableList<ImpFile> liFilesCSV = FXCollections.observableArrayList(elenco);
+    ObservableList<CsvImpFile> liFilesCSV = FXCollections.observableArrayList(elenco);
     return liFilesCSV;
   }
 
-  private ImpFile convert(Path p_lastd, Path pth) {
-    ImpFile imf = new ImpFile().assignPath(p_lastd, pth);
+  private CsvImpFile convert(Path p_lastd, Path pth) {
+    CsvImpFile imf = new CsvImpFile().assignPath(p_lastd, pth);
     return imf;
   }
 

@@ -18,19 +18,22 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class GuessCodStat implements Comparable<GuessCodStat> {
 
-  public static final String COL_ID       = "id";
-  public static final String COL_TIPO     = "tipo";
-  public static final String COL_DTMOV    = "dtmov";
-  public static final String COL_DTVAL    = "dtval";
-  public static final String COL_DARE     = "dare";
-  public static final String COL_AVERE    = "avere";
-  public static final String COL_CARDID   = "cardid";
-  public static final String COL_DESCR    = "descr";
-  public static final String COL_CODSTAT  = "codstat";
-  public static final String COL_CDSDESCR = "cdsdescr";
-  public static final String COL_ASSIGNED = "assigned";
+  public static final String COL_ID        = "id";
+  public static final String COL_IDFILE    = "idfile";
+  public static final String COL_TIPO      = "tipo";
+  public static final String COL_DTMOV     = "dtmov";
+  public static final String COL_DTVAL     = "dtval";
+  public static final String COL_DARE      = "dare";
+  public static final String COL_AVERE     = "avere";
+  public static final String COL_CARDID    = "cardid";
+  public static final String COL_DESCR     = "descr";
+  public static final String COL_CODSTAT   = "codstat";
+  public static final String COL_IDCODSTAT = "idcodstat";
+  public static final String COL_CDSDESCR  = "cdsdescr";
+  public static final String COL_ASSIGNED  = "assigned";
 
   private SimpleIntegerProperty               id;
+  private SimpleIntegerProperty               idfile;
   private SimpleStringProperty                tipo;
   private SimpleObjectProperty<LocalDateTime> dtmov;
   private SimpleDoubleProperty                dare;
@@ -38,6 +41,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
   private SimpleStringProperty                cardid;
   private SimpleStringProperty                descr;
   private SimpleStringProperty                codstat;
+  private SimpleObjectProperty<Integer>       idcodstat;
   private SimpleStringProperty                descrcds;
   private SimpleBooleanProperty               assigned;
   private String                              codstatOrig;
@@ -50,27 +54,31 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
 
   private void init() {
     id = new SimpleIntegerProperty(null, COL_ID);
+    idfile = new SimpleIntegerProperty(null, COL_IDFILE);
     tipo = new SimpleStringProperty(null, COL_TIPO);
     dtmov = new SimpleObjectProperty<LocalDateTime>(null, COL_DTMOV);
     dare = new SimpleDoubleProperty(null, COL_DARE);
     avere = new SimpleDoubleProperty(null, COL_AVERE);
     cardid = new SimpleStringProperty(null, COL_CARDID);
     descr = new SimpleStringProperty(null, COL_DESCR);
+    idcodstat = new SimpleObjectProperty<Integer>(null, COL_CODSTAT);
     codstat = new SimpleStringProperty(null, COL_CODSTAT);
     descrcds = new SimpleStringProperty(null, COL_CDSDESCR);
     assigned = new SimpleBooleanProperty(null, COL_ASSIGNED);
   }
 
-  public GuessCodStat(Integer id, String tipo, LocalDateTime dtmov, Double dare, Double avere, String cardid, String descr,
-      String codstat, String descrcds, boolean assigned) {
+  public GuessCodStat(Integer id, Integer idfile, String tipo, LocalDateTime dtmov, Double dare, Double avere, String cardid, String descr,
+      Integer idcodstat, String codstat, String descrcds, boolean assigned) {
     init();
     setId(id);
+    setIdfile(idfile);
     setTipo(tipo);
     setDtmov(dtmov);
     setDare(dare);
     setAvere(avere);
     setCardid(cardid);
     setDescr(descr);
+    setIdcodstat(idcodstat);
     setCodstat(codstat);
     codstatOrig = codstat;
     setDescrCds(descrcds);
@@ -80,6 +88,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
   public GuessCodStat(RigaBanca rb) {
     init();
     setId(rb.getRigaid());
+    setIdfile(rb.getIdfile());
     setTipo(rb.getTiporec());
     setDtmov(rb.getDtmov());
     setDare(rb.getDare());
@@ -87,6 +96,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
     setCardid(rb.getCardid());
     setDescr(rb.getDescr());
     setCodstat(rb.getCodstat());
+    setIdcodstat(rb.getIdcodstat());
     codstatOrig = rb.getCodstat();
     setDescrCds(rb.getCdsdescr());
     setAssigned(false);
@@ -124,6 +134,10 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
     return codstat;
   }
 
+  public SimpleObjectProperty<Integer> propertyIdCodstat() {
+    return idcodstat;
+  }
+
   public StringProperty propertyDescrcds() {
     return descrcds;
   }
@@ -138,6 +152,14 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
 
   public void setId(Integer ii) {
     id.set(ii);
+  }
+  
+  public Integer getIdfile() {
+    return idfile.get();
+  }
+  
+  public void setIdfile(Integer ii) {
+    idfile.set(ii);
   }
 
   public String getTipo() {
@@ -204,14 +226,24 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
 
     // aggiorno la nuova descr del codstat
     if ( !cds.getCodice().equals(codstatOrig)) {
-      DataController cntrl = DataController.getInst();
+      DataModel cntrl = DataModel.getInst();
       TreeCodStat cdsCntrl = cntrl.getCodStatData();
       if (null != cdsCntrl) {
         cds = cdsCntrl.find(cds.getCodice());
-        if (null != cds)
+        if (null != cds) {
           setDescrCds(cds.getDescr());
+          setIdcodstat(cds.getIdCodStat());
+        }
       }
     }
+  }
+
+  public Integer getIdcodstat() {
+    return idcodstat.get();
+  }
+
+  public void setIdcodstat(Integer ii) {
+    idcodstat.set(ii);
   }
 
   public String getDescrcds() {
@@ -241,6 +273,7 @@ public class GuessCodStat implements Comparable<GuessCodStat> {
     String vir = "";
     sb.append(String.format("%s%s=%s", vir, COL_ID, getId()));
     vir = ";\n";
+    sb.append(String.format("%s%s=%s", vir, COL_IDFILE, getIdfile()));
     sb.append(String.format("%s%s=%s", vir, COL_TIPO, getTipo()));
     sb.append(String.format("%s%s=%s", vir, COL_DTMOV, ParseData.formatDate(getDtmov())));
     sb.append(String.format("%s%s=%s", vir, COL_DARE, getDare() != null ? Utils.s_fmtDbl.format(getDare()) : "-"));

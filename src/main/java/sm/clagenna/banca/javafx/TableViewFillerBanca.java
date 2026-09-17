@@ -8,7 +8,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.Consts;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.stdcla.javafx.TableViewFiller;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
@@ -26,15 +27,15 @@ public class TableViewFillerBanca extends TableViewFiller {
   private Pattern patt;
 
   private List<EColsTableView> myExcludeCols;
-  private DataController       cntrl;
+  private DataModel            model;
   // private Double               precId, precDare, precAvere;
 
   private boolean m_bScartaImpTrasf;
 
   public TableViewFillerBanca(TableView<List<Object>> tblview, DBConn p_dbc) {
     super(tblview, p_dbc);
-    myExcludeCols = LoadBancaMainApp.getInst().getData().getExcludeCols();
-    cntrl = DataController.getInst();
+    myExcludeCols = LoadBancaMainApp.getInst().getModel().getExcludeCols();
+    model = DataModel.getInst();
   }
 
   @Override
@@ -67,11 +68,11 @@ public class TableViewFillerBanca extends TableViewFiller {
 
   @Override
   public void datasetReady() {
-    cntrl.azzeraTotaliCodStat();
+    model.azzeraTotaliCodStat();
     String szQry = super.getSzQry();
     Dataset dts = super.getDataset();
-    cntrl.firePropertyChange(DataController.EVT_NEW_QUERY_RESULT, null, szQry);
-    cntrl.firePropertyChange(DataController.EVT_DATASET_CREATED, null, Integer.valueOf(dts.size()));
+    model.firePropertyChange(Consts.EVT_NEW_QUERY_RESULT, null, szQry);
+    model.firePropertyChange(Consts.EVT_DATASET_CREATED, null, Integer.valueOf(dts.size()));
     //    DtsRow precRow = null;
     //    for (DtsRow row : dts.getRighe()) {
     //      if (null == precRow) {
@@ -120,7 +121,7 @@ public class TableViewFillerBanca extends TableViewFiller {
     String szCodice = (String) riga.get(EColsTableView.codstat.name());
     Number dareX = (Number) riga.get(EColsTableView.dare.name());
     Number avereX = (Number) riga.get(EColsTableView.avere.name());
-    cntrl.aggiornaTotaliCodStat2(szCodice, dareX, avereX);
+    model.aggiornaTotaliCodStat2(szCodice, dareX, avereX);
   }
 
   public void setScartaImpTrasf(boolean bv) {
@@ -207,18 +208,18 @@ public class TableViewFillerBanca extends TableViewFiller {
   private String cell_fmtMoney(String val) {
     String szVal = "";
     Double dbl = Utils.parseDouble(val);
-    szVal = null != dbl ?  Utils.s_fmtDbl.format(dbl.doubleValue()) : szVal;
+    szVal = null != dbl ? Utils.s_fmtDbl.format(dbl.doubleValue()) : szVal;
     return szVal;
   }
 
-//  private void cell_updItm(TableCell<List<Object>, Object> cell, Object item, boolean empty) {
-//    String szCls1 = cell.getClass().getSimpleName();
-//    String szCls2 = null != item ? item.getClass().getSimpleName() : "*null*";
-//    System.out.printf("cell=%s\titem=%s\n", szCls1, szCls2);
-//  }
+  //  private void cell_updItm(TableCell<List<Object>, Object> cell, Object item, boolean empty) {
+  //    String szCls1 = cell.getClass().getSimpleName();
+  //    String szCls2 = null != item ? item.getClass().getSimpleName() : "*null*";
+  //    System.out.printf("cell=%s\titem=%s\n", szCls1, szCls2);
+  //  }
 
   public void tableViewFilled() {
-    cntrl.fineTotaliCodstat();
+    model.fineTotaliCodstat();
   }
 
   //  private void checkValueItem(TableColumn pCell, Object item, boolean empty) {

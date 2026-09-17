@@ -1,5 +1,7 @@
 package sm.clagenna.banca.sql;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,53 +9,78 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.CodStat;
+import sm.clagenna.banca.dati.Consts;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.RigaBanca;
+import sm.clagenna.banca.dati.csv.CsvImpFile;
 import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.stdcla.sql.DBConn;
+import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-public abstract class SqlGest implements ISQLGest {
+/**
+ * Classe generica per la gestione dei dati bancari su DB. <br/>
+ * Non dipende dal tipo di DB, ma solo dalle query SQL che devono essere
+ * implementate nelle sottoclassi. <br/>
+ * Utilizza un oggetto {@link DBConn} per la connessione al DB definito nel file
+ * di properties sotto la voce &quot;DB.Type&quot; (es:&quotSqlServer&quot).
+ * <br/>
+ * Poi classi specializzate per ogni tipo di DB (SQLite, SQLServer, HSQLDB,
+ * ecc.) implementano le query specifiche (vedi {@link SQLiteGest},
+ * {@link SqlServerGest}) . <br/>
+ *
+ */
+public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
 
   public static List<String> allTables;
 
-  private PreparedStatement stmtSel;
-  private PreparedStatement stmtIns;
-  private PreparedStatement stmtDel;
-  private PreparedStatement stmtMod;
-  // private PreparedStatement stmtLastRowId;
+  private PreparedStatement stmtSelMov;
+  private PreparedStatement stmtInsMov;
+  private PreparedStatement stmtModMov;
+  private PreparedStatement stmtDelMov;
+  private PreparedStatement stmtSelCsvImpFile;
+  private PreparedStatement stmtInsCsvImpFile;
+  private PreparedStatement stmtModCsvImpFile;
+  // private PreparedStatement stmtDelCsvImpFile;
+  private PreparedStatement stmtInsCodStat;
+  private PreparedStatement stmtModCodStat;
+  private PreparedStatement stmtDelCodStat;
 
-  //  @Getter @Setter
-  //  private String  tableName;
   @Getter @Setter
-  private DBConn  dbconn;
+  private DBConn                  dbconn;
   @Getter @Setter
-  private boolean overwrite;
+  private boolean                 overwrite;
   @Getter @Setter
-  private int     deleted;
+  private int                     qtaRecsUpd;
   @Getter @Setter
-  private int     scarti;
+  private int                     deleted;
   @Getter @Setter
-  private int     added;
+  private int                     scarti;
   @Getter @Setter
-  private int     lastRowid;
-
+  private int                     added;
+  @Getter @Setter
+  private int                     lastRowid;
   private HashMap<String, String> m_mapCausABI;
+
+  private DataModel model;
 
   static {
     allTables = Arrays.asList(new String[] { //
         "impFiles", //
-        "movimenti" //
-    });
+        "movimenti", //
+        "CodiciStat" });
   }
 
   public SqlGest() {
@@ -64,6 +91,7 @@ public abstract class SqlGest implements ISQLGest {
     deleted = 0;
     scarti = 0;
     added = 0;
+    model = DataModel.getInst();
   }
 
   public abstract Logger getLog();
@@ -80,10 +108,14 @@ public abstract class SqlGest implements ISQLGest {
 
   public abstract String getQryListVIEWS();
 
+  public abstract String getQryQtaIdCodstat();
+
   /** Deve tornare la SELECT %s con elenco colonne libero */
   public abstract String getQryListVIEW_PATT();
 
   public abstract String getQryLASTROWID();
+
+  // ----- gestione MOVIMENTI -----------------
 
   public abstract String getQryINSMov();
 
@@ -93,229 +125,29 @@ public abstract class SqlGest implements ISQLGest {
 
   public abstract String getQryMODMov();
 
+  public abstract String getQryMODMovCodstat();
+
+  public abstract String getQryAzzeraIdCodStats();
+
+  // ----- gestione CODICI STATISTICI  -----------------
+
+  public abstract String getQryINSCodstat();
+
+  public abstract String getQrySELCodstat();
+
+  public abstract String getQryDELCodstat();
+
   public abstract String getQryMODCodstat();
 
-  @Override
-  public void write(RigaBanca ri) {
-    try {
-      if (existMovimento(ri)) {
-        if ( !overwrite) {
-          getLog().debug("Il movimento esiste! scarto {} ", ri.toString());
-          scarti++;
-          return;
-        }
-        deleted += deleteMovimento(ri);
-      }
-      insertMovimento(ri);
-      added++;
-    } catch (Exception e) {
-      getLog().error("!err scrittura DB, {}", e.getMessage(), e);
-    }
-  }
+  // ----- gestione dei CSV Files -----------------
 
-  @Override
-  public boolean existMovimento(RigaBanca rig) {
-    boolean bRet = false;
-    int qta = 0;
-    // TimerMeter tm = new TimerMeter("Exist");
-    DataController cntrl = DataController.getInst();
-    StringBuilder qry = new StringBuilder();
-    try {
-      if (null == stmtSel) {
-        int fq = cntrl.getFiltriQuery();
-        // resetto la ricerca sul campo "Id"
-        if (ESqlFiltri.Id.isSet(fq))
-          cntrl.setFiltriQuery(fq & (ESqlFiltri.AllSets.getFlag() ^ ESqlFiltri.Id.getFlag()));
-        qry.append(getQrySELMov());
-        qry.append(cntrl.getCampiFiltro());
-        getLog().debug("prepare existMov:{}", qry);
-        Connection conn = dbconn.getConn();
-        stmtSel = conn.prepareStatement(qry.toString());
-      }
-    } catch (SQLException e) {
-      getLog().error("Errore prep statement {} with err={}", rig.getTiporec(), e.getMessage());
-      return true;
-    }
+  public abstract String getQryINSCsvImpFile();
 
-    try {
-      cntrl.applicaFiltri(stmtSel, 1, dbconn, rig);
-      try (ResultSet res = stmtSel.executeQuery()) {
-        while (res.next())
-          qta = res.getInt(1);
-        bRet = qta != 0;
-      }
-    } catch (SQLException e) {
-      getLog().error("Errore query {} with err={}", rig.getTiporec(), e.getMessage());
-    }
-    // System.out.println(tm.stop());
-    return bRet;
-  }
+  public abstract String getQrySELCsvImpFile();
 
-  @Override
-  public int deleteMovimento(RigaBanca rig) {
-    int qtaDel = 0;
-    // TimerMeter tm = new TimerMeter("Delete");
-    DataController cntrl = DataController.getInst();
-    StringBuilder qry = null;
-    try {
-      if (null == stmtDel) {
-        qry = new StringBuilder(getQryDELMov());
-        qry.append(cntrl.getCampiFiltro());
-        Connection conn = dbconn.getConn();
-        stmtDel = conn.prepareStatement(qry.toString());
-      }
-    } catch (SQLException e) {
-      getLog().error("Errore prep statement DELETE on {} with err={}", qry, e.getMessage());
-      return 0;
-    }
-    try {
-      cntrl.applicaFiltri(stmtDel, 1, dbconn, rig);
-      qtaDel = stmtDel.executeUpdate();
-    } catch (SQLException e) {
-      getLog().error("Errore DELETE on {} with err={}", qry, e.getMessage());
-    }
-    // System.out.println(tm.stop());
-    return qtaDel;
-  }
+  public abstract String getQryDELCsvImpFile();
 
-  @Override
-  public boolean updateMovimento(RigaBanca p_rig) {
-    boolean bRet = false;
-    StringBuilder qry = null;
-    DataController cntrl = DataController.getInst();
-    try {
-      if (null == stmtMod) {
-        qry = new StringBuilder(getQryMODMov());
-        qry.append(cntrl.getCampiFiltro());
-        Connection conn = dbconn.getConn();
-        stmtMod = conn.prepareStatement(qry.toString());
-      }
-    } catch (SQLException e) {
-      getLog().error("Errore UPDATE on {} with err={}", qry, e.getMessage());
-      return false;
-    }
-
-    try {
-      String szCaus = p_rig.getAbicaus();
-      if (null != szCaus)
-        szCaus = szCaus.replace(".0", "");
-      int k = 1;
-      dbconn.setStmtInt(stmtMod, k++, p_rig.getTiporec());
-      dbconn.setStmtInt(stmtMod, k++, p_rig.getIdfile());
-      dbconn.setStmtDatetime(stmtMod, k++, p_rig.getDtmov());
-      dbconn.setStmtDatetime(stmtMod, k++, p_rig.getDtval());
-      dbconn.setStmtImporto(stmtMod, k++, p_rig.getDare());
-      dbconn.setStmtImporto(stmtMod, k++, p_rig.getAvere());
-      dbconn.setStmtString(stmtMod, k++, p_rig.getDescr());
-      dbconn.setStmtString(stmtMod, k++, szCaus);
-      dbconn.setStmtString(stmtMod, k++, p_rig.getCardid());
-      dbconn.setStmtString(stmtMod, k++, p_rig.getCodstat());
-
-      dbconn.setStmtInt(stmtMod, k++, p_rig.getRigaid());
-
-      stmtMod.executeUpdate();
-
-    } catch (SQLException e) {
-      getLog().error("Errore INSERT in {} with err={}", p_rig.getTiporec(), e.getMessage());
-    }
-    // System.out.println(tm.stop());
-    return bRet;
-  }
-
-  @Override
-  public boolean updateCodStat(RigaBanca rig) {
-    String qry1 = getQryMODCodstat();
-    String qry2 = String.format(qry1, rig.getTiporec());
-
-    Connection conn = dbconn.getConn();
-    try (PreparedStatement stmtModCod = conn.prepareStatement(qry2)) {
-      int k = 1;
-      dbconn.setStmtString(stmtModCod, k++, rig.getCodstat());
-      dbconn.setStmtInt(stmtModCod, k++, rig.getRigaid());
-
-      stmtModCod.executeUpdate();
-    } catch (SQLException e) {
-      getLog().error("Errore MODIF codstat on {} with err={}", rig.getTiporec(), e.getMessage());
-      return false;
-    }
-    return true;
-  }
-
-  @Override
-  public boolean updateCodStat(List<RigaBanca> rigs) {
-    String qry1 = getQryMODCodstat();
-    Connection conn = dbconn.getConn();
-    beginTrans();
-    int qtaTrans = 0;
-
-    for (RigaBanca rig : rigs) {
-      String qry2 = String.format(qry1, rig.getTiporec());
-
-      try (PreparedStatement stmtModCod = conn.prepareStatement(qry2)) {
-        int k = 1;
-        dbconn.setStmtString(stmtModCod, k++, rig.getCodstat());
-        dbconn.setStmtInt(stmtModCod, k++, rig.getRigaid());
-
-        stmtModCod.executeUpdate();
-
-        if (++qtaTrans > 50) {
-          commitTrans();
-          qtaTrans = 0;
-          beginTrans();
-        }
-      } catch (SQLException e) {
-        getLog().error("Errore MODIF codstat on {} with err={}", rig.getTiporec(), e.getMessage());
-        return false;
-      }
-    }
-    commitTrans();
-    return true;
-  }
-
-  @Override
-  public boolean insertMovimento(RigaBanca p_rig) {
-    boolean bRet = false;
-    lastRowid = -1;
-    // TimerMeter tm = new TimerMeter("Insert");
-    try {
-      if (null == stmtIns) {
-        String qry = getQryINSMov();
-        Connection conn = dbconn.getConn();
-        stmtIns = conn.prepareStatement(qry.toString());
-        // stmtLastRowId = conn.prepareStatement(getQryLASTROWID());
-      }
-    } catch (SQLException e) {
-      getLog().error("Errore prep statement INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
-      return false;
-    }
-
-    try {
-      String szCaus = p_rig.getAbicaus();
-      if (null != szCaus)
-        szCaus = szCaus.replace(".0", "");
-      String szDescr = p_rig.getDescr();
-      if (Utils.isValue(szDescr) && szDescr.length() > 512)
-        szDescr = szDescr.substring(0, 512);
-      int k = 1;
-      dbconn.setStmtString(stmtIns, k++, p_rig.getTiporec());
-      dbconn.setStmtInt(stmtIns, k++, p_rig.getIdfile());
-      dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtmov());
-      dbconn.setStmtDatetime(stmtIns, k++, p_rig.getDtval());
-      dbconn.setStmtImporto(stmtIns, k++, p_rig.getDare());
-      dbconn.setStmtImporto(stmtIns, k++, p_rig.getAvere());
-      dbconn.setStmtString(stmtIns, k++, szDescr);
-      dbconn.setStmtString(stmtIns, k++, szCaus);
-      dbconn.setStmtString(stmtIns, k++, p_rig.getCardid());
-      dbconn.setStmtString(stmtIns, k++, p_rig.getCodstat());
-
-      stmtIns.executeUpdate();
-      lastRowid = dbconn.getLastIdentity();
-    } catch (SQLException e) {
-      getLog().error("Errore INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
-    }
-    // System.out.println(tm.stop());
-    return bRet;
-  }
+  public abstract String getQryMODCsvImpFile();
 
   @Override
   public void beginTrans() {
@@ -352,6 +184,552 @@ public abstract class SqlGest implements ISQLGest {
     //    }
   }
 
+  @Override
+  public void writeMovimento(RigaBanca ri) {
+    try {
+      if (existMovimento(ri)) {
+        if ( !overwrite) {
+          getLog().debug("Il movimento esiste! scarto {} ", ri.toString());
+          scarti++;
+          return;
+        }
+        deleted += deleteMovimento(ri);
+      }
+      insertMovimento(ri);
+      added++;
+    } catch (Exception e) {
+      getLog().error("!err scrittura DB, {}", e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public boolean existMovimento(RigaBanca rig) {
+    boolean bRet = false;
+    int qta = 0;
+    //
+    StringBuilder qry = new StringBuilder();
+    try {
+      if (null == stmtSelMov) {
+        int fq = model.getFiltriQuery();
+        // resetto la ricerca sul campo "Id"
+        if (ESqlFiltri.Id.isSet(fq))
+          model.setFiltriQuery(fq & (ESqlFiltri.AllSets.getFlag() ^ ESqlFiltri.Id.getFlag()));
+        qry.append(getQrySELMov());
+        qry.append(model.getCampiFiltro());
+        getLog().debug("prepare existMov:{}", qry);
+        Connection conn = dbconn.getConn();
+        stmtSelMov = conn.prepareStatement(qry.toString());
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore prep statement {} with err={}", rig.getTiporec(), e.getMessage());
+      return true;
+    }
+
+    try {
+      model.applicaFiltri(stmtSelMov, 1, dbconn, rig);
+      try (ResultSet res = stmtSelMov.executeQuery()) {
+        while (res.next())
+          qta = res.getInt(1);
+        bRet = qta != 0;
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore query {} with err={}", rig.getTiporec(), e.getMessage());
+    }
+    // System.out.println(tm.stop());
+    return bRet;
+  }
+
+  @Override
+  public boolean insertMovimento(RigaBanca p_rig) {
+    boolean bRet = false;
+    lastRowid = -1;
+    // TimerMeter tm = new TimerMeter("Insert");
+    try {
+      if (null == stmtInsMov) {
+        String qry = getQryINSMov();
+        Connection conn = dbconn.getConn();
+        stmtInsMov = conn.prepareStatement(qry.toString());
+        // stmtLastRowId = conn.prepareStatement(getQryLASTROWID());
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore prep statement INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
+      return false;
+    }
+
+    try {
+      String szCaus = p_rig.getAbicaus();
+      if (null != szCaus)
+        szCaus = szCaus.replace(".0", "");
+      String szDescr = p_rig.getDescr();
+      if (Utils.isValue(szDescr) && szDescr.length() > 512)
+        szDescr = szDescr.substring(0, 512);
+      int k = 1;
+      dbconn.setStmtString(stmtInsMov, k++, p_rig.getTiporec());
+      dbconn.setStmtInt(stmtInsMov, k++, p_rig.getIdfile());
+      dbconn.setStmtDatetime(stmtInsMov, k++, p_rig.getDtmov());
+      dbconn.setStmtDatetime(stmtInsMov, k++, p_rig.getDtval());
+      dbconn.setStmtImporto(stmtInsMov, k++, p_rig.getDare());
+      dbconn.setStmtImporto(stmtInsMov, k++, p_rig.getAvere());
+      dbconn.setStmtString(stmtInsMov, k++, szDescr);
+      dbconn.setStmtString(stmtInsMov, k++, szCaus);
+      dbconn.setStmtString(stmtInsMov, k++, p_rig.getCardid());
+      dbconn.setStmtInt(stmtInsMov, k++, p_rig.getIdcodstat());
+
+      stmtInsMov.executeUpdate();
+      lastRowid = dbconn.getLastIdentity();
+    } catch (SQLException e) {
+      getLog().error("Errore INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
+    }
+    // System.out.println(tm.stop());
+    return bRet;
+  }
+
+  @Override
+  public int deleteMovimento(RigaBanca rig) {
+    int qtaDel = 0;
+    // TimerMeter tm = new TimerMeter("Delete");
+    StringBuilder qry = null;
+    try {
+      if (null == stmtDelMov) {
+        qry = new StringBuilder(getQryDELMov());
+        qry.append(model.getCampiFiltro());
+        Connection conn = dbconn.getConn();
+        stmtDelMov = conn.prepareStatement(qry.toString());
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore prep statement DELETE on {} with err={}", qry, e.getMessage());
+      return 0;
+    }
+    try {
+      model.applicaFiltri(stmtDelMov, 1, dbconn, rig);
+      qtaDel = stmtDelMov.executeUpdate();
+    } catch (SQLException e) {
+      getLog().error("Errore DELETE on {} with err={}", qry, e.getMessage());
+    }
+    // System.out.println(tm.stop());
+    return qtaDel;
+  }
+
+  @Override
+  public boolean updateMovimento(RigaBanca p_rig) {
+    boolean bRet = false;
+    StringBuilder qry = null;
+    try {
+      if (null == stmtModMov) {
+        qry = new StringBuilder(getQryMODMov());
+        qry.append(model.getCampiFiltro());
+        Connection conn = dbconn.getConn();
+        stmtModMov = conn.prepareStatement(qry.toString());
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore UPDATE on {} with err={}", qry, e.getMessage());
+      return false;
+    }
+
+    try {
+      String szCaus = p_rig.getAbicaus();
+      if (null != szCaus)
+        szCaus = szCaus.replace(".0", "");
+      int k = 1;
+      dbconn.setStmtInt(stmtModMov, k++, p_rig.getTiporec());
+      dbconn.setStmtInt(stmtModMov, k++, p_rig.getIdfile());
+      dbconn.setStmtDatetime(stmtModMov, k++, p_rig.getDtmov());
+      dbconn.setStmtDatetime(stmtModMov, k++, p_rig.getDtval());
+      dbconn.setStmtImporto(stmtModMov, k++, p_rig.getDare());
+      dbconn.setStmtImporto(stmtModMov, k++, p_rig.getAvere());
+      dbconn.setStmtString(stmtModMov, k++, p_rig.getDescr());
+      dbconn.setStmtString(stmtModMov, k++, szCaus);
+      dbconn.setStmtString(stmtModMov, k++, p_rig.getCardid());
+      dbconn.setStmtString(stmtModMov, k++, p_rig.getCodstat());
+
+      dbconn.setStmtInt(stmtModMov, k++, p_rig.getRigaid());
+
+      stmtModMov.executeUpdate();
+
+    } catch (SQLException e) {
+      getLog().error("Errore INSERT in {} with err={}", p_rig.getTiporec(), e.getMessage());
+    }
+    // System.out.println(tm.stop());
+    return bRet;
+  }
+
+  public List<CsvImpFile> getListCsvImpFiles() {
+    List<CsvImpFile> liDbFiles = new ArrayList<>();
+    String szQry = ConstsSQL.QRY_SQLITE_IMPFILES_SEL.substring(0, ConstsSQL.QRY_SQLITE_IMPFILES_SEL.indexOf("WHERE"));
+    szQry += " order by id";
+    PreparedStatement lstmt = null;
+
+    try {
+      Connection conn = getDbconn().getConn();
+      lstmt = conn.prepareStatement(szQry);
+    } catch (SQLException e) {
+      getLog().error("Errore prep statement {} on ImpFiles with err={}", szQry, e.getMessage());
+    }
+    try {
+      try (ResultSet res = lstmt.executeQuery()) {
+        if (res.isClosed()) {
+          getLog().warn("dataset closed on SEL info ImpFiles");
+          return liDbFiles;
+        }
+        while (res.next()) {
+          CsvImpFile csvImpf = new CsvImpFile();
+          csvImpf.setId(res.getInt(ConstsSQL.CsvImpFile_ColNo_id));
+          csvImpf.setFileName(res.getString(ConstsSQL.CsvImpFile_ColNo_filename));
+          csvImpf.setRelDir(res.getString(ConstsSQL.CsvImpFile_ColNo_reldir));
+          if ( !Utils.isValue(csvImpf.getSize()))
+            csvImpf.setSize(res.getInt(ConstsSQL.CsvImpFile_ColNo_size));
+          if ( !Utils.isValue(csvImpf.getQtarecs()))
+            csvImpf.setQtarecs(res.getInt(ConstsSQL.CsvImpFile_ColNo_qtarecs));
+          if ( !Utils.isValue(csvImpf.getDtmin()))
+            csvImpf.setDtmin(ParseData.parseData(res.getString(ConstsSQL.CsvImpFile_ColNo_dtmin)));
+          if ( !Utils.isValue(csvImpf.getDtmax()))
+            csvImpf.setDtmax(ParseData.parseData(res.getString(ConstsSQL.CsvImpFile_ColNo_dtmax)));
+          if ( !Utils.isValue(csvImpf.getUltagg()))
+            csvImpf.setUltagg(ParseData.parseData(res.getString(ConstsSQL.CsvImpFile_ColNo_ultagg)));
+          liDbFiles.add(csvImpf);
+        }
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore get info ImpFiles with err={}", e.getMessage(), e);
+    }
+    return liDbFiles;
+  }
+
+  @Override
+  public void writeCsvImpFile(CsvImpFile ri) {
+    try {
+      if (existCsvImpFile(ri)) {
+        if ( !overwrite) {
+          getLog().debug("Il CsvImpFile esiste! scarto {} ", ri.toString());
+          scarti++;
+          return;
+        }
+        deleted += deleteCsvImpFile(ri);
+      }
+      insertCsvImpFile(ri);
+      added++;
+    } catch (Exception e) {
+      getLog().error("!err scrittura DB, {}", e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public boolean existCsvImpFile(CsvImpFile p_csvimp) {
+    boolean bRet = false;
+    int qta = 0;
+    //
+    StringBuilder qry = new StringBuilder();
+    try {
+      if (null == stmtSelCsvImpFile) {
+        qry.append(getQrySELCsvImpFile());
+        getLog().debug("prepare existCsvImpFile:{}", qry);
+        Connection conn = dbconn.getConn();
+        stmtSelCsvImpFile = conn.prepareStatement(qry.toString());
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore prep statement existCsvImpFile with err={}", e.getMessage());
+      return true;
+    }
+
+    try {
+      stmtSelCsvImpFile.setString(1, p_csvimp.getFileName());
+      stmtSelCsvImpFile.setString(2, p_csvimp.getRelDir());
+      try (ResultSet res = stmtSelCsvImpFile.executeQuery()) {
+        while (res.next())
+          qta = res.getInt(1);
+        bRet = qta != 0;
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore query {} with err={}", getQrySELCsvImpFile(), e.getMessage());
+    }
+    // System.out.println(tm.stop());
+    return bRet;
+  }
+
+  @Override
+  public boolean insertCsvImpFile(CsvImpFile p_rig) {
+    boolean bRet = false;
+    lastRowid = -1;
+    // TimerMeter tm = new TimerMeter("Insert");
+    try {
+      if (null == stmtInsCsvImpFile) {
+        String qry = getQryINSCsvImpFile();
+        Connection conn = dbconn.getConn();
+        stmtInsMov = conn.prepareStatement(qry.toString());
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore prep statement INSERT File {} with err={}", p_rig.getFileName(), e.getMessage());
+      return false;
+    }
+
+    try {
+      int k = 1;
+      dbconn.setStmtString(stmtInsCsvImpFile, k++, p_rig.getFileName());
+      dbconn.setStmtString(stmtInsCsvImpFile, k++, p_rig.getRelDir());
+      dbconn.setStmtInt(stmtInsCsvImpFile, k++, p_rig.getSize());
+      dbconn.setStmtInt(stmtInsCsvImpFile, k++, p_rig.getQtarecs());
+      dbconn.setStmtDate(stmtInsCsvImpFile, k++, p_rig.getDtmin());
+      dbconn.setStmtDate(stmtInsCsvImpFile, k++, p_rig.getDtmax());
+      dbconn.setStmtDate(stmtInsCsvImpFile, k++, p_rig.getUltagg());
+
+      stmtInsCsvImpFile.executeUpdate();
+      int ii = dbconn.getLastIdentity();
+      p_rig.setId(ii);
+      setLastRowid(ii);
+    } catch (SQLException e) {
+      getLog().error("Errore INSERT on file {} with err={}", p_rig.getFileName(), e.getMessage());
+    }
+    return bRet;
+  }
+
+  @Override
+  public int deleteCsvImpFile(CsvImpFile rig) {
+    throw new UnsupportedOperationException("La deleteCsvImpFile() non e' supportata !");
+    //    int qtaDel = 0;
+    //    // TimerMeter tm = new TimerMeter("Delete");
+    //    StringBuilder qry = null;
+    //    try {
+    //      if (null == stmtDelCsvImpFile) {
+    //        qry = new StringBuilder(getQryDELCsvImpFile());
+    //        qry.append(model.getCampiFiltro());
+    //        Connection conn = dbconn.getConn();
+    //        stmtDelMov = conn.prepareStatement(qry.toString());
+    //      }
+    //    } catch (SQLException e) {
+    //      getLog().error("Errore prep statement DELETE on {} with err={}", qry, e.getMessage());
+    //      return 0;
+    //    }
+    //    try {
+    //      model.applicaFiltri(stmtDelMov, 1, dbconn, rig);
+    //      qtaDel = stmtDelMov.executeUpdate();
+    //    } catch (SQLException e) {
+    //      getLog().error("Errore DELETE on {} with err={}", qry, e.getMessage());
+    //    }
+    //    // System.out.println(tm.stop());
+    // return qtaDel;
+  }
+
+  /**
+   * Vengono cancellati <b>prima</b> tutti i movimenti (tabella Movimenti) che
+   * fanno riferimento a questi file (idfile). <br/>
+   * Cancella tutti i record di importazione CSV indicati nella lista liFiles.
+   * <br/>
+   *
+   * @param liFiles
+   * @return numero totale di record cancellati
+   */
+  public int deleteCsvImpFiles(List<CsvImpFile> liFiles) {
+    String szWhe = liFiles.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
+    long qtaDel = 0;
+    final String szQryMas = "DELETE FROM %s WHERE %s IN (%s)";
+    Connection conn = getDbconn().getConn();
+    for (String szTb : SqlGest.allTables) {
+      String szId = "id";
+      if (szTb.startsWith("mov"))
+        szId = "idfile";
+      String szQry = String.format(szQryMas, szTb, szId, szWhe);
+      try (Statement stmt = conn.createStatement()) {
+        qtaDel += stmt.executeLargeUpdate(szQry);
+        getLog().warn("Delete da tabella {} con ID files {}", szTb, szWhe);
+      } catch (Exception e) {
+        getLog().error("Errore SQL \"{}\"", szQry, e);
+      }
+    }
+    return (int) qtaDel;
+  }
+
+  @Override
+  public boolean updateCsvImpFile(CsvImpFile p_impf) {
+    boolean bRet = false;
+    StringBuilder qry = null;
+    try {
+      if (null == stmtModCsvImpFile) {
+        qry = new StringBuilder(getQryMODCsvImpFile());
+        // qry.append(model.getCampiFiltro());
+        Connection conn = dbconn.getConn();
+        stmtModCsvImpFile = conn.prepareStatement(qry.toString());
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore UPDATE on {} with err={}", qry, e.getMessage());
+      return false;
+    }
+
+    try {
+      int k = 1;
+      dbconn.setStmtString(stmtModCsvImpFile, k++, p_impf.getFileName());
+      dbconn.setStmtString(stmtModCsvImpFile, k++, p_impf.getRelDir());
+      dbconn.setStmtInt(stmtModCsvImpFile, k++, p_impf.getSize());
+      dbconn.setStmtInt(stmtModCsvImpFile, k++, p_impf.getQtarecs());
+      dbconn.setStmtDate(stmtModCsvImpFile, k++, p_impf.getDtmin());
+      dbconn.setStmtDate(stmtModCsvImpFile, k++, p_impf.getDtmax());
+      dbconn.setStmtDate(stmtModCsvImpFile, k++, p_impf.getUltagg());
+      dbconn.setStmtInt(stmtModCsvImpFile, k++, p_impf.getId());
+
+      qtaRecsUpd = stmtModCsvImpFile.executeUpdate();
+    } catch (SQLException e) {
+      getLog().error("Errore UPDATE file {} with err={}", p_impf.getFileName(), e.getMessage());
+    }
+    return bRet;
+  }
+
+  /**
+   * Verifica se nei movimenti e' mai stato assegnato un codice statistico.
+   * Questo serve per poter decidere se e' possibile leggere ed aggiornare la
+   * tabella dei codici statistici (CodiciStat) da un file da leggere.
+   */
+  @Override
+  public int getQtaIdCodstatsInMov() {
+    int retQta = -1;
+    Connection conn = dbconn.getConn();
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(getQryQtaIdCodstat())) {
+      while (rs.next()) {
+        retQta = rs.getInt(1);
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryQtaIdCodstat(), e.getMessage(), e);
+    }
+    return retQta;
+  }
+
+  public void insertCodStat(CodStat cdsCurr) {
+    try {
+      if (null == stmtInsCodStat) {
+        Connection conn = dbconn.getConn();
+        stmtInsCodStat = conn.prepareStatement(getQryINSCodstat());
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryINSCodstat(), e.getMessage(), e);
+    }
+    try {
+      int k = 1;
+      dbconn.setStmtString(stmtInsCodStat, k++, cdsCurr.getCodice());
+      dbconn.setStmtString(stmtInsCodStat, k++, cdsCurr.getDescr());
+
+      stmtInsCodStat.executeUpdate();
+      lastRowid = dbconn.getLastIdentity();
+      cdsCurr.setIdCodStat(lastRowid);
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryMODCodstat(), e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public boolean updateCodStat(RigaBanca rig) {
+    String qry1 = getQryMODMovCodstat();
+    String qry2 = String.format(qry1, rig.getTiporec());
+
+    Connection conn = dbconn.getConn();
+    try (PreparedStatement stmtModCod = conn.prepareStatement(qry2)) {
+      int k = 1;
+      dbconn.setStmtInt(stmtModCod, k++, rig.getIdcodstat());
+      dbconn.setStmtInt(stmtModCod, k++, rig.getRigaid());
+
+      stmtModCod.executeUpdate();
+    } catch (SQLException e) {
+      getLog().error("Errore MODIF codstat on {} with err={}", rig.getTiporec(), e.getMessage());
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public boolean updateCodStat(List<RigaBanca> rigs) {
+    String qry1 = getQryMODMovCodstat();
+    Connection conn = dbconn.getConn();
+    beginTrans();
+    int qtaTrans = 0;
+
+    for (RigaBanca rig : rigs) {
+      String qry2 = String.format(qry1, rig.getTiporec());
+
+      try (PreparedStatement stmtModCod = conn.prepareStatement(qry2)) {
+        int k = 1;
+        dbconn.setStmtInt(stmtModCod, k++, rig.getIdcodstat());
+        dbconn.setStmtInt(stmtModCod, k++, rig.getRigaid());
+
+        stmtModCod.executeUpdate();
+
+        if (++qtaTrans > 50) {
+          commitTrans();
+          qtaTrans = 0;
+          beginTrans();
+        }
+      } catch (SQLException e) {
+        getLog().error("Errore MODIF codstat on {} with err={}", rig.getTiporec(), e.getMessage());
+        return false;
+      }
+    }
+    commitTrans();
+    return true;
+  }
+
+  public String deleteCodStat(CodStat cds) {
+    String szRet = null;
+    if (null == cds || cds.getIdCodStat() == 0) {
+      szRet = String.format("Insufficienti info per cancellare <br/>%s", null != cds ? cds.toStringEx() : "*null*");
+      return szRet;
+    }
+    Connection conn = dbconn.getConn();
+    try {
+      if (null == stmtDelCodStat) {
+        stmtDelCodStat = conn.prepareStatement(getQryDELCodstat());
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryDELCodstat(), e.getMessage());
+    }
+    try {
+      int k = 1;
+      dbconn.setStmtInt(stmtDelCodStat, k++, cds.getIdCodStat());
+      int qta = stmtDelCodStat.executeUpdate();
+      if (qta > 0)
+        szRet = String.format("Cancellato %s", cds.toStringEx());
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryDELCodstat(), e.getMessage(), e);
+    }
+    return szRet;
+  }
+
+  /**
+   * Azzera tutti i riferimenti ai Codici Statistici nella tabella
+   * Movimenti(idCodStat) in vista del import della tabella CodiciStat
+   *
+   * @return
+   */
+  @Override
+  public int azzeraIdCodStats() {
+    int qtaRecs = -1;
+    String qry = getQryAzzeraIdCodStats();
+    Connection conn = dbconn.getConn();
+    try (PreparedStatement stmtAzzeraIdCds = conn.prepareStatement(qry)) {
+      qtaRecs = stmtAzzeraIdCds.executeUpdate();
+    } catch (SQLException e) {
+      getLog().error("Errore AzZERAMENTO riferimenti codstat con err={}", e.getMessage());
+    }
+    return qtaRecs;
+  }
+
+  public int deleteAllCodStats() {
+    int qtaRecs = -1;
+    String szQry1 = getQryDELCodstat();
+    String szQry2 = szQry1.substring(0, szQry1.toLowerCase().indexOf("where "));
+    Connection conn = dbconn.getConn();
+    try (PreparedStatement stmtAzzeraIdCds = conn.prepareStatement(szQry2)) {
+      qtaRecs = stmtAzzeraIdCds.executeUpdate();
+    } catch (SQLException e) {
+      getLog().error("Errore AzZERAMENTO riferimenti codstat con err={}", e.getMessage());
+    }
+    return qtaRecs;
+  }
+
+  public int insAllCodStats(List<CodStat> righe) {
+    List<CodStat> li2 = new ArrayList<CodStat>(righe);
+    Collections.sort(li2);
+    for (CodStat cds : li2) {
+      insertCodStat(cds);
+    }
+    return righe.size();
+  }
+
   //  private int trovaLastRowid() {
   //    if (null == stmtLastRowId) {
   //      try {
@@ -373,6 +751,122 @@ public abstract class SqlGest implements ISQLGest {
   //    }
   //    return lastRowid;
   //  }
+  // FIXTO Creare il CodStat "99" se non esiste sul DB per la somma degli importi sconosciuti
+
+  /**
+   * Legge tutti i codici statistici presenti sul DB e li restituisce in una
+   * lista ordinata per codice. <br/>
+   * Inoltre se <b>non</b> esiste il codice statistico <code>"99"</code> lo crea
+   * con descrizione <code>"Spese Non Classificate"</code> per poter assegnare
+   * (sommare) gli importi senza codstat
+   *
+   * @return
+   */
+  public List<CodStat> getListCodStat() {
+    Connection conn = dbconn.getConn();
+    CodStat cds99 = new CodStat(9999999, "99", "Spese Non Classificate");
+    boolean bNoCds99 = true;
+    List<CodStat> liCodStat = new ArrayList<>();
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(getQrySELCodstat())) {
+      while (rs.next()) {
+        int k = 1;
+        int idCd = rs.getInt(k++);
+        String cods = rs.getString(k++);
+        String desc = rs.getString(k++);
+        CodStat co = new CodStat(idCd, cods, desc);
+        if (co.getCodice().equals(cds99.getCodice()))
+          bNoCds99 = false;
+        liCodStat.add(co);
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQrySELCodstat(), e.getMessage(), e);
+    }
+    if (bNoCds99) {
+      // insertCodStat(cds99); per ora non lo inserisco, lo creo solo in memoria e lo aggiungo alla lista
+      liCodStat.add(cds99);
+    }
+    return liCodStat;
+  }
+
+  /**
+   * Verifica se esiste un codice statistico con lo stesso
+   * <b><code>idcodstat</code></b> di quello passato come parametro. Se si,
+   * restituisce true, altrimenti false. <br/>
+   * Se il codice statistico passato e' null o ha id=0, restituisce false.
+   *
+   * @param cdsCurr
+   * @return
+   */
+  public boolean existCodStat(CodStat cdsCurr) {
+    boolean bRet = false;
+    if (null == cdsCurr || cdsCurr.getIdCodStat() == 0)
+      return bRet;
+    Connection conn = dbconn.getConn();
+    String szQry = getQrySELCodstat();
+    int n = szQry.indexOf("1=1") + 3;
+    String szSin = szQry.substring(0, n);
+    String szDes = szQry.substring(n);
+    String szQryOk = String.format("%s AND idCodStat=%d %s", szSin, cdsCurr.getIdCodStat(), szDes);
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(szQryOk)) {
+      while (rs.next()) {
+        int idCd = rs.getInt(1);
+        bRet = idCd == cdsCurr.getIdCodStat();
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", szQryOk, e.getMessage(), e);
+    }
+    return bRet;
+  }
+
+  public void updadetCodStat(CodStat cdsCurr) {
+    if (null == cdsCurr || cdsCurr.getIdCodStat() == 0)
+      return;
+    Connection conn = dbconn.getConn();
+    try {
+      if (null == stmtModCodStat) {
+        stmtModCodStat = conn.prepareStatement(getQryMODCodstat());
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryMODCodstat(), e.getMessage(), e);
+    }
+    try {
+      int k = 1;
+      dbconn.setStmtString(stmtModCodStat, k++, cdsCurr.getCodice());
+      dbconn.setStmtString(stmtModCodStat, k++, cdsCurr.getDescr());
+      dbconn.setStmtInt(stmtModCodStat, k++, cdsCurr.getIdCodStat());
+
+      stmtModCodStat.executeUpdate();
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQryMODCodstat(), e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public List<RigaBanca> getListMovimenti(int ini, int fin, String where) {
+    Connection conn = dbconn.getConn();
+    List<RigaBanca> liMovs = new ArrayList<>();
+    StringBuilder szQry = new StringBuilder("SELECT * FROM listamovimenti WHERE 1=1 ");
+    if ( !Utils.isValue(where))
+      szQry.append(" order by dtmov, dtval, tipo, cardid, descr");
+    else
+      szQry.append(" and ").append(where).append(" order by dtmov, dtval, tipo, cardid, descr");
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(szQry.toString())) {
+      int qta = 0;
+      while (rs.next()) {
+        if (++qta < ini)
+          continue;
+        if (qta > fin)
+          break;
+        RigaBanca ri = RigaBanca.popolaDaResultSet(rs, dbconn);
+        if (! ri.isValido())
+          getLog().warn("Riga non valida: {}", ri.toStringShort());
+        liMovs.add(ri);
+      }
+    } catch (SQLException e) {
+      getLog().error("Query {}; err={}", getQrySELMov(), e.getMessage(), e);
+    }
+    return liMovs;
+  }
 
   @Override
   public List<String> getListTipoCard() {
@@ -403,6 +897,7 @@ public abstract class SqlGest implements ISQLGest {
     } catch (SQLException e) {
       getLog().error("Query {}; err={}", getQryListANNI(), e.getMessage(), e);
     }
+    Collections.sort(liAnno);
     return liAnno;
   }
 
@@ -421,6 +916,7 @@ public abstract class SqlGest implements ISQLGest {
     }
     if (null == pAnno)
       return liMesi;
+    Collections.sort(liMesi);
     List<String> li2 = liMesi //
         .stream() //
         .filter(s -> s.startsWith(pAnno.toString())) //
@@ -480,15 +976,38 @@ public abstract class SqlGest implements ISQLGest {
     Connection conn = dbconn.getConn();
     Map<String, String> liViews = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     // liViews.put((String)null, null);
-    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(getQryListVIEWS())) {
+    String szQryLiViewa = getQryListVIEWS();
+    try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(szQryLiViewa)) {
       while (rs.next()) {
         String view = rs.getString(1);
         liViews.put(view, String.format(getQryListVIEW_PATT(), EColsTableView.allColumns(), view));
       }
     } catch (SQLException e) {
-      getLog().error("Query {}; err={}", getQryListVIEWS(), e.getMessage(), e);
+      getLog().error("Query {}; err={}", szQryLiViewa, e.getMessage(), e);
     }
     return liViews;
   }
 
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    String szEvtId = evt.getPropertyName();
+    // Object obj = evt.getNewValue();
+    switch (szEvtId) {
+      // devo ricreare/riaprire lo stmt se cambia il filtro
+      case Consts.EVT_OPTZ_FILTR_CHANGE:
+        for (PreparedStatement pst : new PreparedStatement[] { stmtSelMov, stmtDelMov, stmtModMov }) {
+          if (null != pst) {
+            try {
+              pst.close();
+            } catch (SQLException e) {
+              //
+            }
+          }
+        }
+        stmtSelMov = stmtDelMov = stmtModMov = null;
+        break;
+      default:
+        break;
+    }
+  }
 }

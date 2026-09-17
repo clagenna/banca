@@ -44,6 +44,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -55,9 +56,10 @@ import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat;
-import sm.clagenna.banca.dati.CsvFileContainer;
-import sm.clagenna.banca.dati.DataController;
-import sm.clagenna.banca.dati.ImpFile;
+import sm.clagenna.banca.dati.Consts;
+import sm.clagenna.banca.dati.csv.CsvFileContainer;
+import sm.clagenna.banca.dati.csv.CsvImpFile;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
@@ -70,18 +72,25 @@ import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
-import sm.clagenna.stdcla.utils.sys.StackViewer;
 import sm.clagenna.stdcla.utils.sys.ex.DatasetException;
 
+// FIXME se seleziono una query dal combo questa non viene recepita dal DB
+// FIXATO Aggiungere la colonna della decodifica del CodStat (se presente)
 public class ResultView implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(ResultView.class);
 
-  public static final String  CSZ_FXMLNAME          = "ResultView.fxml";
-  private static final String CSZ_PROP_POSRESVIEW_X = "resview.x";
-  private static final String CSZ_PROP_POSRESVIEW_Y = "resview.y";
-  private static final String CSZ_PROP_DIMRESVIEW_X = "resview.lx";
-  private static final String CSZ_PROP_DIMRESVIEW_Y = "resview.ly";
-  private static final String CSZ_QRY_TRUE          = "1=1";
+  public static final String CSZ_FXMLNAME = "ResultView.fxml";
+  //  private static final String     CSZ_PROP_POSRESVIEW_X = "resview.x";
+  //  private static final String     CSZ_PROP_POSRESVIEW_Y = "resview.y";
+  //  private static final String     CSZ_PROP_DIMRESVIEW_X = "resview.lx";
+  //  private static final String     CSZ_PROP_DIMRESVIEW_Y = "resview.ly";
+  private static final String     CSZ_QRY_TRUE = "1=1";
+  private static final String[][] shortcuts    = {                  //
+      { "F5", "Ripeti la ricerca" }, { "Ctrl+S", "Salva query" },   //
+      { "Ctrl+Enter", "Esegui ricerca" },                           //
+      { "Num +", "Su riga di tabella dati - cerca il CodStat" },    //
+      { "Esc", "Chiudi Help" },                                     //
+  };
 
   @FXML
   protected ComboBox<String>  cbTipoBanca;
@@ -129,12 +138,11 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private Scene myScene;
   private Stage lstage;
   //   private AppProperties       m_prQries;
-  private LoadBancaMainApp    m_appmain;
+  private LoadBancaMainApp       m_appmain;
   @Getter
-  private AppProperties       mainProps;
-  private ISQLGest            m_db;
-  private Map<String, String> m_mapQry;
-
+  private AppProperties          mainProps;
+  private ISQLGest               m_db;
+  private Map<String, String>    m_mapQry;
   private Integer                m_fltrAnnoComp;
   private String                 m_fltrMeseComp;
   private String                 m_fltrWhere;
@@ -144,20 +152,26 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private String                 m_qry;
   @Getter @Setter
   private GestResViewQueryParams m_gestQry;
-
-  private TableViewFillerBanca m_tbvf;
-  private Path                 m_CSVfile;
-  private String               m_fltrTipoBanca;
-  private DataController       dataCntrl;
+  private TableViewFillerBanca   m_tbvf;
+  private Path                   m_CSVfile;
+  private String                 m_fltrTipoBanca;
+  private DataModel              model;
   @Getter @Setter
-  private boolean              csvBlankOnZero;
-  private String               m_codStatSel;
-  private boolean              bSemaf;
-  private Double               precDare;
-  private Double               precAvere;
+  private boolean                csvBlankOnZero;
+  private String                 m_codStatSel;
+  private boolean                bSemaf;
+  private boolean                bSemafCercaClick;
+  private Double                 precDare;
+  private Double                 precAvere;
 
   @SuppressWarnings("unused")
   private AutoCompleteComboBoxListener<String> autoCbComp;
+
+  private DBConn dbconn;
+
+  private boolean bBackGrRunning;
+
+  private List<List<Object>> liSelRowsForCodStat;
 
   public ResultView() {
     //
@@ -174,10 +188,11 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addResView(this);
     mainProps = m_appmain.getProps();
-    dataCntrl = m_appmain.getData();
-    dataCntrl.addPropertyChangeListener(this);
+    model = DataModel.getInst();
+    dbconn = model.getDbConn();
+    model.addPropertyChangeListener(this);
 
-    scegliDB(p_props);
+    scegliDB();
     caricaComboTipoBanca();
     caricaComboAnno();
     caricaComboMesecomp();
@@ -201,10 +216,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     abilitaBottoni();
   }
 
-  private void scegliDB(AppProperties p_props) {
-    String szSQLType = p_props.getProperty(AppProperties.CSZ_PROP_DB_Type);
-    m_db = SqlGestFactory.get(szSQLType);
-    m_db.setDbconn(LoadBancaMainApp.getInst().getConnSQL());
+  private void scegliDB() {
+    m_db = SqlGestFactory.get(dbconn.getServerId());
+    m_db.setDbconn(dbconn);
   }
 
   private void caricaComboQrySalvate() {
@@ -235,6 +249,10 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   }
 
   private void caricaComboMesecomp() {
+    if ( !Utils.isValue(m_fltrAnnoComp)) {
+      cbMeseComp.getItems().clear();
+      return;
+    }
     List<String> li = m_db.getListMeseComp(m_fltrAnnoComp);
     cbMeseComp.getItems().clear();
     cbMeseComp.getItems().add((String) null);
@@ -286,23 +304,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       s_log.error("Non trovo lo stage per ResultView");
       return;
     }
-
-    int px = p_props.getIntProperty(CSZ_PROP_POSRESVIEW_X);
-    int py = p_props.getIntProperty(CSZ_PROP_POSRESVIEW_Y);
-    int dx = p_props.getIntProperty(CSZ_PROP_DIMRESVIEW_X);
-    int dy = p_props.getIntProperty(CSZ_PROP_DIMRESVIEW_Y);
-    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
-      lstage.setX(mm.poxX());
-      lstage.setY(mm.posY());
-      lstage.setWidth(mm.width());
-      lstage.setHeight(mm.height());
-
-    }
+    JFXUtils.readPosStage(lstage, p_props, Consts.PROP_POSRESVIEW);
     myScene.addEventFilter(KeyEvent.KEY_PRESSED, ev -> gestKey(ev));
-    URL url = m_appmain.getUrlCSS();
-    if (null != url)
-      myScene.getStylesheets().add(url.toExternalForm());
+    changeSkin();
   }
 
   private void caricaCercaCodStat() {
@@ -316,6 +320,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       stage.initOwner(lstage);
       stage.show();
       CercaCodStat figlio = fxmll.getController();
+      model.setPadreCercaCodstat(myScene);
       figlio.initApp(mainProps);
     } catch (Exception e) {
       s_log.error("Errore caricamento CercaCodStat, msg = {}", e.getMessage(), e);
@@ -324,19 +329,50 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   private Object gestKey(KeyEvent ev) {
     // System.out.printf("ResultView.gestKey(%s)\n", ev.toString());
-    if (/* ev.isControlDown() && */ ev.getCode() == KeyCode.ENTER) {
-      ev.consume();
-      btCercaClick(null);
+
+    switch (ev.getCode()) {
+      case F5:
+        ev.consume();
+        btCercaClick(null);
+        break;
+      case S:
+        if (ev.isControlDown()) {
+          ev.consume();
+          btSaveQueryClick(null);
+        }
+        break;
+      case ENTER:
+        ev.consume();
+        btCercaClick(null);
+        break;
+      case QUOTE:
+        if (ev.isShiftDown()) {
+          ev.consume();
+          // caricaCercaCodStat();
+          LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
+        }
+        break;
+      default:
+        break;
+
     }
     return null;
   }
 
-  private Object tblRigaKeyPressed(KeyEvent e) {
+  private Object tblRigaKeyPressed(KeyEvent p_e) {
     // System.out.printf("ProvaGuess.tblRigaKeyPressed(%s)\n", e.toString());
-    switch (e.getCode()) {
+    switch (p_e.getCode()) {
+      case KeyCode.ADD:
       case KeyCode.PLUS:
-        e.consume();
+        p_e.consume();
         caricaCercaCodStat();
+        break;
+      case QUOTE:
+        if (p_e.isShiftDown()) {
+          p_e.consume();
+          // caricaCercaCodStat();
+          LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
+        }
         break;
       default:
         break;
@@ -346,7 +382,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @Override
   public void changeSkin() {
-    URL url = m_appmain.getUrlCSS();
+    URL url = model.getMainCSS();
     if (null == url || null == myScene)
       return;
     myScene.getStylesheets().clear();
@@ -355,7 +391,6 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @Override
   public void closeApp(AppProperties p_props) {
-    dataCntrl.removePropertyChangeListener(this);
     m_appmain.removeResView(this);
     autoCbComp = null;
     if (null != m_gestQry)
@@ -364,22 +399,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       s_log.error("Il campo Scene risulta = **null**");
       return;
     }
-
-    double px = myScene.getWindow().getX();
-    double py = myScene.getWindow().getY();
-    double dx = myScene.getWindow().getWidth();
-    double dy = myScene.getWindow().getHeight();
-
-    // double splPos = spltPane.getDividerPositions()[0];
-    // String szDiv = String.format("%0.6f", splPos).replace(",", ".");
-    // String szDiv = s_xfmt.format(splPos).replace(",", ".");
-
-    p_props.setProperty(CSZ_PROP_POSRESVIEW_X, (int) px);
-    p_props.setProperty(CSZ_PROP_POSRESVIEW_Y, (int) py);
-    p_props.setProperty(CSZ_PROP_DIMRESVIEW_X, (int) dx);
-    p_props.setProperty(CSZ_PROP_DIMRESVIEW_Y, (int) dy);
-    // p_props.setProperty(CSZ_PROP_SPLITPOS, szDiv);
-
+    JFXUtils.savePosStage(lstage, p_props, Consts.PROP_POSRESVIEW);
+    model.removePropertyChangeListener(this);
   }
 
   @FXML
@@ -391,7 +412,16 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @FXML
   void cbAnnoCompSel(ActionEvent event) {
-    m_fltrAnnoComp = cbAnnoComp.getSelectionModel().getSelectedItem();
+    Integer ii = cbAnnoComp.getSelectionModel().getSelectedItem();
+    if (null == ii) {
+      m_fltrAnnoComp = null;
+      model.setAnnoComp(m_fltrAnnoComp);
+      caricaComboMesecomp();
+      abilitaBottoni();
+      return;
+    }
+    m_fltrAnnoComp = ii;
+    model.setAnnoComp(m_fltrAnnoComp);
     s_log.debug("ResultView.cbAnnoCompSel({}):", m_fltrAnnoComp);
     caricaComboMesecomp();
     abilitaBottoni();
@@ -399,6 +429,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @FXML
   void cbMeseCompSel(ActionEvent event) {
+    if (bSemaf)
+      return;
     m_fltrMeseComp = cbMeseComp.getSelectionModel().getSelectedItem();
     s_log.debug("ResultView.cbMeseCompSel(\"{}\"):", m_fltrMeseComp);
     abilitaBottoni();
@@ -411,6 +443,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       m_qry = null;
     else
       m_qry = m_mapQry.get(szK);
+    model.setComboQuery(m_qry); // ??
     s_log.debug("ResultView.cbQuerySel():" + szK);
     abilitaBottoni();
   }
@@ -452,14 +485,16 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @FXML
   private void btCercaClick(ActionEvent event) {
-    if (bSemaf)
+    // System.out.printf("ResultView.btCercaClick(semaf=%s)\n", Boolean.toString(bSemafCercaClick));
+    // System.out.println(StackViewer.viewStackTrace("btCercaClick()"));
+    if (bSemafCercaClick)
       return;
-    bSemaf = true;
     // chiamando btCercaClick() dal propertyChange( EVT_FILTER_CODSTAT )(piu sotto)
     // ricevo 2 chiamate consecutive !?! Per cui bSema viene spento solo alla fine del thread
     // creaTableResultThread(szQryFltr);
-    //    System.out.println("ResultView.btCercaClick()");
+    //    System.out.printf("ResultView.btCercaClick(semaf=%s)\n", Boolean.toString(bSemafCercaClick));
     //    printStackTrace();
+    bSemafCercaClick = true;
     try {
       if (null != event) {
         if (event.getSource() instanceof String szCodstat) {
@@ -468,7 +503,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         }
       }
     } finally {
-      // bSemaf = false;
+      // bSemafCercaClick = false;
     }
     try {
       String szQryFltr = creaQuery();
@@ -481,7 +516,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     } catch (Exception e) {
       e.printStackTrace();
     } finally {
-      bSemaf = false;
+      bSemafCercaClick = false;
+      // System.out.println("FINE ResultView.btCercaClick()\n");
     }
   }
 
@@ -513,7 +549,14 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   @FXML
   void cbSaveQuerySel(ActionEvent event) {
     // System.out.printf("ResultView.cbSaveQuerySel(%s)\n", cbSaveQuery.getSelectionModel().getSelectedItem());
-    m_gestQry.readQuery(cbSaveQuery.getSelectionModel().getSelectedItem());
+    if (bSemaf)
+      return;
+    try {
+      bSemaf = true;
+      m_gestQry.readQuery(cbSaveQuery.getSelectionModel().getSelectedItem());
+    } finally {
+      bSemaf = false;
+    }
   }
 
   @FXML
@@ -530,12 +573,24 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
   @FXML
   void btAssignCodStatClick(ActionEvent event) {
+    // s_log.debug("ResultView.btAssignCodStatClick() - codStatSel={}", m_codStatSel);
+    // System.out.println(StackViewer.viewStackTrace("btAssignCodStatClick()"));
     if ( !Utils.isValue(m_codStatSel))
       return;
-    ObservableList<List<Object>> li = tblview.getSelectionModel().getSelectedItems();
-    if (null == li || li.size() == 0) {
-      s_log.debug("Nessun record selezionato per l'assegnamento di {}", m_codStatSel);
+    ObservableList<List<Object>> locLi = tblview.getSelectionModel().getSelectedItems();
+    if (null == locLi || locLi.size() == 0) {
+      String szMsg = String.format("Nessun record selezionato per l'assegnamento di %s", m_codStatSel);
+      s_log.debug(szMsg);
+      MessageDialog.messageDialog(AlertType.WARNING, szMsg);
+      liSelRowsForCodStat = null;
       return;
+    }
+    // faccio una copia dei table row selezionati sulla ResView
+    liSelRowsForCodStat = new ArrayList<List<Object>>();
+    for (List<Object> el : locLi) {
+      List<Object> tmp = new ArrayList<Object>();
+      tmp.addAll(el);
+      liSelRowsForCodStat.add(tmp);
     }
     Platform.runLater(() -> {
       lstage.getScene().setCursor(Cursor.WAIT);
@@ -544,7 +599,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     // System.out.printf("ResultView.btAssignCodStatClick(sel=%d)\n", li.size());
     try {
       m_db.beginTrans();
-      for (List<Object> elem : li) {
+      for (List<Object> elem : liSelRowsForCodStat) {
         RigaBanca riga = RigaBanca.parse(elem);
         riga.setCodstat(m_codStatSel);
         m_db.updateCodStat(riga);
@@ -553,12 +608,14 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     } finally {
       m_db.commitTrans();
     }
-    s_log.info("Aggegnato cod. stat. {} a {} records", m_codStatSel, li.size());
-    btCercaClick(null);
+    s_log.info("Aggegnato cod. stat. {} a {} records", m_codStatSel, liSelRowsForCodStat.size());
     Platform.runLater(() -> {
-      lstage.getScene().setCursor(Cursor.DEFAULT);
       btAssignCodStat.setDisable(false);
+      lstage.getScene().setCursor(Cursor.DEFAULT);
+      btCercaClick(null);
     });
+
+    // s_log.debug("END -- btAssignCodStatClick() (lanciato btCercaClick() alla fine)");
   }
 
   @FXML
@@ -607,7 +664,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     // System.out.println(StackViewer.viewStackTrace("ResultView.creaTableResultThread()"));
     TableViewFiller.setNullRetValue("");
 
-    m_tbvf = new TableViewFillerBanca(tblview, m_appmain.getConnSQL());
+    m_tbvf = new TableViewFillerBanca(tblview, dbconn);
 
     // m_tbvf.setResView(this);
     if (fltrParolaRegEx) {
@@ -626,28 +683,28 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     try {
       m_tbvf.setOnRunning(_ -> {
         s_log.debug("TableViewFiller task running...");
+        // System.out.println(StackViewer.viewStackTrace("Res View"));
       });
       m_tbvf.setOnSucceeded(_ -> {
         s_log.debug("TableViewFiller task Finished!");
         Platform.runLater(() -> {
-          lstage.getScene().setCursor(Cursor.DEFAULT);
-          btCerca.setDisable(false);
-          btExportCsv.setDisable(false);
-          bSemaf = false;
+          abilitaButtEselRows();
         });
       });
       m_tbvf.setOnFailed(_ -> {
         s_log.debug("TableViewFiller task failure");
         Platform.runLater(() -> {
-          lstage.getScene().setCursor(Cursor.DEFAULT);
-          btCerca.setDisable(false);
-          btExportCsv.setDisable(false);
-          bSemaf = false;
+          abilitaButtEselRows();
         });
       });
-      backGrService.execute(m_tbvf);
+      if ( !bBackGrRunning) {
+        backGrService.execute(m_tbvf);
+        bBackGrRunning = true;
+      }
     } catch (Exception e) {
       s_log.error("Errore task TableViewFiller");
+    } finally {
+      bBackGrRunning = false;
     }
     bSemaf = false;
     backGrService.shutdown();
@@ -677,16 +734,79 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     tblview.setOnKeyPressed(e -> tblRigaKeyPressed(e));
   }
 
+  private void abilitaButtEselRows() {
+    lstage.getScene().setCursor(Cursor.DEFAULT);
+    btCerca.setDisable(false);
+    btExportCsv.setDisable(false);
+    bSemaf = false;
+    bBackGrRunning = false;
+
+    if (null == liSelRowsForCodStat || liSelRowsForCodStat.size() == 0) {
+      liSelRowsForCodStat = null;
+      return;
+    }
+    TableViewSelectionModel<List<Object>> selmod = tblview.getSelectionModel();
+    liSelRowsForCodStat.forEach(c -> vediESelezionaLaRigaGiusta(selmod, c));
+
+  }
+
+  private Object vediESelezionaLaRigaGiusta(TableViewSelectionModel<List<Object>> selmod, List<Object> c) {
+    int k = 0;
+    for (List<Object> aa : tblview.getItems()) {
+      k++;
+      int coln = EColsTableView.tipo.getColNo();
+      String tabTipo = (String) aa.get(coln);
+      String mioTipo = (String) c.get(coln);
+      if ( !Utils.isValueEq(tabTipo, mioTipo))
+        continue;
+
+      coln = EColsTableView.dtmov.getColNo();
+      String tabDtMov = (String) aa.get(coln);
+      String mioDtMov = (String) c.get(coln);
+      if ( !Utils.isValueEq(tabDtMov, mioDtMov))
+        continue;
+      // passando a SQLite qui mi torna un Float invece che un Double ?!?
+      coln = EColsTableView.dare.getColNo();
+      var vvDare = aa.get(coln);
+      Double tabDare = (vvDare instanceof Float) ? ((Float) vvDare).doubleValue() : (Double) vvDare;
+      vvDare = c.get(coln);
+      Double mioDare = (vvDare instanceof Float) ? ((Float) vvDare).doubleValue() : (Double) vvDare;
+      if ( !Utils.isValueEq(tabDare, mioDare))
+        continue;
+
+      coln = EColsTableView.avere.getColNo();
+      var vvAvere = aa.get(coln);
+      Double tabAvere = (vvAvere instanceof Float) ? ((Float) vvAvere).doubleValue() : (Double) vvAvere;
+      vvAvere = c.get(coln);
+      Double mioAvere = (vvAvere instanceof Float) ? ((Float) vvAvere).doubleValue() : (Double) vvAvere;
+      if ( !Utils.isValueEq(tabAvere, mioAvere))
+        continue;
+
+      coln = EColsTableView.descr.getColNo();
+      String tabDescr = (String) aa.get(coln);
+      String mioDescr = (String) c.get(coln);
+      if ( !Utils.isValueEq(tabDescr, mioDescr))
+        continue;
+      selmod.select(k - 1);
+      break;
+    }
+    return null;
+  }
+
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
     // System.out.printf("ResultView.propertyChange(\"%s=%s\")\n", evt.getPropertyName(), evt.getNewValue().toString());
     String szEvt = evt.getPropertyName();
     switch (szEvt) {
 
-      case DataController.EVT_CODSTAT:
+      case Consts.EVT_CHANGESKIN:
+        changeSkin();
+        break;
+
+      case Consts.EVT_CODSTAT_STRING:
         m_codStatSel = evt.getNewValue().toString();
         Platform.runLater(() -> {
-          DataController data = m_appmain.getData();
+          DataModel data = m_appmain.getModel();
           CodStat cds = data.getCodStatData().find(m_codStatSel);
           String szLb = "...";
           if (null != cds)
@@ -697,7 +817,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         });
         break;
 
-      case DataController.EVT_FILTER_CODSTAT:
+      case Consts.EVT_FILTER_CODSTAT:
         if (evt.getNewValue() instanceof CodStat cds) {
           String szFltrCodstat = cds.getCodice();
           ActionEvent nevt = new ActionEvent(szFltrCodstat, null);
@@ -705,7 +825,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         }
         break;
 
-      case DataController.EVT_DATASET_CREATED:
+      case Consts.EVT_DATASET_CREATED:
         if (evt.getNewValue() instanceof Integer nv) {
           var fmt = NumberFormat.getInstance(Locale.getDefault());
           String szMsg = String.format("Letti %s recs", fmt.format(nv));
@@ -713,12 +833,39 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         }
         break;
 
-      case DataController.EVT_SELCODSTAT:
+      case Consts.EVT_CERCACODSTAT:
+        // FIXATO dare seguito all'evento solo se *NON* e' aperta la GuessCodStatView
+        //        if (myScene.focusOwnerProperty().get() instanceof TableView<?> tbl) {
+        //          if (tbl == tblview) {
+        //            System.out.println("ResultView. EVT_CERCACODSTAT - Focus sulla TableView");
+        //            break;
+        //          }
+        //        }
+        // if ( !LoadBancaMainApp.getInst().isGuessCodStatViewOpened()) {
+        if (model.isPadreCercaCodstat(myScene)) {
+          if (evt.getNewValue() instanceof CodStat cds) {
+            m_codStatSel = cds.getCodice();
+            String szLb = "...";
+            if (null != cds)
+              szLb = cds.getDescr();
+            btAssignCodStat.setText(m_codStatSel);
+            lbAssignCodStat.setText(szLb);
+            btAssignCodStatClick(null);
+          }
+        }
+
+        break;
+      case Consts.EVT_SELCODSTAT:
         if (evt.getNewValue() instanceof CodStat cds) {
           m_codStatSel = cds.getCodice();
           btAssignCodStatClick(null);
         }
         break;
+
+      case Consts.EVT_APP_CLOSE:
+        closeApp(mainProps);
+        break;
+
     }
   }
 
@@ -736,9 +883,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       s_log.warn("IdFile = {} sulla Table", EColsTableView.idfile.toString());
       return;
     }
-    Path lastd = dataCntrl.getLastDir();
-    CsvFileContainer csvf = dataCntrl.getContCsv();
-    ImpFile impf = csvf.getFromIndex(iidFil);
+    Path lastd = model.getLastDir();
+    CsvFileContainer csvf = model.getContCsv();
+    CsvImpFile impf = csvf.getFromIndex(iidFil);
     if (null == impf) {
       s_log.warn("IdFile = {} non memorizzato ?", iidFil);
       return;
@@ -790,7 +937,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     // rl.isLanciaExc())
     //      lanciaExcel2();
     String szMsg = String.format("Creato il file di export CSV : %s", m_CSVfile.toString());
-    m_appmain.messageDialog(AlertType.INFORMATION, szMsg);
+    MessageDialog.messageDialog(AlertType.INFORMATION, szMsg);
     abilitaBottoni();
   }
 
