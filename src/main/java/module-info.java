@@ -23,5 +23,6 @@ open module banca {
   requires lombok;
   requires org.apache.opennlp.tools;
   requires org.apache.logging.log4j;
+  requires java.base;
  
 }

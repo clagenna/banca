@@ -32,6 +32,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -65,6 +66,7 @@ import sm.clagenna.banca.dati.Consts;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.Versione;
 import sm.clagenna.banca.dati.csv.CsvImpFile;
+import sm.clagenna.banca.dati.csv.CsvImportBanca;
 import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
@@ -692,6 +694,33 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     backGrService.shutdown();
     reloadListFilesCSV();
   
+  }
+
+  private synchronized void setSemafore(int nTask) {
+    // nTask : 1 - start, 0 - finish
+    switch (nTask) {
+      case 0:
+        if (qtaActiveTasks > 0)
+          qtaActiveTasks--;
+        else
+          System.err.println("Active Tasks < 0 !");
+        if (qtaActiveTasks == 0) {
+          Platform.runLater(() -> {
+            getStage().getScene().setCursor(Cursor.DEFAULT);
+            btConvCSV.setDisable(false);
+          });
+        }
+        break;
+      case 1:
+        qtaActiveTasks++;
+        if (qtaActiveTasks == 1) {
+          Platform.runLater(() -> {
+            getStage().getScene().setCursor(Cursor.WAIT);
+            btConvCSV.setDisable(true);
+          });
+        }
+        break;
+    }
   }
 
   private void showFileDoc() {

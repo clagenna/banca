@@ -21,6 +21,8 @@ import org.apache.logging.log4j.Logger;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import sm.clagenna.banca.dati.csv.CsvFileContainer;
 import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
@@ -38,6 +40,8 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(DataModel.class);
 
   private static DataModel inst;
+  @Getter @Setter
+  private static boolean   junit = false;
 
   private PropertyChangeSupport propsChange;
   private String                propsFile;
@@ -348,6 +352,13 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       }
     }
     return p_stmt;
+  }
+  
+  public boolean scartaVoce(String descr) {
+    if (descr == null)
+      return true;
+    String sz = descr.trim().toLowerCase();
+    return scartaVoci.contains(sz);
   }
 
   public void setSkin(String pSk) {
