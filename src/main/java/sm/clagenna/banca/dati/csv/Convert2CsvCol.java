@@ -13,6 +13,13 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
+/**
+ * Classe che rappresenta la mappatura di una colonna del file CSV 
+ * verso un campo della tabella RigaBanca
+ * 
+ * @author clagenna
+ *
+ */
 @Data
 public class Convert2CsvCol {
 

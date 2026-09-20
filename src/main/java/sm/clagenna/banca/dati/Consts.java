@@ -34,6 +34,36 @@ public class Consts {
   public static final String COL_MOV_CodStat   = "codstat";
   public static final String COL_MOV_IdCodStat = "idcodstat";
 
+  // FIXME questa fa lo stesso di ConvertCsv2RigaBanca analizzaBanca per AMAZON con cnvRb.readConvProperties(pthCols);
+  /**
+   * mappa delle colonne std con quali stringhe sono associate nelle
+   * intestazioni dei vari files CSV
+   */
+  @Getter
+  public static final Map<EColsTableView, List<String>> nomiCols;
+  static {
+    nomiCols = new HashMap<>();
+    nomiCols.put(EColsTableView.tipo, //
+        Arrays.asList(new String[] { EColsTableView.tipo.toString(), "tipo", "" }));
+    nomiCols.put(EColsTableView.dtmov, //
+        Arrays.asList(new String[] { EColsTableView.dtmov.toString(), "Dat	a di inizio", "Data transazione", "Created on", "data",
+            "Date", "Ship Date", "Order Date"  }));
+    nomiCols.put(EColsTableView.dtval, //
+        Arrays.asList(new String[] { EColsTableView.dtval.toString(), "Data di completamento", "Data contabile", "Finished on",
+            "valuta", "Value", "" }));
+    nomiCols.put(EColsTableView.dare, //
+        Arrays.asList(new String[] { EColsTableView.dare.toString(), "importo", "DEBIT", "Amount", "Source amount (after fees)",
+            "Addebiti", "total", "Total Owed" }));
+    nomiCols.put(EColsTableView.avere, //
+        Arrays.asList(new String[] { EColsTableView.avere.toString(), "*no*", "*no*", "CREDIT", "Accrediti", "refund" }));
+    nomiCols.put(EColsTableView.descr, //
+        Arrays.asList(new String[] { EColsTableView.descr.toString(), "causale", "descrizione", "TRANSACTION CODE", "Target name",
+            "Esercente", "Merchant", "name", "type", "items", "Product Name" }));
+    nomiCols.put(EColsTableView.abicaus, //
+        Arrays.asList(new String[] { "causabi", "ABI REASON CODE", "causale abi", "categoria", "ID" }));
+
+  }
+
   /**
    * Proprieta nel Properties file
    */
@@ -96,6 +126,8 @@ public class Consts {
   /**
    * Costanti per i tipi banca
    */
+  public static final String CSZ_FILE_PROPERTY_COLS = "%s_cols.properties";
+
   public static final String BANCA_AMAZON        = "amzn";
   public static final String BANCA_AMAZONL       = "amazon";
   public static final String BANCA_BSI           = "bsi";
@@ -109,35 +141,6 @@ public class Consts {
   public static final String BANCA_REVOLUT       = "revolut";
   public static final String BANCA_SMAC          = "smac";
   public static final String BANCA_WISE          = "wise";
-
-  /**
-   * mappa delle colonne std con quali stringhe sono associate nelle
-   * intestazioni dei vari files CSV
-   */
-  @Getter
-  public static final Map<EColsTableView, List<String>> nomiCols;
-  static {
-    nomiCols = new HashMap<>();
-    nomiCols.put(EColsTableView.tipo, //
-        Arrays.asList(new String[] { EColsTableView.dtmov.toString(), "tipo", "" }));
-    nomiCols.put(EColsTableView.dtmov, //
-        Arrays.asList(new String[] { EColsTableView.dtmov.toString(), "Data di inizio", "Data transazione", "Created on", "data",
-            "Date", "" }));
-    nomiCols.put(EColsTableView.dtval, //
-        Arrays.asList(new String[] { EColsTableView.dtval.toString(), "Data di completamento", "Data contabile", "Finished on",
-            "valuta", "Value", "" }));
-    nomiCols.put(EColsTableView.dare, //
-        Arrays.asList(new String[] { EColsTableView.dare.toString(), "importo", "DEBIT", "Amount", "Source amount (after fees)",
-            "Addebiti" }));
-    nomiCols.put(EColsTableView.avere, //
-        Arrays.asList(new String[] { EColsTableView.avere.toString(), "*no*", "*no*", "CREDIT", "Accrediti" }));
-    nomiCols.put(EColsTableView.descr, //
-        Arrays.asList(new String[] { EColsTableView.descr.toString(), "causale", "descrizione", "TRANSACTION CODE", "Target name",
-            "Esercente", "Merchant" }));
-    nomiCols.put(EColsTableView.abicaus, //
-        Arrays.asList(new String[] { "causabi", "ABI REASON CODE", "causale abi", "categoria", "ID" }));
-
-  }
 
   /**
    * Queries

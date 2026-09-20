@@ -67,6 +67,7 @@ import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.Versione;
 import sm.clagenna.banca.dati.csv.CsvImpFile;
 import sm.clagenna.banca.dati.csv.CsvImportBanca;
+import sm.clagenna.banca.dati.csv.CsvImportBancaFactory;
 import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
@@ -648,12 +649,10 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     ExecutorService backGrService = Executors.newFixedThreadPool(model.getQtaThreads());
     btConvCSV.setDisable(true);
     for (CsvImpFile impf : sels) {
-      CsvImportBanca csvimp = new CsvImportBanca();
+      CsvImportBanca csvimp = CsvImportBancaFactory.getCsvImportBanca(impf.getTipoBanca());
       try {
         csvimp.addPropertyChangeListener(this);
-        csvimp.setCsvFile(impf.fullPath(model.getLastDir()));
-        // lbProgressione.textProperty().bind(csvimp.messageProperty());
-        // prgrb.setProgress(0);
+        csvimp.setCsvImpFile(impf);
         prgrb.progressProperty().unbind();
         prgrb.progressProperty().bind(csvimp.progressProperty());
 
@@ -664,27 +663,14 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         csvimp.setOnSucceeded(_ -> {
           // System.out.println("LoadBancaController.eseguiConversioneRunTask() SUCCEDED");
           setSemafore(0);
-          //          try {
-          //            csvimp.close();
-          //          } catch (Exception e) {
-          //            e.printStackTrace();
-          //          }
           s_log.info("Fine del Task Background per {}", impf.toString());
         });
         csvimp.setOnFailed(ev -> {
           setSemafore(0);
-          //          try {
-          //            csvimp.close();
-          //          } catch (Exception e) {
-          //            e.printStackTrace();
-          //          }
           Throwable ex = ev.getSource().getException();
           s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
         });
         csvimp.setConnSql(model.getDbConn());
-        //        prgrb.setProgress(0);
-        //        prgrb.progressProperty().unbind();
-        //        prgrb.progressProperty().bind(csvimp.progressProperty());
         backGrService.execute(csvimp);
       } catch (Exception e) {
         lbProgressione.textProperty().unbind();

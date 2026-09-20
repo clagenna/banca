@@ -23,6 +23,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.ETipoBanca;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.stdcla.utils.ParseData;
@@ -48,8 +49,10 @@ public class CsvImpFile implements Cloneable {
   @Getter
   private ETipoBanca    tipoBanca;
   /** nome del file semplice */
+  //  @Getter
+  //  private String        fileName;
   @Getter
-  private String        fileName;
+  private Path          pathName;
   /** directory relativa al file rispetto alla radice */
   @Getter
   private String        relDir;
@@ -136,24 +139,30 @@ public class CsvImpFile implements Cloneable {
     return assignPath(Paths.get(rad), Paths.get(pth));
   }
 
+  public String getFileName() {
+    return null != pathName ? pathName.getFileName().toString() : null;
+  }
+
   public CsvImpFile assignPath(Path rad, Path pth) {
-    fileName = pth.getFileName().toString();
-
-    //    int n1 = rad.toString().length() + 1;
-    //    int n2 = pth.toString().indexOf(fileName.toString());
-    //    if (n2 - n1 <= 0)
-    //      relDir = ".";
-    //    else
-    //      relDir = pth.toString().substring(n1, n2 - 1);
-
+    pathName = pth;
+    String fileName = getFileName();
     String ss = File.separator;
     String szRelRadice = String.format("%s%s%s", ss, rad.getFileName().toString(), ss);
-    String szFullFile = pth.toAbsolutePath().toString();
+    relDir = ".";
+    Path pthFullFile = pth.toAbsolutePath();
+    Path pthParent = pthFullFile.getParent();
+    if (null == pthParent)
+      pthParent = Paths.get(relDir);
+    String szParent = pthParent.getFileName().toString();
+    tipoBanca = ETipoBanca.parse(szParent);
+    if (null == tipoBanca)
+      tipoBanca = ETipoBanca.parse(fileName);
+
+    String szFullFile = pthFullFile.toString();
     int n1 = szFullFile.indexOf(szRelRadice);
     int n2 = n1 + szRelRadice.length();
-    int n3 = szFullFile.length() - fileName.length() - 1;
+    int n3 = szFullFile.length() - getFileName().length() - 1;
 
-    relDir = ".";
     if (n2 < n3)
       relDir = szFullFile.substring(n2, n3);
     setInFileSystem(Files.exists(pth));
@@ -173,7 +182,15 @@ public class CsvImpFile implements Cloneable {
     return this;
   }
 
+  public Path fullPath() {
+    return fullPath(null);
+  }
+
   public Path fullPath(Path basePath) {
+    if (null == basePath) {
+      DataModel model = DataModel.getInst();
+      return Paths.get(model.getLastDir().toString() , getRelDir(), getFileName());
+    }
     return Paths.get(basePath.toString(), getRelDir(), getFileName());
   }
 
@@ -191,7 +208,7 @@ public class CsvImpFile implements Cloneable {
   }
 
   public SimpleStringProperty getOFileName() {
-    oFileName.set(fileName);
+    oFileName.set(getFileName());
     return oFileName;
   }
 
@@ -252,7 +269,7 @@ public class CsvImpFile implements Cloneable {
     CsvImpFile lf = new CsvImpFile();
     lf.id = id;
     lf.tipoBanca = tipoBanca;
-    lf.fileName = fileName;
+    lf.pathName = pathName;
     lf.relDir = relDir;
     lf.size = size;
     lf.qtarecs = qtarecs;
@@ -269,7 +286,14 @@ public class CsvImpFile implements Cloneable {
     String sr = fmt.format(qtarecs);
     String tpb = hasTipoBanca() ? tipoBanca.name() : "*nul*";
     String szCrea = ParseData.formatDate(ultagg);
-    String szRet = String.format("(%s,%d)\"%s/%s\"(%s:%s) recs=%s", tpb, id, relDir, fileName, sz, szCrea, sr);
+    String szTipId = String.format("(%s/%d)", tpb, id);
+    String szRet = String.format("%-20s\t\"%s/%s\"\t(%s:%s) recs=%s" //
+        , szTipId //
+        , relDir //
+        , getFileName() //
+        , sz //
+        , szCrea //
+        , sr);
     String szMin = ParseData.formatDate(dtmin);
     String szMax = ParseData.formatDate(dtmax);
     szRet += String.format(" [%s < %s]", szMin, szMax);
@@ -285,9 +309,9 @@ public class CsvImpFile implements Cloneable {
     //      return false;
     //    if ( !id.equals(other.id))
     //      return false;
-    if ( !Utils.isValue(fileName) || !Utils.isValue(other.fileName))
+    if ( !Utils.isValue(getFileName()) || !Utils.isValue(other.getFileName()))
       return false;
-    if ( !fileName.equals(other.fileName))
+    if ( !getFileName().equals(other.getFileName()))
       return false;
     //    if ( !Utils.isValue(relDir) || !Utils.isValue(other.relDir))
     //      return false; 
@@ -316,7 +340,7 @@ public class CsvImpFile implements Cloneable {
   }
 
   public void setFileName(String fi) {
-    fileName = fi;
+    pathName = Paths.get(fi);
     oFileName.set(fi);
   }
 
@@ -373,6 +397,7 @@ public class CsvImpFile implements Cloneable {
   }
 
   public void garbleName(Path p_based) {
+    String fileName = getFileName();
     String szOld = String.format("%s\\%s\\%s", p_based.toString(), relDir, fileName);
     String szNew = String.format("%s\\%s\\XEliminato_%s", p_based.toString(), relDir, fileName);
     try {

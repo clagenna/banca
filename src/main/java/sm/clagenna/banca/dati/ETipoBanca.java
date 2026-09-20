@@ -22,20 +22,24 @@ public enum ETipoBanca {
   static {
     s_map = new TreeMap<>(new ETipoBancaComparator());
     for (ETipoBanca t : ETipoBanca.values()) {
-      for (String s : t.appellativo) {
+      for (String s : t.appellativi) {
         s_map.put(s, t);
       }
     }
   }
 
-  private String[] appellativo;
+  private String[] appellativi;
 
-  private ETipoBanca(String... apellativo) {
-    this.appellativo = apellativo;
+  private ETipoBanca(String... p_apellativi) {
+    this.appellativi = p_apellativi;
   }
 
-  public String[] getAppellativo() {
-    return appellativo;
+  public String[] getAppellativi() {
+    return appellativi;
+  }
+
+  public String getAppellativo() {
+    return appellativi[0];
   }
 
   public static ETipoBanca parse(Path p) {
@@ -44,13 +48,29 @@ public enum ETipoBanca {
     return parse(p.getFileName().toString());
   }
 
+  /**
+   * Ritorna il tipo di banca in base al nome del file o alla stringa passata
+   * come parametro. Viene cercato l'<b>appellativo</b> nella stringa passata.
+   * Se non trova corrispondenza ritorna null.
+   *
+   * @param s
+   *          Stringa da analizzare
+   * @return ETipoBanca corrispondente, null se non trova corrispondenza
+   */
   public static ETipoBanca parse(String s) {
     ETipoBanca ret = null;
     if (null == s || s.isEmpty() || s.length() < 2)
       return ret;
     String s1 = s.toLowerCase();
     for (String chiave : s_map.keySet()) {
-      if (s1.contains(chiave)) {
+      if ( s1.equals(chiave)) {
+        ret = s_map.get(chiave);
+        break;
+      }
+      // cerco la chiave con "_" davanti e dietro, forse, '_','-',' ' 
+      // per evitare di prendere "carisp" in "carispcredit"
+      String k2 = ".*_" + chiave + "[_\\- ]*.*";
+      if (s1.matches(k2)) {
         ret = s_map.get(chiave);
         break;
       }

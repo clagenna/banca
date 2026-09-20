@@ -20,7 +20,50 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 
 /**
- * Convertitore di riga CSV a {@link RigaBanca}<br/>
+ * Convertitore di riga CSV (DtsRow di un Dataset di un file CSV) a
+ * {@link RigaBanca}<br/>
+ * Prima viene letto un file di properties che contiene le informazioni di
+ * conversione, e.g:<br/>
+ * Esempio di file properties per la ditta Amazon, con le colonne del CSV che
+ * vengono mappate verso i campi di {@link RigaBanca}
+ *
+ * <pre>
+ * # ----- Costanti Generiche -------------------------------
+ * # tipo di export CSV
+ * tipo    = amzn
+ * # il delim di campi di default nel file
+ * amzn.csvDelim    = ,
+ * # In emissione converto i valori zero in blank
+ * amzn.blankOnZero = true
+ * # causale di default
+ * amzn.env.abicaus = amazon
+ * # se rappresentano costi di gestione
+ * amzn.env.costo   = 0
+ * # cod. statistico di default
+ * amzn.env.codstat = 10.01
+ * # ---- Elenco delle Colonne -------------------------------------
+ * # Colonna RigaBanca N.00
+ * amzn.col_00.name=tipo
+ * amzn.col_00.value=amzn
+ *
+ * # Colonna RigaBanca N.01
+ * amzn.col_01.name=dtmov
+ * amzn.col_01.type=timestamp
+ * # qui posso specificare diversi nomi di colonna sorgente
+ * # infatti gli estratti delle grosse ditte spesso cambiano il nome
+ * amzn.col_01.colfrom=date;Ship Date
+ *
+ * # Colonna RigaBanca N.02
+ * amzn.col_02.name=dtval
+ * amzn.col_02.type=timestamp
+ * amzn.col_02.colfrom=date;Ship Date
+ *
+ * # Colonna RigaBanca N.03
+ * amzn.col_03.name=dare
+ * amzn.col_03.type=double
+ * amzn.col_03.colfrom=total;Total Owed
+ * </pre>
+ *
  * Dato un {@link Dataset} contenente le colonne del CSV questa classe, con la
  * {@link #assign(RigaBanca, DtsRow)}
  * <ol>
@@ -33,8 +76,6 @@ import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
  */
 public class ConvertCsv2RigaBanca {
   static final Logger s_log = LogManager.getLogger(ConvertCsv2RigaBanca.class);
-
-  public static final String CSZ_FILE_COLS = "%s_cols.properties";
 
   @Getter @Setter
   private String               tipo;
@@ -51,23 +92,6 @@ public class ConvertCsv2RigaBanca {
 
   public ConvertCsv2RigaBanca(String pTipo) {
     //
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("Tipo=").append(tipo);
-    sb.append("\n\t").append("scvd=").append(csvDelim);
-    sb.append("\n\t").append("Blk0=").append(blankOnZero ? "blank" : "zero");
-    sb.append("\n\t").append("RBanca=").append(null == rigb ? "_" : rigb.toString());
-    if (null == env || env.size() == 0)
-      return sb.toString();
-    sb.append("\n\t---- env vars ---\n\t\t");
-    sb.append(env.entrySet() //
-        .stream() //
-        .map(e -> String.format("%-20s= %s", e.getKey(), e.getValue())) //
-        .collect(Collectors.joining("\n\t\t")));
-    return sb.toString();
   }
 
   public void readConvProperties(Path p_pth) {
@@ -142,5 +166,22 @@ public class ConvertCsv2RigaBanca {
     for (Convert2CsvCol cc : convCols)
       cc.assign(p_rb, P_row);
     return p_rb;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Tipo=").append(tipo);
+    sb.append("\n\t").append("scvd=").append(csvDelim);
+    sb.append("\n\t").append("Blk0=").append(blankOnZero ? "blank" : "zero");
+    sb.append("\n\t").append("RBanca=").append(null == rigb ? "_" : rigb.toString());
+    if (null == env || env.size() == 0)
+      return sb.toString();
+    sb.append("\n\t---- env vars ---\n\t\t");
+    sb.append(env.entrySet() //
+        .stream() //
+        .map(e -> String.format("%-20s= %s", e.getKey(), e.getValue())) //
+        .collect(Collectors.joining("\n\t\t")));
+    return sb.toString();
   }
 }

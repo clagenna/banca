@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import sm.clagenna.banca.dati.Consts;
 import sm.clagenna.banca.dati.ETipoBanca;
@@ -37,7 +37,7 @@ public class ProvaETipoBancaImpFile {
   private DBConn   dbConn;
   private ISQLGest sqlgest;
 
-  @Before
+  @BeforeEach
   public void initApp() {
     openProperties();
     openDb();
