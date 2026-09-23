@@ -91,9 +91,12 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @FXML
   private Button    btCercaDir;
   @FXML
-  private SplitPane spltPane;
-  private double    spltDivPos;
+  private Button    btConvCSV;
 
+  // ----------------- Split Pane con DataView ----------------
+  @FXML
+  private SplitPane                       spltPane;
+  private double                          spltDivPos;
   @FXML
   private TableView<CsvImpFile>           tblvFiles;
   private TableColumn<CsvImpFile, String> colId;
@@ -105,9 +108,6 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private TableColumn<CsvImpFile, String> colDtmin;
   private TableColumn<CsvImpFile, String> colDtmax;
   private TableColumn<CsvImpFile, String> colUltagg;
-
-  @FXML
-  private Button btConvCSV;
 
   // --------  LOG4J Panel con TableView  ----------------
   @FXML
@@ -147,6 +147,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private ConfOpzioniController cntrlConfOpz;
   private ViewContanti          cntrViewContanti;
   private SovrapposView         cntrViewSovrapp;
+  private ExecutorService       backGrService;
 
   @Override
   public void initialize(URL location, ResourceBundle resources) {
@@ -420,7 +421,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     tblvFiles.setContextMenu(menu);
     tblvFiles.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     btConvCSV.setDisable(false);
-
+    tblvFiles.refresh();
     s_log.debug("Ricaricata lista files dal dir \"{}\"", model.getLastDir().toString());
   }
 
@@ -642,44 +643,51 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   }
 
   private void eseguiConversioneRunTask() {
-    System.out.println("LoadBancaController.eseguiConversioneRunTask()");
+    s_log.info("esegui Conversione CSV in BackGround con RunTask()");
     qtaActiveTasks = 0;
     ObservableList<CsvImpFile> sels = tblvFiles.getSelectionModel().getSelectedItems();
     s_log.debug("conversione di {} CSV in background con {} threads", sels.size(), model.getQtaThreads());
-    ExecutorService backGrService = Executors.newFixedThreadPool(model.getQtaThreads());
+    backGrService = Executors.newFixedThreadPool(model.getQtaThreads());
     btConvCSV.setDisable(true);
-    for (CsvImpFile impf : sels) {
-      CsvImportBanca csvimp = CsvImportBancaFactory.getCsvImportBanca(impf.getTipoBanca());
-      try {
-        csvimp.addPropertyChangeListener(this);
-        csvimp.setCsvImpFile(impf);
-        prgrb.progressProperty().unbind();
-        prgrb.progressProperty().bind(csvimp.progressProperty());
-
-        csvimp.setOnRunning(_ -> {
-          // System.out.println("LoadBancaController.eseguiConversioneRunTask() RUNNING");
-          setSemafore(1);
-        });
-        csvimp.setOnSucceeded(_ -> {
-          // System.out.println("LoadBancaController.eseguiConversioneRunTask() SUCCEDED");
-          setSemafore(0);
-          s_log.info("Fine del Task Background per {}", impf.toString());
-        });
-        csvimp.setOnFailed(ev -> {
-          setSemafore(0);
-          Throwable ex = ev.getSource().getException();
-          s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
-        });
-        csvimp.setConnSql(model.getDbConn());
-        backGrService.execute(csvimp);
-      } catch (Exception e) {
-        lbProgressione.textProperty().unbind();
-        s_log.error("Errore {} file {}", e.getMessage(), impf.toString(), e);
-      }
-    }
+    sels.forEach(impf -> doBackgroundWork(impf));
+    //    for (CsvImpFile impf : sels) {
+    //      doBackgroundWork(impf);
+    //    }
+    System.out.println("---> FINE eseguiConversioneRunTask()");
     backGrService.shutdown();
-    reloadListFilesCSV();
-  
+    // qui non funziona correttamente il refresh della listView, quindi lo faccio fare al termine del task
+    // Platform.runLater(() -> reloadListFilesCSV());
+  }
+
+  private void doBackgroundWork(CsvImpFile impf) {
+    CsvImportBanca csvimp = CsvImportBancaFactory.getCsvImportBanca(impf.getTipoBanca());
+    try {
+      csvimp.addPropertyChangeListener(this);
+      csvimp.setCsvImpFile(impf);
+      prgrb.progressProperty().unbind();
+      prgrb.progressProperty().bind(csvimp.progressProperty());
+
+      csvimp.setOnRunning(_ -> {
+        // System.out.println("LoadBancaController.eseguiConversioneRunTask() RUNNING");
+        setSemafore(1);
+      });
+      csvimp.setOnSucceeded(_ -> {
+        // System.out.println("LoadBancaController.eseguiConversioneRunTask() SUCCEDED");
+        setSemafore(0);
+        Platform.runLater(() -> reloadListFilesCSV());
+        s_log.info("Fine del Task Background per {}", impf.toString());
+      });
+      csvimp.setOnFailed(ev -> {
+        setSemafore(0);
+        Throwable ex = ev.getSource().getException();
+        s_log.warn("ERRORE Conversione RunTask per {} !! FAILED !!, err={}", impf.toString(), ex.getMessage(), ex);
+      });
+      csvimp.setConnSql(model.getDbConn());
+      backGrService.execute(csvimp);
+    } catch (Exception e) {
+      lbProgressione.textProperty().unbind();
+      s_log.error("Errore {} file {}", e.getMessage(), impf.toString(), e);
+    }
   }
 
   private synchronized void setSemafore(int nTask) {
@@ -924,7 +932,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     // model.getContCsv().cancellaRegsFiles(Arrays.asList(new CsvImpFile[] { imf }));
     model.getSqlgest().deleteCsvImpFile(imf);
     imf.garbleName(model.getLastDir());
-    reloadListFilesCSV();
+    Platform.runLater(() -> reloadListFilesCSV());
   }
 
   @FXML

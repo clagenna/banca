@@ -42,26 +42,32 @@ public class Consts {
   @Getter
   public static final Map<EColsTableView, List<String>> nomiCols;
   static {
+    // mappa delle colonne std con quali stringhe sono associate nelle intestazioni dei vari files CSV
+    // ATTENZIONE: Vanno messe in ordine di *LUNGHEZZA DISCENDENTE* !! 
+    // Vedi junit test ProvaCsvImpTutteBanche per il test di tutte le banche
     nomiCols = new HashMap<>();
     nomiCols.put(EColsTableView.tipo, //
-        Arrays.asList(new String[] { EColsTableView.tipo.toString(), "tipo", "" }));
+        Arrays.asList(
+            new String[] { EColsTableView.tipo.toString(), "Identificativo del trasferimento", "TransferWise ID", "tipo", "ID" }));
     nomiCols.put(EColsTableView.dtmov, //
-        Arrays.asList(new String[] { EColsTableView.dtmov.toString(), "Dat	a di inizio", "Data transazione", "Created on", "data",
-            "Date", "Ship Date", "Order Date"  }));
+        Arrays.asList(new String[] { EColsTableView.dtmov.toString(), "Data transazione", "Data di inizio", "Created on",
+            "Order Date", "Creato il", "Ship Date", "data", "Date", }));
     nomiCols.put(EColsTableView.dtval, //
-        Arrays.asList(new String[] { EColsTableView.dtval.toString(), "Data di completamento", "Data contabile", "Finished on",
-            "valuta", "Value", "" }));
+        Arrays.asList(new String[] { EColsTableView.dtval.toString(), "Data di completamento", "Data contabile", "Completato il",
+            "Finished on", "valuta", "Value", "" }));
     nomiCols.put(EColsTableView.dare, //
-        Arrays.asList(new String[] { EColsTableView.dare.toString(), "importo", "DEBIT", "Amount", "Source amount (after fees)",
-            "Addebiti", "total", "Total Owed" }));
+        Arrays.asList(new String[] { EColsTableView.dare.toString(), "Importo di destinazione (dopo le commissioni)",
+            "Source amount (after fees)", "Total Owed", "Addebiti", "importo", "Amount", "DEBIT", "total", }));
     nomiCols.put(EColsTableView.avere, //
-        Arrays.asList(new String[] { EColsTableView.avere.toString(), "*no*", "*no*", "CREDIT", "Accrediti", "refund" }));
+        Arrays.asList(new String[] { EColsTableView.avere.toString(), "Accrediti", "refund", "CREDIT", "*no*", "*no*", }));
     nomiCols.put(EColsTableView.descr, //
-        Arrays.asList(new String[] { EColsTableView.descr.toString(), "causale", "descrizione", "TRANSACTION CODE", "Target name",
-            "Esercente", "Merchant", "name", "type", "items", "Product Name" }));
+        Arrays.asList(new String[] { EColsTableView.descr.toString(), "Nome del destinatario", "TRANSACTION CODE", "Product Name",
+            "descrizione", "Target name", "Esercente", "Merchant", "causale", "items", "name", "type" }));
     nomiCols.put(EColsTableView.abicaus, //
-        Arrays.asList(new String[] { "causabi", "ABI REASON CODE", "causale abi", "categoria", "ID" }));
-
+        Arrays.asList(new String[] { "ABI REASON CODE", "causale abi", "categoria", "causabi", "ID" }));
+    nomiCols.put(EColsTableView.cardid, //
+        Arrays.asList(
+            new String[] { EColsTableView.cardid.toString(), "Card Holder Full Name", "Nome d'origine", "Source name", "source" }));
   }
 
   /**

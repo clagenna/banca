@@ -63,6 +63,7 @@ public interface ISQLGest {
 
   boolean updateCsvImpFile(CsvImpFile rig);
 
+  /** elimina tutte le registrazioni pertinenti al file di importazione */
   int deleteCsvImpFile(CsvImpFile rig);
 
   boolean insertCsvImpFile(CsvImpFile p_rig);

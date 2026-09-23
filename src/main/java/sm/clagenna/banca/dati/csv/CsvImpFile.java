@@ -26,6 +26,7 @@ import lombok.Setter;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.ETipoBanca;
 import sm.clagenna.banca.dati.RigaBanca;
+import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
@@ -80,11 +81,10 @@ public class CsvImpFile implements Cloneable {
   /** data ultima modifica del file */
   @Getter
   private LocalDateTime ultagg;
-
   @Getter @Setter
-  private boolean inDb;
+  private boolean       inDb;
   @Getter @Setter
-  private boolean inFileSystem;
+  private boolean       inFileSystem;
 
   private SimpleStringProperty  oId;
   private SimpleStringProperty  oTipoBanca;
@@ -178,7 +178,7 @@ public class CsvImpFile implements Cloneable {
     qtarecs = 0;
     dtmin = null;
     dtmax = null;
-    ultagg = LocalDateTime.ofInstant(new Date().toInstant(), ZoneId.systemDefault());
+    setUltagg(LocalDateTime.ofInstant(new Date().toInstant(), ZoneId.systemDefault()));
     return this;
   }
 
@@ -189,7 +189,7 @@ public class CsvImpFile implements Cloneable {
   public Path fullPath(Path basePath) {
     if (null == basePath) {
       DataModel model = DataModel.getInst();
-      return Paths.get(model.getLastDir().toString() , getRelDir(), getFileName());
+      return Paths.get(model.getLastDir().toString(), getRelDir(), getFileName());
     }
     return Paths.get(basePath.toString(), getRelDir(), getFileName());
   }
@@ -264,6 +264,11 @@ public class CsvImpFile implements Cloneable {
     return null != tipoBanca;
   }
 
+  public void salvaFileSuDb(SqlGest gestdb) {
+    gestdb.writeCsvImpFile(this);
+    // idFile = gestdb.getLastRowid(); lo fa gia la writeCsvImpFile()
+  }
+
   @Override
   protected Object clone() throws CloneNotSupportedException {
     CsvImpFile lf = new CsvImpFile();
@@ -275,7 +280,7 @@ public class CsvImpFile implements Cloneable {
     lf.qtarecs = qtarecs;
     lf.dtmin = dtmin;
     lf.dtmax = dtmax;
-    lf.ultagg = ultagg;
+    lf.setUltagg(ultagg);
     return lf;
   }
 
@@ -302,19 +307,17 @@ public class CsvImpFile implements Cloneable {
 
   @Override
   public boolean equals(Object obj) {
-    if ( (null == obj) || ! (obj instanceof CsvImpFile))
+    if (null == obj || ! (obj instanceof CsvImpFile))
       return false;
     CsvImpFile other = (CsvImpFile) obj;
     //    if (null == id || null == other.id)
     //      return false;
     //    if ( !id.equals(other.id))
     //      return false;
-    if ( !Utils.isValue(getFileName()) || !Utils.isValue(other.getFileName()))
-      return false;
-    if ( !getFileName().equals(other.getFileName()))
+    if ( !Utils.isValue(getFileName()) || !Utils.isValue(other.getFileName()) || !getFileName().equals(other.getFileName()))
       return false;
     //    if ( !Utils.isValue(relDir) || !Utils.isValue(other.relDir))
-    //      return false; 
+    //      return false;
     //    if ( !relDir.equals(other.relDir))
     //      return false;
     //    if ( !Utils.isValue(cardHold) || !Utils.isValue(other.cardHold))
@@ -396,6 +399,13 @@ public class CsvImpFile implements Cloneable {
     return cardHold.equals(szCardh);
   }
 
+  /**
+   * Rinomina il file in modo da non essere più visibile/selezionabile
+   * all'utente (lo rinomina in XEliminato_...).
+   *
+   * @param p_based
+   *          path base della radice dei file
+   */
   public void garbleName(Path p_based) {
     String fileName = getFileName();
     String szOld = String.format("%s\\%s\\%s", p_based.toString(), relDir, fileName);

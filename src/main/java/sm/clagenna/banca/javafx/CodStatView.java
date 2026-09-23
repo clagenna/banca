@@ -216,16 +216,22 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     colSaldo.setCellValueFactory(param -> new SimpleObjectProperty<String>(formattaCella("saldo", param.getValue())));
 
     treeview.setOnMouseClicked(evt -> {
+      var row = treeview.getSelectionModel().getSelectedItem();
+      if (null == row)
+        return;
       if (/* evt.isPrimaryButtonDown() && */ evt.getClickCount() == 2) {
-        var row = treeview.getSelectionModel().getSelectedItem();
-        if (null != row) {
-          CodStat cds = row.getValue();
-          System.out.println("Doppio click su:" + cds.getCodice());
-          // se è premuto Shift aggiungo un figlio, altrimenti modifico il codice Stat selezionato
-          treeView_modTree( ! (evt.isShiftDown() || evt.isControlDown()), cds);
+        CodStat cds = row.getValue();
+        System.out.println("Doppio click su:" + cds.getCodice());
+        // se è premuto Shift aggiungo un figlio, altrimenti modifico il codice Stat selezionato
+        treeView_modTree( ! (evt.isShiftDown() || evt.isControlDown()), cds);
+      } else if (evt.getClickCount() == 1) {
+        CodStat cds = row.getValue();
+        System.out.println("Click su:" + cds.getCodice());
+        // se è premuto Shift aggiungo un figlio, altrimenti modifico il codice Stat selezionato
+        model.firePropertyChange(Consts.EVT_CODSTAT_STRING, null, cds);
         }
       }
-    });
+    );
     // Cell factory per evidenziare i match della descrizione
     treeview.setRowFactory(_ -> new TreeTableRow<CodStat>() {
 
@@ -346,8 +352,10 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private void treeView_filtra(Object value) {
     lastSelTricds = treeview.getSelectionModel().getSelectedItem();
     CodStat cds = null;
-    if (null != lastSelTricds)
+    if (null != lastSelTricds) {
       cds = lastSelTricds.getValue();
+      System.out.printf("CodStatView.treeView_filtra(%s)", cds.getCodice());
+    }
     model.firePropertyChange(Consts.EVT_FILTER_CODSTAT, null, cds);
   }
 

@@ -25,7 +25,6 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class TreeCodStat {
   private static final Logger s_log = LogManager.getLogger(TreeCodStat.class);
-  // public static final String  FILE_CODSTAT = "CodStat.properties";
   private static final DecimalFormat fmt = new DecimalFormat("00,00");
 
   @Getter @Setter

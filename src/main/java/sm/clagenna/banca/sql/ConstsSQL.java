@@ -59,41 +59,6 @@ public class ConstsSQL {
         FROM movimenti
        WHERE idcodstat IS NOT NULL""";
 
-  public static final String QRY_SQLITE_IMPFILES_SEL = """
-      SELECT id,
-           filename,
-           reldir,
-           size,
-           qtarecs,
-           dtmin,
-           dtmax,
-           ultagg
-      FROM impFiles
-      WHERE filename = ?
-      AND relDir = ?""";
-
-  public static final String QRY_SQLITE_IMPFILES_UPD = """
-      UPDATE impFiles SET
-             filename=?,
-             reldir=?,
-             size=?,
-             qtarecs=?,
-             dtmin=?,
-             dtmax=?,
-             ultagg=?
-      WHERE id = ?""";
-
-  public static final String QRY_SQLITE_IMPFILES_INS = """
-       INSERT INTO impFiles (
-            filename,
-            reldir,
-            size,
-            qtarecs,
-            dtmin,
-            dtmax,
-            ultagg)
-      VALUES ( ?, ?, ?, ?, ?, ?, ? )""";
-
   public static final String QRY_SQLITE_AZZERACODSTATS = """
       UPDATE movimenti SET idCodStat=NULL""";
 
@@ -206,6 +171,80 @@ public class ConstsSQL {
            codstat=?
           ,descrstat=?
       WHERE idCodStat=?""";
+
+  // ------------------------------------------------------------------------------
+  // -------------------------------  ImpFile  ---------------------------------
+  public static final String QRY_SQLSERVER_SEL_ImpFiles = """
+      SELECT id,
+           filename,
+           reldir,
+           size,
+           qtarecs,
+           dtmin,
+           dtmax,
+           ultagg
+      FROM impFiles
+      WHERE filename = ?
+      AND relDir = ?""";
+  public static final String QRY_SQLSERVER_UPD_ImpFiles = """
+      UPDATE impFiles SET
+             filename=?,
+             reldir=?,
+             size=?,
+             qtarecs=?,
+             dtmin=?,
+             dtmax=?,
+             ultagg=?
+      WHERE id = ?""";
+  public static final String QRY_SQLSERVER_INS_ImpFiles = """
+      INSERT INTO impFiles (
+           filename,
+           reldir,
+           size,
+           qtarecs,
+           dtmin,
+           dtmax,
+           ultagg)
+      VALUES ( ?, ?, ?, ?, ?, ?, ? )""";
+  public static final String QRY_SQLSERVER_DEL_ImpFiles = """
+      DELETE FROM impFiles
+      WHERE id = ?""";
+  public static final String QRY_SQLITE_SEL_ImpFiles    = """
+      SELECT id,
+           filename,
+           reldir,
+           size,
+           qtarecs,
+           dtmin,
+           dtmax,
+           ultagg
+      FROM impFiles
+      WHERE filename = ?
+      AND relDir = ?""";
+  public static final String QRY_SQLITE_UPD_ImpFiles = """
+      UPDATE impFiles SET
+             filename=?,
+             reldir=?,
+             size=?,
+             qtarecs=?,
+             dtmin=?,
+             dtmax=?,
+             ultagg=?
+      WHERE id = ?""";
+  public static final String QRY_SQLITE_INS_ImpFiles = """
+       INSERT INTO impFiles (
+            filename,
+            reldir,
+            size,
+            qtarecs,
+            dtmin,
+            dtmax,
+            ultagg)
+      VALUES ( ?, ?, ?, ?, ?, ?, ? )""";
+  public static final String QRY_SQLITE_DEL_ImpFiles = """
+       DELETE FROM impFiles 
+       WHERE id = ?""";
+
 
   // Colonne della tabella impFiles
   public static final int CsvImpFile_ColNo_id       = 1;

@@ -109,7 +109,9 @@ public class CsvImportBancaWise extends CsvImportBanca {
     String descr = null;
     String caus = null;
     String cardid = null;
+    boolean bInverti = false; // inverti dare con avere
 
+    //  ---------- dt mov ------------------------
     Object val = getRowVal(EColsTableView.dtmov, row);
     if (null == val) {
       getLogger().debug("Scarto riga Wise: {}", row.toString());
@@ -117,23 +119,31 @@ public class CsvImportBancaWise extends CsvImportBanca {
     }
     dtmov = ParseData.parseData(val.toString());
 
+    //  ---------- dt val ------------------------
     val = getRowVal(EColsTableView.dtval, row);
     if (null == val) {
       dtval = dtmov;
     } else
       dtval = ParseData.parseData(val.toString());
-    /* source = Claudio Gennari/ TransferWise / "" */
-    String source = (String) row.get("Source name");
-    if ( !Utils.isValue(source))
-      source = (String) row.get("Card Holder Full Name");
-    if ( !Utils.isValue(source))
-      source = getCsvImpFile().getCardHold();
-    if ( !Utils.isValue(source))
-      source = "";
-    else
-      source = source.toLowerCase().replace("\"", "");
-    cardid = source.length() >= 3 ? source.substring(0, 3).toLowerCase() : null;
 
+    // ---------- cardid ------------------------
+    // cardid, "Card Holder Full Name", "Nome d'origine", "Source name", "source"
+    val = getRowVal(EColsTableView.cardid, row);
+    if ( !Utils.isValue(val))
+      cardid = getCsvImpFile().getCardHold();
+    else
+      cardid = val.toString().toLowerCase().replace("\"", "");
+    // in WISE il card Holder puo essere "TransferWise" o "Wise" o "Wise Europe" o "Wise Europe Ltd" o "Wise Europe Ltd. (TransferWise)" o "Wise Europe Ltd. (TransferWise) - Wise Business"
+    if (cardid.contains("wise") //
+        || cardid.contains("transf") //
+        || cardid.contains("cash")) {
+      bInverti = true;
+      cardid = getCsvImpFile().getCardHold();
+    } else {
+      cardid = cardid.length() >= 3 ? cardid.substring(0, 3).toLowerCase() : null;
+    }
+
+    // ---------- dare ------------------------
     val = getRowVal(EColsTableView.dare, row);
     if (null == val || val.toString().length() == 0)
       dare = 0.;
@@ -141,46 +151,35 @@ public class CsvImportBancaWise extends CsvImportBanca {
       dare = dbl;
     else
       dare = Utils.parseDouble(val.toString());
+
     caus = Consts.ABICAUS_POS;
-    String idTran = (String) row.get("ID");
-    if ( !Utils.isValue(idTran))
-      idTran = (String) row.get("TransferWise ID");
-    if ( !Utils.isValue(idTran))
-      idTran = "*";
+
+    // ---------- avere ------------------------
     avere = 0.;
-    if (source.toLowerCase().contains("wise") //
-        || idTran.toLowerCase().contains("transf") //
-        || idTran.toLowerCase().contains("cashback")) {
-      // Balance cash back or Transfer
-      avere = dare;
-      dare = 0.;
-      caus = Consts.ABICAUS_TRANSF;
-      if (null != idTran && idTran.toLowerCase().contains("cashback")) {
-        caus = Consts.ABICAUS_CASH;
-        if ( !Utils.isValue(descr))
-          descr = "cash back";
-      }
+    val = getRowVal(EColsTableView.tipo, row);
+    String idTran = Utils.isValue(val) ? val.toString().toLowerCase() : "*";
+    if (idTran.contains("wise") //
+        || idTran.contains("transf") //
+        || idTran.contains("cash")) {
+      bInverti = true;
     }
-    if (dare < 0) {
-      dare = -dare;
-    } else if (source.length() == 0) {
-      // solo se source è valorizzato posso invertire
+    if (bInverti) { // inverto dare con avere
       avere = dare;
       dare = 0.;
+      caus = Consts.ABICAUS_CASH;
     }
     if (dare == 0. && avere == 0.) {
       getLogger().debug("Scarto riga Wise dare/avere=0: {}", row.toString());
       return;
     }
-
-    if (! Utils.isValue(descr)) {
-      val = getRowVal(EColsTableView.descr, row);
-      if (null == val) {
-        getLogger().debug("Scarto riga WISE, descr *null* : {}", row.toString());
-        return;
-      }
-      descr = val.toString().replace("\"", "");
+    // ---------- descr ------------------------
+    val = getRowVal(EColsTableView.descr, row);
+    if ( !Utils.isValue(val)) {
+      getLogger().debug("Scarto riga WISE, descr *null* : {}", row.toString());
+      return;
     }
+    descr = val.toString().replace("\"", "");
+
     addRigaBanca(dtmov, dtval, dare, avere, descr, caus, cardid);
   }
 

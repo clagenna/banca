@@ -3,8 +3,6 @@ package sm.clagenna.banca.sql;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import sm.clagenna.banca.dati.csv.CsvImpFile;
-
 /**
  * Gestore delle query di gestione del DB delle transazioni Bancarie per SQLite
  *
@@ -120,55 +118,22 @@ public class SQLiteGest extends SqlGest {
 
   @Override
   public String getQryINSCsvImpFile() {
-    // TODO Auto-generated method stub
-    return null;
+    return ConstsSQL.QRY_SQLITE_INS_ImpFiles;
   }
 
   @Override
   public String getQrySELCsvImpFile() {
-    return ConstsSQL.QRY_SQLITE_IMPFILES_SEL;
+    return ConstsSQL.QRY_SQLITE_SEL_ImpFiles;
   }
 
   @Override
   public String getQryDELCsvImpFile() {
-    // TODO Auto-generated method stub
-    return null;
+    return ConstsSQL.QRY_SQLITE_DEL_ImpFiles;
   }
 
   @Override
   public String getQryMODCsvImpFile() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public boolean existCsvImpFile(CsvImpFile rig) {
-    // TODO test della existCsvImpFile
-    return false;
-  }
-
-  @Override
-  public void writeCsvImpFile(CsvImpFile ri) {
-    // TODO test della writeCsvImpFile
-
-  }
-
-  @Override
-  public boolean updateCsvImpFile(CsvImpFile rig) {
-    // TODO test della updateCsvImpFile
-    return false;
-  }
-
-  @Override
-  public int deleteCsvImpFile(CsvImpFile rig) {
-    // TODO test della deleteCsvImpFile
-    return 0;
-  }
-
-  @Override
-  public boolean insertCsvImpFile(CsvImpFile p_rig) {
-    // TODO test della insertCsvImpFile
-    return false;
+    return ConstsSQL.QRY_SQLITE_UPD_ImpFiles;
   }
 
 }

@@ -804,7 +804,10 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         break;
 
       case Consts.EVT_CODSTAT_STRING:
-        m_codStatSel = evt.getNewValue().toString();
+        CodStat cds1 = (CodStat) evt.getNewValue();
+        if ( null == cds1)
+          return;
+        m_codStatSel = cds1.getCodice();
         Platform.runLater(() -> {
           DataModel data = m_appmain.getModel();
           CodStat cds = data.getCodStatData().find(m_codStatSel);

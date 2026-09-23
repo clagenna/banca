@@ -489,8 +489,10 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
     }
 
     ckoverwrite.selectedProperty().addListener((_, _, n) -> {
-      if (bSema) // VERDE
+      if (bSema) { // VERDE
         model.setOverwrite(n);
+        System.out.println("model.overwrite=" + model.isOverwrite());
+      }
     });
     int qtaTh = model.getQtaThreads();
     int percIndov = model.getPercIndov();

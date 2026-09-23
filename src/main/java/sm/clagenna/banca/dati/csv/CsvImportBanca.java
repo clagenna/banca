@@ -37,9 +37,9 @@ import sm.clagenna.stdcla.utils.Utils;
  * <ol>
  * <li>legge il file CSV con la chiamata {@link #importCSV(Path)} lo converte in
  * un {@link Dataset}</li>
- * <li>e lo converte in una <b>lista</b> (vedi {@link #righeBanca}) di
- * {@link RigaBanca} con la {@link #analizzaRigheCsvBanca()}</li>
- * <li>poi salvarlo su DB con {@link #saveSuDB}
+ * <li>e lo converte in una <b>lista</b> di {@link RigaBanca} con la
+ * {@link #analizzaRigheCsvBanca()}</li>
+ * <li>poi salva l'elenco su DB con {@link #saveSuDB}
  * </ol>
  * la sequenza di chiamate puo' essere anche fatta in modo separato, e.g.:
  * <ol>
@@ -100,17 +100,41 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
 
   public abstract Logger getLogger();
 
+  public Dataset importCSV(CsvImpFile p_csvImpFile) {
+    setCsvImpFile(p_csvImpFile);
+    return importCSV();
+  }
+
+  /**
+   * Legge il file CSV/Excel in un {@link Dataset} con la chiamata
+   * {@link Dataset#readcsv(Path)}. Il Dataset verrà poi analizzato con la
+   * chiamata {@link #analizzaRigheCsvBanca()} per convertirlo in una lista di
+   * {@link RigaBanca}
+   *
+   * @return il Dataset letto dal CSV
+   */
   public abstract Dataset importCSV();
 
+  /**
+   * Analizza il {@link Dataset} del CSV e lo converte in una lista di
+   * {@link RigaBanca} con la chiamata {@link #studiaRigaXXX(DtsRow)} a seconda
+   * del tipo di banca (vedi {@link #tipoBanca})
+   *
+   * @return la lista di righe RigaBanca buone per il salvataggio su DB
+   */
   public abstract List<RigaBanca> analizzaRigheCsvBanca();
 
   @Override
   protected String call() throws Exception {
     getLogger().debug("Start background import of {}", getCsvImpFile().toString());
     try {
+      setModel(model);
+      // questo lo fa la saveSuDB()
+      //      CsvImpFile filecsv = getCsvImpFile();
+      //      filecsv.salvaFileSuDb((SqlGest) model.getSqlgest());
       importCSV();
       analizzaRigheCsvBanca();
-      analizzaRighe();
+      analizzaRigheTroppoSimili();
       saveSuDB();
     } catch (Exception e) {
       getLogger().error("Errore background Job:{}", e.getMessage(), e);
@@ -141,8 +165,13 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
    */
   protected RigaBanca addRigaBanca(LocalDateTime dtmov, LocalDateTime dtval, double dare, double avere, String descr, String caus) {
     RigaBanca rb = new RigaBanca(tipoBanca.getAppellativo(), dtmov, dtval, dare, avere, descr, caus, cardIdent, null);
+    return addRigaBanca(rb);
+  }
+
+  private RigaBanca addRigaBanca(RigaBanca rb) {
     if (DataModel.isJunit())
       getLogger().trace("addRigaBanca: {} ", rb.toString());
+    rb.setIdfile(csvImpFile.getId());
     righeBanca.add(rb);
     return rb;
   }
@@ -164,84 +193,15 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
   protected RigaBanca addRigaBanca(LocalDateTime dtmov, LocalDateTime dtval, double dare, double avere, String descr, String caus,
       String p_cardIdent) {
     RigaBanca rb = new RigaBanca(tipoBanca.getAppellativo(), dtmov, dtval, dare, avere, descr, caus, p_cardIdent, null);
-    if (DataModel.isJunit())
-      System.out.println("addRigaBanca: " + rb.toString());
-    righeBanca.add(rb);
-    return rb;
+    return addRigaBanca(rb);
   }
 
   /**
-   * Analizza il {@link Dataset} del CSV e lo converte in una lista di
-   * {@link RigaBanca} con la chiamata {@link #studiaRiga(DtsRow)} a seconda del
-   * tipo di banca (vedi {@link #tipoBanca})
-   *
-   * @return
+   * Routine che verifica che due righe {@link RigaBanca} non siano troppo
+   * uguali per <code>idSet</code> (<code>dtmov+dare+avere</code>) ma almeno
+   * siano differenti nel orario sommando 5sec al <code>dtmov</code>
    */
-  //  public List<RigaBanca> analizzaRigheCsvBanca_OLD() {
-  //    if (null == dtsCsv || dtsCsv.getQtaCols() == 0)
-  //      throw new UnsupportedOperationException("CSV dataset not opened !");
-  //    if (tipoBanca.equals(ETipoBanca.Amazon)) {
-  //      cnvRb = new ConvertCsv2RigaBanca(Consts.BANCA_AMAZON);
-  //      // leggo la descrizione completa delle colonne del CSV di Amazon
-  //      String propCols = String.format(Consts.CSZ_FILE_PROPERTY_COLS, Consts.BANCA_AMAZON);
-  //      Path pthCols = Paths.get(propCols);
-  //      cnvRb.readConvProperties(pthCols);
-  //    }
-  //    righeBanca = new ArrayList<RigaBanca>();
-  //    Locale prevloc = Utils.getLocale();
-  //    // firePropertyChange(Consts.EVT_FUNCTYPE, 0.);
-  //    int nRow = 0;
-  //    try {
-  //      for (DtsRow row : dtsCsv.getRighe()) {
-  //        firePropertyChange(Consts.EVT_DTSROW, (double) nRow++);
-  //        switch (tipoBanca) {
-  //          case Wise:
-  //            // studiaRigaWise(row);
-  //            break;
-  //          case BsiCredit:
-  //            studiaRigaBSICredit(row);
-  //            break;
-  //          case Revolut:
-  //            // studiaRigaRevolut(row);
-  //            break;
-  //          case Smac:
-  //            // studiaRigaSmac(row);
-  //            break;
-  //          case Contanti:
-  //            // studiaRigaContanti(row);
-  //            break;
-  //          case PayPal:
-  //            // i decimali da PayPall hanno le 'virgole'?!?
-  //            Utils.setLocale(Locale.ITALY);
-  //            studiaRigaPayPal(row);
-  //            break;
-  //          case Amazon:
-  //            // studiaRigaAmazon(row);
-  //            break;
-  //
-  //          default:
-  //            studiaRiga(row);
-  //            break;
-  //        }
-  //      }
-  //    } catch (Exception e) {
-  //      getLogger().error("Errore studia riga, err={}", e.getMessage(), e);
-  //    } finally {
-  //      Utils.setLocale(prevloc);
-  //      firePropertyChange(Consts.EVT_ENDDTSROW, (double) dtsCsv.size());
-  //      if ( !DataModel.isJunit())
-  //        updateProgress(nRow, nRow);
-  //      System.out.println("CsvImportBanca.analizzaBanca - " + Consts.EVT_ENDDTSROW);
-  //    }
-  //    return righeBanca;
-  //  }
-
-  /**
-   * Routine che verifica che se due righe sono uguali per <code>idSet</code>
-   * (<code>dtmov+dare+avere</code>) allora siano almeno differenti nel orario
-   * sommando 5sec al <code>dtmov</code>
-   */
-  protected void analizzaRighe() {
+  protected void analizzaRigheTroppoSimili() {
     Set<String> myset = new HashSet<String>();
     for (RigaBanca rb : righeBanca) {
       while (myset.contains(rb.getIdSet())) {
@@ -254,18 +214,11 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
   private void saveSuDB() {
     if (skipSaveDB)
       return;
-
-    // String szDbType = model.getDBType();
+    saveFileCsvSuDB();
+    CsvFileContainer contcsv = model.getContCsv();
     ISQLGest sqlg = model.getSqlgest();
     EServerId idServer = sqlg.getDbconn().getServerId();
-    CsvFileContainer contcsv = model.getContCsv();
     CsvImpFile impf = contcsv.getFromPath(getCsvImpFile().getPathName());
-    firePropertyChange(Consts.EVT_SAVEDB, dblQtaRows);
-    if (null == impf)
-      impf = contcsv.addFile(getCsvImpFile().getPathName());
-    impf.completaInfo(getRigheBanca());
-    contcsv.saveDb(impf);
-
     getLogger().info("Scrivo file {} di {} recs su DB({}) over={}", getCsvImpFile().getFileName(), getRigheBanca().size(),
         idServer.name(), model.isOverwrite());
     int qryFiltrBefore = model.getFiltriQuery();
@@ -285,6 +238,7 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
           break;
       }
       model.setFiltriQuery(qryFiltrNow);
+      sqlg.setOverwrite(model.isOverwrite());
       int nQtaTran = 0;
       sqlg.beginTrans();
       for (RigaBanca ri : getRigheBanca()) {
@@ -305,6 +259,20 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
       firePropertyChange(Consts.EVT_ENDSAVEDB, dblQtaRows * 2.);
       getLogger().debug("CsvImportBanca.saveSuDB() - " + Consts.EVT_ENDSAVEDB);
     }
+  }
+
+  private void saveFileCsvSuDB() {
+    if (skipSaveDB)
+      return;
+    CsvFileContainer contcsv = model.getContCsv();
+    CsvImpFile impf = contcsv.getFromPath(getCsvImpFile().getPathName());
+    firePropertyChange(Consts.EVT_SAVEDB, dblQtaRows);
+    // se manca nell elenco del container files CSV, lo aggiungo
+    if (null == impf)
+      impf = contcsv.addFile(getCsvImpFile().getPathName());
+    impf.completaInfo(getRigheBanca());
+    // non era gia stato fatto ??
+    contcsv.saveDb(impf);
   }
 
   public Path getCsvFile() {

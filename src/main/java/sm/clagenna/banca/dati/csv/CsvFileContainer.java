@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.sql.Connection;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +74,15 @@ public class CsvFileContainer {
     return liFilesCSV;
   }
 
+  /**
+   * Aggiunge un file di importazione alla lista (elenco) dei files CSV di
+   * importazione
+   *
+   * @param pth
+   *          path del file da aggiungere
+   * @return oggetto CsvImpFile creato e aggiunto alla lista dei files di
+   *         importazione
+   */
   public CsvImpFile addFile(Path pth) {
     Path lastd = model.getLastDir();
     CsvImpFile imf = new CsvImpFile(lastd, pth);
@@ -110,7 +120,9 @@ public class CsvFileContainer {
           imp.setQtarecs(dbf.getQtarecs());
           imp.setDtmin(dbf.getDtmin());
           imp.setDtmax(dbf.getDtmax());
-          imp.setUltagg(dbf.getUltagg());
+          LocalDateTime dbUltagg = dbf.getUltagg();
+          if (null != dbUltagg)
+            imp.setUltagg(dbUltagg);
           break;
         }
       }
@@ -120,57 +132,10 @@ public class CsvFileContainer {
         imp.setId(null);
         imp.setDtmin(null);
         imp.setDtmax(null);
-        imp.setUltagg(null);
+        // imp.setUltagg(null); // questa e' anche la lastModified del file, quindi non la azzero
       }
     }
     return p_liFiles;
-  }
-
-  /**
-   * Legge dal DB le informazioni relative al file di importazione e le aggiunge
-   * all'oggetto CsvImpFile passato come parametro
-   *
-   * @param fi
-   *          oggetto CsvImpFile da completare con le info lette dal DB
-   * @return numero di record letti dal DB (0 o 1)
-   * @deprecated usa la SqlGest.getListCsvImpFiles poi cerca il Csv giusto per
-   *             questa funzione
-   */
-  @Deprecated
-  private int addInfoFromDB(CsvImpFile fi) {
-    throw new UnsupportedOperationException(
-        "Metodo deprecato, usare SqlGest.getListCsvImpFiles() per leggere le info dei files di importazione dal DB");
-    //    int qtaRec = 0;
-    //    int k = 1;
-    //    try {
-    //      stmtCsvImpFileSel.setString(k++, fi.getFileName());
-    //      stmtCsvImpFileSel.setString(k++, fi.getRelDir());
-    //      try (ResultSet res = stmtCsvImpFileSel.executeQuery()) {
-    //        if (res.isClosed()) {
-    //          s_log.warn("dataset closed on SEL info ImpFiles for {}", fi.getFileName().toString());
-    //          return qtaRec;
-    //        }
-    //        while (res.next()) {
-    //          fi.setId(res.getInt(CO_id));
-    //          fi.setFileName(res.getString(CO_filename));
-    //          fi.setRelDir(res.getString(CO_reldir));
-    //          if ( !Utils.isValue(fi.getSize()))
-    //            fi.setSize(res.getInt(CO_size));
-    //          if ( !Utils.isValue(fi.getQtarecs()))
-    //            fi.setQtarecs(res.getInt(CO_qtarecs));
-    //          if ( !Utils.isValue(fi.getDtmin()))
-    //            fi.setDtmin(ParseData.parseData(res.getString(CO_dtmin)));
-    //          if ( !Utils.isValue(fi.getDtmax()))
-    //            fi.setDtmax(ParseData.parseData(res.getString(CO_dtmax)));
-    //          if ( !Utils.isValue(fi.getUltagg()))
-    //            fi.setUltagg(ParseData.parseData(res.getString(CO_ultagg)));
-    //          qtaRec++;
-    //        }
-    //      }
-    //    } catch (SQLException e) {
-    //      s_log.error("Errore get info ImpFiles on {} with err={}", fi.toString(), e.getMessage(), e);
-    //    }
-    //    return qtaRec;
   }
 
   /**
@@ -181,67 +146,24 @@ public class CsvFileContainer {
    *          oggetto CsvImpFile da salvare nel DB
    */
   public void saveDb(CsvImpFile impf) {
-    if (null == sqlGest) {
-      // openDB();
+    if (null == sqlGest) 
       sqlGest = model.getSqlgest();
-    }
-    int qta = 0;
-    try {
-      CsvImpFile tmp = (CsvImpFile) impf.clone();
-      qta = addInfoFromDB(tmp);
-      if (qta == 0)
-        sqlGest.insertCsvImpFile(tmp);
-      else
-        sqlGest.updateCsvImpFile(tmp);
-      updateMaps(tmp);
-    } catch (CloneNotSupportedException e) {
-      e.printStackTrace();
-    }
+    sqlGest.writeCsvImpFile(impf);
+    impf.setUltagg(LocalDateTime.now());
+    impf.salvaFileSuDb((SqlGest) sqlGest);
+    // int qta = 0;
+    //    try {
+    //      CsvImpFile tmp = (CsvImpFile) impf.clone();
+    //      qta = addInfoFromDB(tmp);
+    //      if (qta == 0)
+    //        sqlGest.insertCsvImpFile(tmp);
+    //      else
+    //        sqlGest.updateCsvImpFile(tmp);
+    //      updateMaps(tmp);
+    //    } catch (CloneNotSupportedException e) {
+    //      e.printStackTrace();
+    //    }
   }
-
-  //  private void insertImpFile(CsvImpFile impf) {
-  //    int k = 1;
-  //    try {
-  //      dbconn.setStmtString(stmtCsvImpFileIns, k++, impf.getFileName());
-  //      dbconn.setStmtString(stmtCsvImpFileIns, k++, impf.getRelDir());
-  //      dbconn.setStmtInt(stmtCsvImpFileIns, k++, impf.getSize());
-  //      dbconn.setStmtInt(stmtCsvImpFileIns, k++, impf.getQtarecs());
-  //      dbconn.setStmtDate(stmtCsvImpFileIns, k++, impf.getDtmin());
-  //      dbconn.setStmtDate(stmtCsvImpFileIns, k++, impf.getDtmax());
-  //      dbconn.setStmtDate(stmtCsvImpFileIns, k++, impf.getUltagg());
-  //
-  //      stmtCsvImpFileIns.executeUpdate();
-  //      int ii = dbconn.getLastIdentity();
-  //      impf.setId(ii);
-  //      updateMaps(impf);
-  //    } catch (SQLException e) {
-  //      s_log.error("Errore get info ImpFiles with err={}", e.getMessage());
-  //    }
-  //  }
-
-  //  private void updateImpFile(CsvImpFile impf) {
-  //    int qtaRecsUpd = 0;
-  //    int k = 1;
-  //    try {
-  //      dbconn.setStmtString(stmtCsvImpFileUpd, k++, impf.getFileName());
-  //      dbconn.setStmtString(stmtCsvImpFileUpd, k++, impf.getRelDir());
-  //      dbconn.setStmtInt(stmtCsvImpFileUpd, k++, impf.getSize());
-  //      dbconn.setStmtInt(stmtCsvImpFileUpd, k++, impf.getQtarecs());
-  //      dbconn.setStmtDate(stmtCsvImpFileUpd, k++, impf.getDtmin());
-  //      dbconn.setStmtDate(stmtCsvImpFileUpd, k++, impf.getDtmax());
-  //      dbconn.setStmtDate(stmtCsvImpFileUpd, k++, impf.getUltagg());
-  //      // where id = ?
-  //      dbconn.setStmtInt(stmtCsvImpFileUpd, k++, impf.getId());
-  //      qtaRecsUpd = stmtCsvImpFileUpd.executeUpdate();
-  //      if (qtaRecsUpd != 1) {
-  //        s_log.warn("Non sono riuscito ad aggiornare il file {} su DB", impf.getFileName());
-  //      }
-  //      updateMaps(impf);
-  //    } catch (SQLException e) {
-  //      s_log.error("Errore get info ImpFiles with err={}", e.getMessage());
-  //    }
-  //
-  //  }
 
   private void preparaMappa() {
     mapStrToPath = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);

@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -53,7 +54,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   private PreparedStatement stmtSelCsvImpFile;
   private PreparedStatement stmtInsCsvImpFile;
   private PreparedStatement stmtModCsvImpFile;
-  // private PreparedStatement stmtDelCsvImpFile;
+  private PreparedStatement stmtDelCsvImpFile;
   private PreparedStatement stmtInsCodStat;
   private PreparedStatement stmtModCodStat;
   private PreparedStatement stmtDelCodStat;
@@ -73,8 +74,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   @Getter @Setter
   private int                     lastRowid;
   private HashMap<String, String> m_mapCausABI;
-
-  private DataModel model;
+  private DataModel               model;
 
   static {
     allTables = Arrays.asList(new String[] { //
@@ -355,10 +355,10 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
 
   public List<CsvImpFile> getListCsvImpFiles() {
     List<CsvImpFile> liDbFiles = new ArrayList<>();
-    String szQry = ConstsSQL.QRY_SQLITE_IMPFILES_SEL.substring(0, ConstsSQL.QRY_SQLITE_IMPFILES_SEL.indexOf("WHERE"));
+    // SQLite e SQLServer sono compatibili
+    String szQry = ConstsSQL.QRY_SQLITE_SEL_ImpFiles.substring(0, ConstsSQL.QRY_SQLITE_SEL_ImpFiles.indexOf("WHERE"));
     szQry += " order by id";
     PreparedStatement lstmt = null;
-
     try {
       Connection conn = getDbconn().getConn();
       lstmt = conn.prepareStatement(szQry);
@@ -446,8 +446,21 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     return bRet;
   }
 
+  /**
+   * Inserisce un record di importazione CSV nella tabella ImpFiles. <br/>
+   * Se il record esiste gia' e' attivo il flag overwrite, allora viene prima
+   * cancellato e poi reinserito.<br/>
+   * Al file vengono aggiornate 2 informazioni:
+   * <ol>
+   * <li>ultagg: data e ora dell'ultimo aggiornamento</li>
+   * <li>id: viene aggiornato con l'ID del record appena inserito</li>
+   * </ol>
+   *
+   * @param p_csvfile
+   * @return true se inserito correttamente, false altrimenti
+   */
   @Override
-  public boolean insertCsvImpFile(CsvImpFile p_rig) {
+  public boolean insertCsvImpFile(CsvImpFile p_csvfile) {
     boolean bRet = false;
     lastRowid = -1;
     // TimerMeter tm = new TimerMeter("Insert");
@@ -455,58 +468,70 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
       if (null == stmtInsCsvImpFile) {
         String qry = getQryINSCsvImpFile();
         Connection conn = dbconn.getConn();
-        stmtInsMov = conn.prepareStatement(qry.toString());
+        stmtInsCsvImpFile = conn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
-      getLog().error("Errore prep statement INSERT File {} with err={}", p_rig.getFileName(), e.getMessage());
+      getLog().error("Errore prep statement INSERT File {} with err={}", p_csvfile.getFileName(), e.getMessage());
       return false;
     }
 
     try {
       int k = 1;
-      dbconn.setStmtString(stmtInsCsvImpFile, k++, p_rig.getFileName());
-      dbconn.setStmtString(stmtInsCsvImpFile, k++, p_rig.getRelDir());
-      dbconn.setStmtInt(stmtInsCsvImpFile, k++, p_rig.getSize());
-      dbconn.setStmtInt(stmtInsCsvImpFile, k++, p_rig.getQtarecs());
-      dbconn.setStmtDate(stmtInsCsvImpFile, k++, p_rig.getDtmin());
-      dbconn.setStmtDate(stmtInsCsvImpFile, k++, p_rig.getDtmax());
-      dbconn.setStmtDate(stmtInsCsvImpFile, k++, p_rig.getUltagg());
+      p_csvfile.setUltagg(LocalDateTime.now());
+      dbconn.setStmtString(stmtInsCsvImpFile, k++, p_csvfile.getFileName());
+      dbconn.setStmtString(stmtInsCsvImpFile, k++, p_csvfile.getRelDir());
+      dbconn.setStmtInt(stmtInsCsvImpFile, k++, p_csvfile.getSize());
+      dbconn.setStmtInt(stmtInsCsvImpFile, k++, p_csvfile.getQtarecs());
+      dbconn.setStmtDate(stmtInsCsvImpFile, k++, p_csvfile.getDtmin());
+      dbconn.setStmtDate(stmtInsCsvImpFile, k++, p_csvfile.getDtmax());
+      dbconn.setStmtDate(stmtInsCsvImpFile, k++, p_csvfile.getUltagg());
 
       stmtInsCsvImpFile.executeUpdate();
       int ii = dbconn.getLastIdentity();
-      p_rig.setId(ii);
+      p_csvfile.setId(ii);
       setLastRowid(ii);
     } catch (SQLException e) {
-      getLog().error("Errore INSERT on file {} with err={}", p_rig.getFileName(), e.getMessage());
+      getLog().error("Errore INSERT on file {} with err={}", p_csvfile.getFileName(), e.getMessage());
     }
     return bRet;
   }
 
+  /**
+   * Cancella il record di importazione CSV indicat0 nella variabile csvif.
+   * <br/>
+   *
+   * @param liFiles
+   * @return numero totale di record cancellati
+   */
   @Override
-  public int deleteCsvImpFile(CsvImpFile rig) {
-    throw new UnsupportedOperationException("La deleteCsvImpFile() non e' supportata !");
-    //    int qtaDel = 0;
-    //    // TimerMeter tm = new TimerMeter("Delete");
-    //    StringBuilder qry = null;
-    //    try {
-    //      if (null == stmtDelCsvImpFile) {
-    //        qry = new StringBuilder(getQryDELCsvImpFile());
-    //        qry.append(model.getCampiFiltro());
-    //        Connection conn = dbconn.getConn();
-    //        stmtDelMov = conn.prepareStatement(qry.toString());
-    //      }
-    //    } catch (SQLException e) {
-    //      getLog().error("Errore prep statement DELETE on {} with err={}", qry, e.getMessage());
-    //      return 0;
-    //    }
-    //    try {
-    //      model.applicaFiltri(stmtDelMov, 1, dbconn, rig);
-    //      qtaDel = stmtDelMov.executeUpdate();
-    //    } catch (SQLException e) {
-    //      getLog().error("Errore DELETE on {} with err={}", qry, e.getMessage());
-    //    }
-    //    // System.out.println(tm.stop());
-    // return qtaDel;
+  public int deleteCsvImpFile(CsvImpFile csvif) {
+    // throw new UnsupportedOperationException("La deleteCsvImpFile() non e' supportata !");
+    int qtaDel = 0;
+    // TimerMeter tm = new TimerMeter("Delete");
+    StringBuilder qry = null;
+    try {
+      if (null == stmtDelCsvImpFile) {
+        qry = new StringBuilder(getQryDELCsvImpFile());
+        // la delete e' sempre sul campo ID, quindi non serve applicare i filtri
+        // qry.append(model.getCampiFiltro());
+        Connection conn = dbconn.getConn();
+        stmtDelCsvImpFile = conn.prepareStatement(qry.toString());
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore prep statement DELETE on {} with err={}", qry, e.getMessage());
+      return 0;
+    }
+    try {
+      // model.applicaFiltri(stmtDelCsvImpFile, 1, dbconn, csvif);
+      if (Utils.isValue(csvif.getId())) {
+        stmtDelCsvImpFile.setInt(1, csvif.getId());
+        qtaDel = stmtDelCsvImpFile.executeUpdate();
+      }
+    } catch (SQLException e) {
+      getLog().error("Errore DELETE on {} with err={}", qry, e.getMessage());
+    }
+    // System.out.println(tm.stop());
+    return qtaDel;
   }
 
   /**
@@ -730,29 +755,6 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     return righe.size();
   }
 
-  //  private int trovaLastRowid() {
-  //    if (null == stmtLastRowId) {
-  //      try {
-  //        Connection conn = dbconn.getConn();
-  //        stmtLastRowId = conn.prepareStatement(getQryLASTROWID());
-  //      } catch (SQLException e) {
-  //        getLog().error("Errore prep statement Last RowID with err={}", e.getMessage());
-  //        return -1;
-  //      }
-  //    }
-  //    lastRowid = 0;
-  //    try {
-  //      ResultSet res = stmtLastRowId.executeQuery();
-  //      while (res.next()) {
-  //        lastRowid = res.getInt(1);
-  //      }
-  //    } catch (SQLException e) {
-  //      getLog().error("Errore Last Row ID with err={}", e.getMessage());
-  //    }
-  //    return lastRowid;
-  //  }
-  // FIXTO Creare il CodStat "99" se non esiste sul DB per la somma degli importi sconosciuti
-
   /**
    * Legge tutti i codici statistici presenti sul DB e li restituisce in una
    * lista ordinata per codice. <br/>
@@ -858,7 +860,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
         if (qta > fin)
           break;
         RigaBanca ri = RigaBanca.popolaDaResultSet(rs, dbconn);
-        if (! ri.isValido())
+        if ( !ri.isValido())
           getLog().warn("Riga non valida: {}", ri.toStringShort());
         liMovs.add(ri);
       }
