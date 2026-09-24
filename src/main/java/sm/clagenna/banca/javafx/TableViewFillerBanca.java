@@ -1,6 +1,7 @@
 package sm.clagenna.banca.javafx;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import javafx.scene.control.TableCell;
@@ -162,6 +163,7 @@ public class TableViewFillerBanca extends TableViewFiller {
             break;
           case dare:
           case avere:
+            Utils.setLocale(Locale.ITALY);
             szVal = cell_fmtMoney(szVal);
             szCss = TableViewFiller.FX_ALIGNMENT_CENTER_RIGHT;
             break;
@@ -212,28 +214,8 @@ public class TableViewFillerBanca extends TableViewFiller {
     return szVal;
   }
 
-  //  private void cell_updItm(TableCell<List<Object>, Object> cell, Object item, boolean empty) {
-  //    String szCls1 = cell.getClass().getSimpleName();
-  //    String szCls2 = null != item ? item.getClass().getSimpleName() : "*null*";
-  //    System.out.printf("cell=%s\titem=%s\n", szCls1, szCls2);
-  //  }
-
   public void tableViewFilled() {
     model.fineTotaliCodstat();
   }
-
-  //  private void checkValueItem(TableColumn pCell, Object item, boolean empty) {
-  //    pCell.updateItem(item, empty);
-  //    String szId = getId();
-  //    int n = szId.indexOf("_");
-  //    int nId = -1;
-  //    if (n >= 0)
-  //      nId = Integer.parseInt(szId.substring(n + 1));
-  //    if ( nId < 0)
-  //      return;
-  //    if ( nId == EColsTableView.dare.getColNo()) {
-  //      System.out.printf("TableViewFillerBanca.colBuilded(%d)\n", nId);
-  //    }
-  //  }
 
 }

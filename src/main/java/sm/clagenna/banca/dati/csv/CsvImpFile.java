@@ -143,45 +143,6 @@ public class CsvImpFile implements Cloneable {
     return null != pathName ? pathName.getFileName().toString() : null;
   }
 
-  public CsvImpFile assignPath(Path rad, Path pth) {
-    pathName = pth;
-    String fileName = getFileName();
-    String ss = File.separator;
-    String szRelRadice = String.format("%s%s%s", ss, rad.getFileName().toString(), ss);
-    relDir = ".";
-    Path pthFullFile = pth.toAbsolutePath();
-    Path pthParent = pthFullFile.getParent();
-    if (null == pthParent)
-      pthParent = Paths.get(relDir);
-    String szParent = pthParent.getFileName().toString();
-    tipoBanca = ETipoBanca.parse(szParent);
-    if (null == tipoBanca)
-      tipoBanca = ETipoBanca.parse(fileName);
-
-    String szFullFile = pthFullFile.toString();
-    int n1 = szFullFile.indexOf(szRelRadice);
-    int n2 = n1 + szRelRadice.length();
-    int n3 = szFullFile.length() - getFileName().length() - 1;
-
-    if (n2 < n3)
-      relDir = szFullFile.substring(n2, n3);
-    setInFileSystem(Files.exists(pth));
-    cardHold = null;
-    Matcher mat = s_cardHold.matcher(fileName);
-    if (mat.find())
-      cardHold = mat.group(1);
-    try {
-      size = (int) Files.size(pth);
-    } catch (IOException e) {
-      s_log.error("Errore estrazione nome file, err={}", e.getMessage(), e);
-    }
-    qtarecs = 0;
-    dtmin = null;
-    dtmax = null;
-    setUltagg(LocalDateTime.ofInstant(new Date().toInstant(), ZoneId.systemDefault()));
-    return this;
-  }
-
   public Path fullPath() {
     return fullPath(null);
   }
@@ -247,6 +208,49 @@ public class CsvImpFile implements Cloneable {
     return oUltagg;
   }
 
+  public boolean hasTipoBanca() {
+    return null != tipoBanca;
+  }
+
+  public CsvImpFile assignPath(Path rad, Path pth) {
+    pathName = pth;
+    String fileName = getFileName();
+    String ss = File.separator;
+    String szRelRadice = String.format("%s%s%s", ss, rad.getFileName().toString(), ss);
+    relDir = ".";
+    Path pthFullFile = pth.toAbsolutePath();
+    Path pthParent = pthFullFile.getParent();
+    if (null == pthParent)
+      pthParent = Paths.get(relDir);
+    String szParent = pthParent.getFileName().toString();
+    tipoBanca = ETipoBanca.parse(szParent);
+    if (null == tipoBanca)
+      tipoBanca = ETipoBanca.parse(fileName);
+  
+    String szFullFile = pthFullFile.toString();
+    int n1 = szFullFile.indexOf(szRelRadice);
+    int n2 = n1 + szRelRadice.length();
+    int n3 = szFullFile.length() - getFileName().length() - 1;
+  
+    if (n2 < n3)
+      relDir = szFullFile.substring(n2, n3);
+    setInFileSystem(Files.exists(pth));
+    cardHold = null;
+    Matcher mat = s_cardHold.matcher(fileName);
+    if (mat.find())
+      cardHold = mat.group(1);
+    try {
+      size = (int) Files.size(pth);
+    } catch (IOException e) {
+      s_log.error("Errore estrazione nome file, err={}", e.getMessage(), e);
+    }
+    qtarecs = 0;
+    dtmin = null;
+    dtmax = null;
+    setUltagg(LocalDateTime.ofInstant(new Date().toInstant(), ZoneId.systemDefault()));
+    return this;
+  }
+
   public void completaInfo(List<RigaBanca> righeBanca) {
     LocalDateTime ldtMin = LocalDateTime.MAX;
     LocalDateTime ldtMax = LocalDateTime.MIN;
@@ -258,10 +262,6 @@ public class CsvImpFile implements Cloneable {
     setDtmin(ldtMin);
     setDtmax(ldtMax);
     setUltagg(LocalDateTime.now());
-  }
-
-  public boolean hasTipoBanca() {
-    return null != tipoBanca;
   }
 
   public void salvaFileSuDb(SqlGest gestdb) {

@@ -1,6 +1,7 @@
 package sm.clagenna.banca.dati.csv;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -12,8 +13,10 @@ import sm.clagenna.banca.dati.Consts;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.ETipoBanca;
 import sm.clagenna.banca.dati.RigaBanca;
+import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.stdcla.sql.Dataset;
 import sm.clagenna.stdcla.sql.DtsRow;
+import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class CsvImportBancaBsiCredit extends CsvImportBanca {
@@ -83,7 +86,7 @@ public class CsvImportBancaBsiCredit extends CsvImportBanca {
     try {
       for (DtsRow row : getDtsCsv().getRighe()) {
         firePropertyChange(Consts.EVT_DTSROW, (double) nRow++);
-        studiaRiga(row);
+        studiaRigaBSICredit(row);
       }
     } catch (Exception e) {
       s_log.error("Errore studia riga, err={}", e.getMessage(), e);
@@ -96,4 +99,79 @@ public class CsvImportBancaBsiCredit extends CsvImportBanca {
     }
     return getRigheBanca();
   }
+  
+
+  /**
+   * Analizza una riga <b>generica</b> del CSV su un DtsRow e la converte in un
+   * oggetto {@link RigaBanca} che viene aggiunto alla lista {@link #righeBanca}
+   *
+   * @param row
+   */
+  protected void studiaRigaBSICredit(DtsRow row) {
+    LocalDateTime dtmov;
+    LocalDateTime dtval;
+    Double dare = null;
+    Double avere = null;
+    String descr;
+    String caus = null;
+    // -----------------  DT MOV ------------------------
+    Object val = getRowVal(EColsTableView.dtmov, row);
+    if (null == val) {
+      getLogger().debug("Scarto riga (no dtmov): {}", row.toString());
+      return;
+    }
+    dtmov = ParseData.parseData(val.toString());
+    // -----------------  DT VAL ------------------------
+    val = getRowVal(EColsTableView.dtval, row);
+    if (null == val) {
+      getLogger().debug("Scarto riga (no dtVal): {}", row.toString());
+      return;
+    }
+    dtval = ParseData.parseData(val.toString());
+    // -----------------  DARE ------------------------ 
+    val = getRowVal(EColsTableView.dare, row);
+    if ( !Utils.isValue(val))
+      dare = 0.;
+    else if (val instanceof Double dbl)
+      dare = dbl;
+    else
+      dare = Utils.parseDouble(val.toString());
+    dare = Math.abs(dare);
+    // -----------------  AVERE ------------------------
+    val = getRowVal(EColsTableView.avere, row);
+    if ( !Utils.isValue(val)) {
+      if (dare < 0) {
+        avere = -dare;
+        dare = 0.;
+      } else
+        avere = 0.;
+    } else if (val instanceof Double dbl)
+      avere = dbl;
+    else
+      avere = Utils.parseDouble(val.toString());
+    avere = Math.abs(avere);
+    // -----------------  DARE AVERE == ZERO ------------
+    if (dare == 0 && avere == 0) {
+      getLogger().debug("Scarto perche dare == 0 avere == 0, riga : {}", row.toString());
+      return;
+    }
+
+    // -----------------  DESCR ------------------------
+    val = getRowVal(EColsTableView.descr, row);
+    if (null == val) {
+      getLogger().debug("Scarto riga (no descr): {}", row.toString());
+      return;
+    }
+    descr = val.toString();
+    if (getModel().scartaVoce(descr)) {
+      getLogger().debug("Scarto voce riga : {}", row.toString());
+      return;
+    }
+
+    val = getRowVal(EColsTableView.abicaus, row);
+    if (null != val)
+      caus = val.toString();
+    addRigaBanca(dtmov, dtval, dare, avere, descr, caus);
+  }
+
 }

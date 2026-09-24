@@ -151,7 +151,7 @@ public class CsvImportBancaWise extends CsvImportBanca {
       dare = dbl;
     else
       dare = Utils.parseDouble(val.toString());
-
+    dare = Math.abs(dare);
     caus = Consts.ABICAUS_POS;
 
     // ---------- avere ------------------------

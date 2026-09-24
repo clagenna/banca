@@ -808,6 +808,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         if ( null == cds1)
           return;
         m_codStatSel = cds1.getCodice();
+        if ( !Utils.isValue(m_codStatSel))
+          break;
         Platform.runLater(() -> {
           DataModel data = m_appmain.getModel();
           CodStat cds = data.getCodStatData().find(m_codStatSel);

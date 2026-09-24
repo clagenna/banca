@@ -60,9 +60,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   private PreparedStatement stmtDelCodStat;
 
   @Getter @Setter
-  private DBConn                  dbconn;
-  @Getter @Setter
-  private boolean                 overwrite;
+  private DBConn dbconn;
   @Getter @Setter
   private int                     qtaRecsUpd;
   @Getter @Setter
@@ -188,7 +186,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   public void writeMovimento(RigaBanca ri) {
     try {
       if (existMovimento(ri)) {
-        if ( !overwrite) {
+        if ( !model.isOverwrite()) {
           getLog().debug("Il movimento esiste! scarto {} ", ri.toString());
           scarti++;
           return;
@@ -399,7 +397,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   public void writeCsvImpFile(CsvImpFile ri) {
     try {
       if (existCsvImpFile(ri)) {
-        if ( !overwrite) {
+        if ( !model.isOverwrite()) {
           getLog().debug("Il CsvImpFile esiste! scarto {} ", ri.toString());
           scarti++;
           return;
@@ -509,6 +507,11 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     int qtaDel = 0;
     // TimerMeter tm = new TimerMeter("Delete");
     StringBuilder qry = null;
+    Integer idFile = csvif.getId();
+    if ( !Utils.isValue(idFile)) {
+      getLog().warn("deleteCsvImpFile() *NON* possibile - idFile non valorizzato, file={}", csvif.getFileName());
+      return 0;
+    }
     try {
       if (null == stmtDelCsvImpFile) {
         qry = new StringBuilder(getQryDELCsvImpFile());
@@ -524,7 +527,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     try {
       // model.applicaFiltri(stmtDelCsvImpFile, 1, dbconn, csvif);
       if (Utils.isValue(csvif.getId())) {
-        stmtDelCsvImpFile.setInt(1, csvif.getId());
+        stmtDelCsvImpFile.setInt(1, idFile);
         qtaDel = stmtDelCsvImpFile.executeUpdate();
       }
     } catch (SQLException e) {

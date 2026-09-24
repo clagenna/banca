@@ -226,7 +226,8 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
     int nRow = 0;
     try {
       sqlg.setDbconn(dbconn);
-      sqlg.setOverwrite(model.isOverwrite());
+      // testa quella del model, non quella del sqlgest
+      // sqlg.setOverwrite(model.isOverwrite());
       switch (getTipoBanca()) {
         case Wise:
           // per WISE limito il filtro di exist su soli questi campi
@@ -238,7 +239,8 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
           break;
       }
       model.setFiltriQuery(qryFiltrNow);
-      sqlg.setOverwrite(model.isOverwrite());
+      // testa quella del model, non quella del sqlgest
+      // sqlg.setOverwrite(model.isOverwrite());
       int nQtaTran = 0;
       sqlg.beginTrans();
       for (RigaBanca ri : getRigheBanca()) {
@@ -394,45 +396,47 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
     Double avere = null;
     String descr;
     String caus = null;
-
+    // -----------------  DT MOV ------------------------
     Object val = getRowVal(EColsTableView.dtmov, row);
     if (null == val) {
       getLogger().debug("Scarto riga (no dtmov): {}", row.toString());
       return;
     }
     dtmov = ParseData.parseData(val.toString());
-
+    // -----------------  DT VAL ------------------------
     val = getRowVal(EColsTableView.dtval, row);
     if (null == val) {
       getLogger().debug("Scarto riga (no dtVal): {}", row.toString());
       return;
     }
     dtval = ParseData.parseData(val.toString());
-
+    // -----------------  DARE ------------------------ 
     val = getRowVal(EColsTableView.dare, row);
-    if (null == val || val.toString().length() == 0)
+    if ( !Utils.isValue(val))
       dare = 0.;
     else if (val instanceof Double dbl)
       dare = dbl;
     else
       dare = Utils.parseDouble(val.toString());
-
+    // -----------------  AVERE ------------------------
     val = getRowVal(EColsTableView.avere, row);
-    if (null == val || val.toString().length() == 0) {
+    if ( !Utils.isValue(val)) {
       if (dare < 0) {
         avere = -dare;
         dare = 0.;
       } else
         avere = 0.;
     } else if (val instanceof Double dbl)
-      avere = dbl;
+      avere = Math.abs(dbl);
     else
-      avere = Utils.parseDouble(val.toString());
-    //    if ( dare == 0 && avere == 0) {
-    //      getLogger().debug("Scarto perche dare == 0 avere == 0, riga : {}", row.toString());
-    //      return;
-    //    }
+      avere = Math.abs(Utils.parseDouble(val.toString()));
+    // -----------------  DARE AVERE == ZERO ------------
+    if (dare == 0 && avere == 0) {
+      getLogger().debug("Scarto perche dare == 0 avere == 0, riga : {}", row.toString());
+      return;
+    }
 
+    // -----------------  DESCR ------------------------
     val = getRowVal(EColsTableView.descr, row);
     if (null == val) {
       getLogger().debug("Scarto riga (no descr): {}", row.toString());

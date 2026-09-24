@@ -226,7 +226,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         treeView_modTree( ! (evt.isShiftDown() || evt.isControlDown()), cds);
       } else if (evt.getClickCount() == 1) {
         CodStat cds = row.getValue();
-        System.out.println("Click su:" + cds.getCodice());
+        // System.out.println("Click su:" + cds.getCodice());
         // se è premuto Shift aggiungo un figlio, altrimenti modifico il codice Stat selezionato
         model.firePropertyChange(Consts.EVT_CODSTAT_STRING, null, cds);
         }

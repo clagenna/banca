@@ -13,8 +13,8 @@ public interface ISQLGest {
   DBConn getDbconn();
 
   void setDbconn(DBConn conn);
-
-  void setOverwrite(boolean bv);
+  // devi testare quella del model
+  // void setOverwrite(boolean bv);
 
   void beginTrans();
 
