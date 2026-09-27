@@ -221,13 +221,11 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
     CsvImpFile impf = contcsv.getFromPath(getCsvImpFile().getPathName());
     getLogger().info("Scrivo file {} di {} recs su DB({}) over={}", getCsvImpFile().getFileName(), getRigheBanca().size(),
         idServer.name(), model.isOverwrite());
-    int qryFiltrBefore = model.getFiltriQuery();
+    int qryFiltrBefore = model.getFiltriQueryMovimenti();
     int qryFiltrNow = qryFiltrBefore;
     int nRow = 0;
     try {
       sqlg.setDbconn(dbconn);
-      // testa quella del model, non quella del sqlgest
-      // sqlg.setOverwrite(model.isOverwrite());
       switch (getTipoBanca()) {
         case Wise:
           // per WISE limito il filtro di exist su soli questi campi
@@ -238,9 +236,7 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
         default:
           break;
       }
-      model.setFiltriQuery(qryFiltrNow);
-      // testa quella del model, non quella del sqlgest
-      // sqlg.setOverwrite(model.isOverwrite());
+      model.setFiltriQueryMovimenti(qryFiltrNow);
       int nQtaTran = 0;
       sqlg.beginTrans();
       for (RigaBanca ri : getRigheBanca()) {
@@ -257,7 +253,7 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
     } catch (Exception e) {
       getLogger().error("Error save DB : {}", e.getMessage());
     } finally {
-      model.setFiltriQuery(qryFiltrBefore);
+      model.setFiltriQueryMovimenti(qryFiltrBefore);
       firePropertyChange(Consts.EVT_ENDSAVEDB, dblQtaRows * 2.);
       getLogger().debug("CsvImportBanca.saveSuDB() - " + Consts.EVT_ENDSAVEDB);
     }

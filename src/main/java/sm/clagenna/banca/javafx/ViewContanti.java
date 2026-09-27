@@ -535,14 +535,14 @@ public class ViewContanti implements Initializable, IStartApp {
 
   private void updateRecord() {
     DataModel cntr = DataModel.getInst();
-    cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
+    cntr.setFiltriQueryMovimenti(ESqlFiltri.Id.getFlag());
     m_db.updateMovimento(contante);
     s_log.info("Modificato records  {}", contante.toString().replace("\t", ";"));
   }
 
   private void insertRecord() {
     DataModel cntr = DataModel.getInst();
-    cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
+    cntr.setFiltriQueryMovimenti(ESqlFiltri.Id.getFlag());
     m_db.insertMovimento(contante);
     contante.setRigaid(m_db.getLastRowid());
     Platform.runLater(() -> txId.setText(String.valueOf(contante.getRigaid())));
@@ -550,7 +550,7 @@ public class ViewContanti implements Initializable, IStartApp {
 
   private void deleteRecord() {
     DataModel cntr = DataModel.getInst();
-    cntr.setFiltriQuery(ESqlFiltri.Id.getFlag());
+    cntr.setFiltriQueryMovimenti(ESqlFiltri.Id.getFlag());
     int qtaDel = m_db.deleteMovimento(contante);
     s_log.info("Cancellato {} records con {}", qtaDel, contante.toString().replace("\t", ";"));
   }

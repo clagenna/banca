@@ -9,8 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +26,7 @@ import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
+import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.sql.DBConn;
@@ -58,11 +57,16 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   private Path             lastDir;
   private CardidAssoc      associd;
 
+  // questa lo fa la dbconn.setShowStatement(true)
+  //  private boolean              debugQryFilter;
+  //  /** Stringa della query con i filtri applicati */
+  //  private String               queryFilter;
   private boolean              overwrite;
+  /** Flag dei filtri da applicare alla query */
+  private int                  filtriQueryMovimenti;
   private String               codStat;
   private String               comboQuery;
   private int                  annoComp;
-  private int                  filtriQuery;
   private int                  qtaThreads;
   private int                  percIndov;
   private ArrayList<String>    scartaVoci;
@@ -78,8 +82,20 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     inst = this;
     // WARNING(?!?): [this-escape] possible 'this' escape before subclass is fully initialized
     propsChange = new PropertyChangeSupport(this);
-    filtriQuery = ESqlFiltri.AllSets.getFlag();
+    setFiltriQueryMovimenti(ESqlFiltri.AllSets.getFlag());
     addPropertyChangeListener(this);
+  }
+
+  public void setFiltriQueryMovimenti(int p_flags) {
+    if (filtriQueryMovimenti == p_flags)
+      return;
+    // voglio vedere chi passa da qui !!!
+    // per vedere la query effettiva: dbconn.toString(stmtSelMov)
+    int oldv = filtriQueryMovimenti;
+    filtriQueryMovimenti = p_flags;
+    if (null != sqlgest)
+      ((SqlGest) sqlgest).resetStmtExistMovimento();
+    firePropertyChange(Consts.EVT_OPTZ_FILTR_CHANGE, oldv, filtriQueryMovimenti);
   }
 
   public static DataModel getInst() {
@@ -99,7 +115,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     openDb();
 
     contCsv = new CsvFileContainer();
-    filtriQuery = props.getIntProperty(Consts.PROP_FLAG_FILTRI, ESqlFiltri.AllSets.getFlag());
+    setFiltriQueryMovimenti(props.getIntProperty(Consts.PROP_FLAG_FILTRI, ESqlFiltri.AllSets.getFlag()));
     qtaThreads = props.getIntProperty(Consts.PROP_QTA_THREADS, 1);
     percIndov = props.getIntProperty(Consts.PROP_PERC_INDOV, 40);
     skin = props.getProperty(AppProperties.CSZ_PROP_SKIN);
@@ -167,6 +183,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       dbConn = conFact.get(szDbType);
       dbConn.readProperties(props);
       dbConn.doConn();
+      dbConn.setShowStatement(props.getBooleanProperty(Consts.PROP_DEBUG_QRY, false));
     } catch (Exception e) {
       s_log.error("Errore apertura DB, error={}", e.getMessage(), e);
       Platform.exit();
@@ -174,6 +191,8 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     }
     sqlgest = SqlGestFactory.get(dbConn.getServerId());
     sqlgest.setDbconn(dbConn);
+    // FIXME: togliere questa riga, serve solo per testare la query di debug
+    dbConn.setShowStatement(true);
   }
 
   public void addExcludeCol(EColsTableView p_colNam, boolean bv) {
@@ -204,11 +223,11 @@ public class DataModel implements IStartApp, PropertyChangeListener {
 
   public void mettiFiltro(ESqlFiltri tipo, Boolean bset) {
     if (bset)
-      filtriQuery |= tipo.getFlag();
+      setFiltriQueryMovimenti(filtriQueryMovimenti | tipo.getFlag());
     else
-      filtriQuery &= ESqlFiltri.AllSets.getFlag() ^ tipo.getFlag();
+      setFiltriQueryMovimenti(filtriQueryMovimenti & (ESqlFiltri.AllSets.getFlag() ^ tipo.getFlag()));
     firePropertyChange(Consts.EVT_OPTZ_FILTR_CHANGE, null, tipo);
-    s_log.debug("DataController metti(cambia) Filtro(%06X)", filtriQuery);
+    s_log.debug("DataController metti(cambia) Filtro(%06X)", filtriQueryMovimenti);
   }
 
   public void addPropertyChangeListener(PropertyChangeListener pcl) {
@@ -306,54 +325,95 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   public String getCampiFiltro() {
     StringBuilder szRet = new StringBuilder();
     for (ESqlFiltri fl : ESqlFiltri.values()) {
-      if (fl.isSet(filtriQuery) && fl.getFlag() < ESqlFiltri.AllSets.getFlag())
+      if (fl.isSet(filtriQueryMovimenti) && fl.getFlag() < ESqlFiltri.AllSets.getFlag())
         szRet.append(String.format(" AND %s = ?", fl.name().toLowerCase()));
     }
     return szRet.toString();
   }
+  //  trattando argomenti inerenti alle Query spostato in SqlGest
+  //  public PreparedStatement applicaFiltri(PreparedStatement p_stmt, int k, DBConn dbconn, RigaBanca p_rig) throws SQLException {
+  //    for (ESqlFiltri fl : ESqlFiltri.values()) {
+  //      if ( !fl.isSet(filtriQuery))
+  //        continue;
+  //      switch (fl) {
+  //        case Id:
+  //          dbconn.setStmtInt(p_stmt, k++, p_rig.getRigaid());
+  //          break;
+  //        case tipo:
+  //          dbconn.setStmtString(p_stmt, k++, p_rig.getTiporec());
+  //          break;
+  //        case Dtmov:
+  //          dbconn.setStmtDatetime(p_stmt, k++, p_rig.getDtmov());
+  //          break;
+  //        case Dtval:
+  //          dbconn.setStmtDatetime(p_stmt, k++, p_rig.getDtval());
+  //          break;
+  //        case Dare:
+  //          dbconn.setStmtImporto(p_stmt, k++, p_rig.getDare());
+  //          break;
+  //        case Avere:
+  //          dbconn.setStmtImporto(p_stmt, k++, p_rig.getAvere());
+  //          break;
+  //        case Descr:
+  //          dbconn.setStmtString(p_stmt, k++, p_rig.getDescr());
+  //          break;
+  //        case ABICaus:
+  //          dbconn.setStmtString(p_stmt, k++, p_rig.getAbicaus());
+  //          break;
+  //        case Cardid:
+  //          dbconn.setStmtString(p_stmt, k++, p_rig.getCardid());
+  //          break;
+  //        case IdCodstat:
+  //          dbconn.setStmtInt(p_stmt, k++, p_rig.getIdcodstat());
+  //          break;
+  //        default:
+  //          break;
+  //      }
+  //    }
+  //    return p_stmt;
+  //  }
 
-  public PreparedStatement applicaFiltri(PreparedStatement p_stmt, int k, DBConn dbconn, RigaBanca p_rig) throws SQLException {
-    for (ESqlFiltri fl : ESqlFiltri.values()) {
-      if ( !fl.isSet(filtriQuery))
-        continue;
-      switch (fl) {
-        case Id:
-          dbconn.setStmtInt(p_stmt, k++, p_rig.getRigaid());
-          break;
-        case tipo:
-          dbconn.setStmtString(p_stmt, k++, p_rig.getTiporec());
-          break;
-        case Dtmov:
-          dbconn.setStmtDate(p_stmt, k++, p_rig.getDtmov());
-          break;
-        case Dtval:
-          dbconn.setStmtDate(p_stmt, k++, p_rig.getDtval());
-          break;
-        case Dare:
-          dbconn.setStmtImporto(p_stmt, k++, p_rig.getDare());
-          break;
-        case Avere:
-          dbconn.setStmtImporto(p_stmt, k++, p_rig.getAvere());
-          break;
-        case Descr:
-          dbconn.setStmtString(p_stmt, k++, p_rig.getDescr());
-          break;
-        case ABICaus:
-          dbconn.setStmtString(p_stmt, k++, p_rig.getAbicaus());
-          break;
-        case Cardid:
-          dbconn.setStmtString(p_stmt, k++, p_rig.getCardid());
-          break;
-        case IdCodstat:
-          dbconn.setStmtInt(p_stmt, k++, p_rig.getIdcodstat());
-          break;
-        default:
-          break;
-      }
-    }
-    return p_stmt;
-  }
-  
+  // questa funzione non serve piu, ora uso dbconn.setShowStatement(true) e la query viene mostrata con i valori dei parametri
+  //  private void scriviQueryFilter(ESqlFiltri fl, RigaBanca p_rig) {
+  //    if (fl == ESqlFiltri.AllSets)
+  //      return;
+  //    queryFilter += String.format(" and %s=", fl.name().toLowerCase());
+  //    switch (fl) {
+  //      case Id:
+  //        queryFilter += String.format("%d", p_rig.getRigaid());
+  //        break;
+  //      case tipo:
+  //        queryFilter += String.format("%s", p_rig.getTiporec());
+  //        break;
+  //      case Dtmov:
+  //        queryFilter += String.format("%s", ParseData.formatDate(p_rig.getDtmov()));
+  //        break;
+  //      case Dtval:
+  //        queryFilter += String.format("%s", ParseData.formatDate(p_rig.getDtval()));
+  //        break;
+  //      case Dare:
+  //        queryFilter += String.format("%s", Utils.formatDouble(p_rig.getDare()));
+  //        break;
+  //      case Avere:
+  //        queryFilter += String.format("%s", Utils.formatDouble(p_rig.getAvere()));
+  //        break;
+  //      case Descr:
+  //        queryFilter += p_rig.getDescr();
+  //        break;
+  //      case ABICaus:
+  //        queryFilter += p_rig.getAbicaus();
+  //        break;
+  //      case Cardid:
+  //        queryFilter += p_rig.getCardid();
+  //        break;
+  //      case IdCodstat:
+  //        queryFilter += String.format("%d", p_rig.getIdcodstat());
+  //        break;
+  //      default:
+  //        break;
+  //    }
+  //  }
+
   public boolean scartaVoce(String descr) {
     if (descr == null)
       return true;

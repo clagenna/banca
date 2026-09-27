@@ -147,7 +147,20 @@ public class CsvImpFile implements Cloneable {
     return fullPath(null);
   }
 
+  /**
+   * Restituisce il path completo del file, a partire del direttorio radice
+   * (basePath, che dovrebbe corrispondere con model.getLastDir()) che contiene
+   * tutti i files. Il file viene ricostruito con la base relativa (relDir) e
+   * dal nome del file (fileName).<br/>
+   * Se il pathName esiste, lo restituisce direttamente.
+   *
+   * @param basePath
+   *          path della radice dei file
+   * @return path completo del file
+   */
   public Path fullPath(Path basePath) {
+    if (pathName != null && Files.exists(pathName))
+      return pathName;
     if (null == basePath) {
       DataModel model = DataModel.getInst();
       return Paths.get(model.getLastDir().toString(), getRelDir(), getFileName());
@@ -214,11 +227,14 @@ public class CsvImpFile implements Cloneable {
 
   public CsvImpFile assignPath(Path rad, Path pth) {
     pathName = pth;
+    if ( !Files.exists(pathName)) {
+      ricostruisciPath(rad, pathName);
+    }
     String fileName = getFileName();
     String ss = File.separator;
     String szRelRadice = String.format("%s%s%s", ss, rad.getFileName().toString(), ss);
     relDir = ".";
-    Path pthFullFile = pth.toAbsolutePath();
+    Path pthFullFile = pathName.toAbsolutePath();
     Path pthParent = pthFullFile.getParent();
     if (null == pthParent)
       pthParent = Paths.get(relDir);
@@ -226,21 +242,22 @@ public class CsvImpFile implements Cloneable {
     tipoBanca = ETipoBanca.parse(szParent);
     if (null == tipoBanca)
       tipoBanca = ETipoBanca.parse(fileName);
-  
+
     String szFullFile = pthFullFile.toString();
     int n1 = szFullFile.indexOf(szRelRadice);
     int n2 = n1 + szRelRadice.length();
     int n3 = szFullFile.length() - getFileName().length() - 1;
-  
+
     if (n2 < n3)
       relDir = szFullFile.substring(n2, n3);
-    setInFileSystem(Files.exists(pth));
+    setInFileSystem(Files.exists(pathName));
     cardHold = null;
     Matcher mat = s_cardHold.matcher(fileName);
     if (mat.find())
       cardHold = mat.group(1);
     try {
-      size = (int) Files.size(pth);
+      if (Files.exists(pathName))
+        size = (int) Files.size(pathName);
     } catch (IOException e) {
       s_log.error("Errore estrazione nome file, err={}", e.getMessage(), e);
     }
@@ -249,6 +266,31 @@ public class CsvImpFile implements Cloneable {
     dtmax = null;
     setUltagg(LocalDateTime.ofInstant(new Date().toInstant(), ZoneId.systemDefault()));
     return this;
+  }
+
+  /**
+   * Ricostruisce il path del file se non riesco a trovarlo con le sole info dal
+   * DB.<br/>
+   * Cerca di ricostruire il path del file a partire dalla radice dei file e dal
+   * nome del file stesso.
+   *
+   * @param rad
+   *          path della radice dei file
+   * @param pth
+   *          path del file originale (non più esistente)
+   */
+  private void ricostruisciPath(Path rad, Path pth) {
+    String fileName = getFileName();
+    String ss = File.separator;
+    String szRelFile = String.format("%s%s%s%s", ss, rad.getFileName().toString(), ss, fileName);
+    DataModel model = DataModel.getInst();
+    Path fromDir = model.getLastDir();
+    Path pthNew = Paths.get(fromDir.toString(), szRelFile);
+    if (Files.exists(pthNew)) {
+      pathName = pthNew;
+      return;
+    }
+    s_log.error("Non riesco a ricostruire il path del file {}, cercato in {}", fileName, szRelFile);
   }
 
   public void completaInfo(List<RigaBanca> righeBanca) {

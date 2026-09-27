@@ -6,23 +6,17 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -31,7 +25,6 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.Consts;
@@ -55,6 +48,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
 
   @Getter
   private static LoadBancaMainApp inst;
+  private static boolean          debugJDBC;
 
   private String skin;
   // private URL           mainCSS;
@@ -85,9 +79,9 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
 
   @Override
   public void start(Stage p_primaryStage) throws Exception {
-    s_log.info("Java Version:{}", System.getProperty("java.runtime.version"));
-    s_log.info("JavaFX Version:{}", System.getProperty("javafx.runtime.version"));
+    doSomeDebugThings();
     setPrimaryStage(p_primaryStage);
+    MessageDialog.setStage(p_primaryStage);  // per i futuri messaggi di dialogo
     LoadBancaMainApp.inst = this;
     initApp(null);
     URL url = getClass().getResource(LoadBancaController.CSZ_FXMLNAME);
@@ -108,6 +102,28 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     primaryStage.show();
   }
 
+  private void doSomeDebugThings() {
+    s_log.info("Java Version:{}", System.getProperty("java.runtime.version"));
+    s_log.info("JavaFX Version:{}", System.getProperty("javafx.runtime.version"));
+    if (LoadBancaMainApp.debugJDBC) {
+      s_log.info("Abilito il debug JDBC");
+      // System.setProperty("java.util.logging.config.file", "logging.properties");
+      // System.setProperty("com.microsoft.sqlserver.jdbc.level", "FINEST");
+      // System.setProperty("com.microsoft.sqlserver.jdbc.handlers", "java.util.logging.ConsoleHandler");
+      // System.setProperty("java.util.logging.ConsoleHandler.level", "FINEST");
+      // meglio se fatta prima di caricare il driver "java.util.logging.Logger"
+      java.util.logging.Logger logger = java.util.logging.Logger.getLogger("com.microsoft.sqlserver.jdbc");
+      logger.setLevel(java.util.logging.Level.FINEST);
+      java.util.logging.ConsoleHandler handler = new java.util.logging.ConsoleHandler();
+      handler.setLevel(java.util.logging.Level.FINEST);
+      logger.addHandler(handler);
+      logger.setUseParentHandlers(false);
+      // verifica se il logging di JUL passa attraverso log4j2
+      System.out.println(System.getProperty("java.util.logging.manager"));
+      System.out.println(java.util.logging.LogManager.getLogManager().getClass().getName());
+    }
+  }
+
   @Override
   public void initApp(AppProperties p_props) {
     try {
@@ -118,102 +134,12 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
       if (null == skin)
         skin = "LoadBancaFX";
       JFXUtils.readPosStage(primaryStage, props, "frame");
-
-      //      int px = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_X);
-      //      int py = props.getIntProperty(AppProperties.CSZ_PROP_POSFRAME_Y);
-      //      int dx = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_X);
-      //      int dy = props.getIntProperty(AppProperties.CSZ_PROP_DIMFRAME_Y);
-      //      var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-      //      if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
-      //        primaryStage.setX(mm.poxX());
-      //        primaryStage.setY(mm.posY());
-      //        primaryStage.setWidth(mm.width());
-      //        primaryStage.setHeight(mm.height());
-      //      }
     } catch (Exception e) {
       LoadBancaMainApp.s_log.error("Errore in main initApp: {}", e.getMessage(), e);
       System.exit(1957);
     }
     model.addPropertyChangeListener(this);
     // checkConvDB();
-  }
-
-  //  public URL getUrlCSS() {
-  //    if (null != mainCSS)
-  //      return mainCSS;
-  //    if (null == skin)
-  //      skin = LoadBancaMainApp.CSZ_MAIN_APP_CSS;
-  //    String skinCss = String.format("%s.css", skin);
-  //    mainCSS = getClass().getResource(skinCss);
-  //    if (null == mainCSS)
-  //      mainCSS = getClass().getClassLoader().getResource(skinCss);
-  //    return mainCSS;
-  //  }
-
-  /**
-   * Cambio di skin
-   *
-   * @deprecated meglio itilizzare l'evento EVT_CHANGESKIN
-   * @param skinName
-   */
-  //  public void setSkin(String skinName) {
-  //    if ( !Utils.isChanged(skin, skinName))
-  //      return;
-  //    skin = skinName;
-  //    // props.setProperty(skinName, 0);
-  //    mainCSS = null;
-  //    props.setProperty(AppProperties.CSZ_PROP_SKIN, skin);
-  //    /* URL url = */ getUrlCSS();
-  //    controller.changeSkin();
-  //  }
-  //
-  //  public String getSkin() {
-  //    return skin;
-  //  }
-
-  //  @Deprecated
-  //  private void checkConvDB() {
-  //    bCheckConvDb = props.getBooleanProperty(PROP_CHECK_CONV, true);
-  //    if ( !bCheckConvDb)
-  //      return;
-  //    String szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
-  //    EServerId srvty = EServerId.parse(szDbType);
-  //    if (srvty != EServerId.SQLite3)
-  //      return;
-  //    String szDbFile = props.getProperty(AppProperties.CSZ_PROP_DB_name);
-  //    s_log.warn("Verifico convertibilita del \"{}\" al nuovo formato", szDbFile);
-  //    int n = szDbFile.lastIndexOf(".");
-  //    String szBak = szDbFile.substring(0, n) + ParseData.s_fmtDtFile.format(LocalDateTime.now()) + ".db";
-  //    try {
-  //      Files.copy(Paths.get(szDbFile), Paths.get(szBak), StandardCopyOption.REPLACE_EXISTING);
-  //      s_log.info("Eseguito copia di backup di {} su {}", szDbType, szBak);
-  //    } catch (IOException e) {
-  //      s_log.error("Errore crea BAckup DB {} su {}, err={}", szDbFile, szBak, e.getMessage(), e);
-  //    }
-  //    //    ConvDBBanca cnv = new ConvDBBanca();
-  //    //    cnv.checkConversione(szDbFile);
-  //  }
-
-  //  public void scegliDB() {
-  //    String szDbType;
-  //    try {
-  //      szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
-  //      // connSQL = new DBConnSQL();
-  //      DBConnFactory conFact = new DBConnFactory();
-  //      dbConn = conFact.get(szDbType);
-  //      dbConn.readProperties(props);
-  //      dbConn.doConn();
-  //    } catch (Exception e) {
-  //      s_log.error("Errore apertura DB, error={}", e.getMessage(), e);
-  //      Platform.exit();
-  //      System.exit(1957);
-  //    }
-  //  }
-
-  @Deprecated
-  @Override
-  public void changeSkin() {
-    // nothing to do
   }
 
   @Override
@@ -226,140 +152,58 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   @Override
   public void closeApp(AppProperties prop) {
     // TODO salva le updates rimaste in sospeso
-    // JFXUtils.savePosStage(primaryStage, prop, "frame");
-    //    Scene sce = primaryStage.getScene();
-    //    double px = sce.getWindow().getX();
-    //    double py = sce.getWindow().getY();
-    //    double dx = sce.getWindow().getWidth();
-    //    double dy = sce.getWindow().getHeight();
-    //
-    //    prop.setProperty(AppProperties.CSZ_PROP_POSFRAME_X, (int) px);
-    //    prop.setProperty(AppProperties.CSZ_PROP_POSFRAME_Y, (int) py);
-    //    prop.setProperty(AppProperties.CSZ_PROP_DIMFRAME_X, (int) dx);
-    //    prop.setProperty(AppProperties.CSZ_PROP_DIMFRAME_Y, (int) dy);
-
-    //    if (controller != null)
-    //      controller.closeApp(prop);
     model.firePropertyChange(Consts.EVT_APP_CLOSE, null, prop);
     if (model != null)
       model.closeApp(prop);
-
     prop.setBooleanProperty(PROP_CHECK_CONV, bCheckConvDb);
     prop.salvaSuProperties();
-
   }
 
-  //  public Optional<ButtonType> messageDialog(AlertType typ, String p_msg) {
-  //    return messageDialog(typ, p_msg, ButtonType.CLOSE);
+  //  public void msgBox(String p_txt) {
+  //    msgBox(p_txt, AlertType.INFORMATION);
   //  }
 
-  /*
-   * per abilitare il display HTML ho messo un WebView embedded nel alert pero'
-   * ho dovuto specificare <b>javafx.media,javafx.web</b> <pre> --module-path
-   * "C:/Program Files/Java/javafx-sdk-20.0.2/lib"
-   * --add-modules=javafx.swing,javafx.graphics,javafx.fxml,javafx.media,javafx.
-   * web </pre>
-   * @param typ Il tipo di {@link AlertType}
-   * @param p_msg Il messaggio (anche HTML) da emettere
-   * @param bt Il tipo di {@link ButtonType}
-   * @return
-   */
-  //  public Optional<ButtonType> messageDialog(AlertType typ, String p_msg, ButtonType bt) {
-  //    Alert alert = new Alert(typ);
-  //    alert.setResizable(true);
-  //    Scene scene = primaryStage.getScene();
-  //    if (null != scene) {
-  //      double posx = scene.getWindow().getX();
-  //      double posy = scene.getWindow().getY();
-  //      double widt = scene.getWidth();
-  //      double px = posx + widt / 2 - 366;
-  //      double py = posy + 50;
-  //      alert.setX(px);
-  //      alert.setY(py);
+  //  public boolean msgBox(String p_txt, AlertType tipo) {
+  //    return msgBox(p_txt, tipo, (String) null);
+  //  }
+
+  //  public boolean msgBox(String p_txt, AlertType tipo, String p_ico) {
+  //    boolean bRet = true;
+  //    // se lanciato da un Thread la chiamata ad Alert non puo funzionare
+  //    // Va' lanciata solo sul JavaFX Application Thread
+  //    if ( !Platform.isFxApplicationThread()) {
+  //      Platform.runLater(() -> msgBox(p_txt, tipo, p_ico));
+  //      return bRet;
   //    }
-  //    alert.setWidth(400);
-  //
-  //    switch (typ) {
-  //      case CONFIRMATION:
-  //        alert.setTitle("Verifica");
-  //        alert.setHeaderText("Scegli cosa fare");
+  //    Alert alt = new Alert(tipo);
+  //    Scene sce = getPrimaryStage().getScene();
+  //    if (null == sce) {
+  //      // Cerchiamo di dare un'ancora all'alert se possibile
+  //      Window.getWindows().stream().filter(Window::isShowing).findFirst().ifPresent(alt::initOwner);
+  //    }
+  //    if (null != p_ico) {
+  //      URL resico = getClass().getResource(p_ico);
+  //      if (null == resico)
+  //        resico = getClass().getClassLoader().getResource(CSZ_MAIN_ICON);
+  //      if (null != resico) {
+  //        ImageView ico = new ImageView(resico.toString());
+  //        alt.setGraphic(ico);
+  //      }
+  //    }
+  //    alt.setTitle(tipo.toString());
+  //    alt.setHeaderText(tipo.toString());
+  //    alt.setContentText(p_txt);
+  //    Optional<ButtonType> result = alt.showAndWait();
+  //    switch (tipo) {
+  //      case AlertType.CONFIRMATION:
+  //        bRet = !result.isEmpty() && result.get() == ButtonType.YES;
   //        break;
-  //      case INFORMATION:
-  //        alert.setTitle("Informa");
-  //        alert.setHeaderText("Comunicazione");
-  //        break;
-  //
-  //      case WARNING:
-  //        alert.setTitle("Attenzione");
-  //        alert.setHeaderText("Occhio !");
-  //        break;
-  //
-  //      case ERROR:
-  //        alert.setTitle("Errore !");
-  //        alert.setHeaderText("Ahi ! Ahi !");
-  //        break;
-  //
   //      default:
+  //        s_log.info("msg={}", p_txt);
   //        break;
   //    }
-  //    // button type YES -> aggiungo il no
-  //    if (bt.equals(ButtonType.YES)) {
-  //      alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
-  //    }
-  //    //    alert.setContentText(p_msg);
-  //    WebView webView = new WebView();
-  //    webView.getEngine().loadContent(p_msg);
-  //    webView.setPrefSize(300, 60);
-  //    alert.getDialogPane().setContent(webView);
-  //    Optional<ButtonType> btret = alert.showAndWait();
-  //    return btret;
+  //    return bRet;
   //  }
-
-  public void msgBox(String p_txt) {
-    msgBox(p_txt, AlertType.INFORMATION);
-  }
-
-  public boolean msgBox(String p_txt, AlertType tipo) {
-    return msgBox(p_txt, tipo, (String) null);
-  }
-
-  public boolean msgBox(String p_txt, AlertType tipo, String p_ico) {
-    boolean bRet = true;
-    // se lanciato da un Thread la chiamata ad Alert non puo funzionare
-    // Va' lanciata solo sul JavaFX Application Thread
-    if ( !Platform.isFxApplicationThread()) {
-      Platform.runLater(() -> msgBox(p_txt, tipo, p_ico));
-      return bRet;
-    }
-    Alert alt = new Alert(tipo);
-    Scene sce = getPrimaryStage().getScene();
-    if (null == sce) {
-      // Cerchiamo di dare un'ancora all'alert se possibile
-      Window.getWindows().stream().filter(Window::isShowing).findFirst().ifPresent(alt::initOwner);
-    }
-    if (null != p_ico) {
-      URL resico = getClass().getResource(p_ico);
-      if (null == resico)
-        resico = getClass().getClassLoader().getResource(CSZ_MAIN_ICON);
-      if (null != resico) {
-        ImageView ico = new ImageView(resico.toString());
-        alt.setGraphic(ico);
-      }
-    }
-    alt.setTitle(tipo.toString());
-    alt.setHeaderText(tipo.toString());
-    alt.setContentText(p_txt);
-    Optional<ButtonType> result = alt.showAndWait();
-    switch (tipo) {
-      case AlertType.CONFIRMATION:
-        bRet = !result.isEmpty() && result.get() == ButtonType.YES;
-        break;
-      default:
-        s_log.info("msg={}", p_txt);
-        break;
-    }
-    return bRet;
-  }
 
   public void addViewContanti(ViewContanti pview) {
     m_viewContanti = pview;
@@ -501,6 +345,11 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
 
     dialog.setScene(scene);
     dialog.showAndWait();
+  }
+
+  @Override
+  public void changeSkin() {
+    // nothing to do, skin is set in the model and used in the scene controller
   }
 
 }

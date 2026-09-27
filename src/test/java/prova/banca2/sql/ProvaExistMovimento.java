@@ -14,14 +14,14 @@ public class ProvaExistMovimento extends ProvaSQLBase {
   @Override
   public void eseguiTest() {
     System.out.printf("ProvaExistMovimento propFile:%s\n", model.getPropsFile());
-    model.setFiltriQuery(ESqlFiltri.IdCodstat.getFlag() | ESqlFiltri.Cardid.getFlag());
+    model.setFiltriQueryMovimenti(ESqlFiltri.IdCodstat.getFlag() | ESqlFiltri.Cardid.getFlag());
 
     ISQLGest sqlgest = model.getSqlgest();
     RigaBanca rig = new RigaBanca();
     rig.setCodstat("01.02");
     // se si lascia il filtro cosi, esce la query: WHERE 1=1 AND tipo = ? AND dtval = ? AND dare = ? AND avere = ?
-    model.setFiltriQuery(0);
-    model.setFiltriQuery(ESqlFiltri.IdCodstat.getFlag());
+    model.setFiltriQueryMovimenti(0);
+    model.setFiltriQueryMovimenti(ESqlFiltri.IdCodstat.getFlag());
 
     boolean bRet = sqlgest.existMovimento(rig);
     System.out.println("Riga Banca:" + rig.toString());

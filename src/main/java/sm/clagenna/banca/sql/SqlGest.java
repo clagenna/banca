@@ -2,6 +2,7 @@ package sm.clagenna.banca.sql;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -45,7 +46,7 @@ import sm.clagenna.stdcla.utils.Utils;
  */
 public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
 
-  public static List<String> allTables;
+  public static List<String> allMovTables;
 
   private PreparedStatement stmtSelMov;
   private PreparedStatement stmtInsMov;
@@ -59,8 +60,12 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   private PreparedStatement stmtModCodStat;
   private PreparedStatement stmtDelCodStat;
 
+  //  @Getter @Setter
+  //  private boolean        showStmts;
+  //  StmtShowQueryContainer showStmtsCont;
+
   @Getter @Setter
-  private DBConn dbconn;
+  private DBConn                  dbconn;
   @Getter @Setter
   private int                     qtaRecsUpd;
   @Getter @Setter
@@ -75,10 +80,10 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   private DataModel               model;
 
   static {
-    allTables = Arrays.asList(new String[] { //
-        "impFiles", //
+    allMovTables = Arrays.asList(new String[] { //
         "movimenti", //
-        "CodiciStat" });
+        "impFiles", //
+    });
   }
 
   public SqlGest() {
@@ -182,9 +187,65 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     //    }
   }
 
+  public PreparedStatement applicaFiltri(PreparedStatement p_stmt, int k, DBConn dbconn, RigaBanca p_rig) throws SQLException {
+    int filtriQuery = model.getFiltriQueryMovimenti();
+    //    Object obj = null;
+    //    if (isShowStmts() ) {
+    //      if ( null != showStmtsCont)
+    //          showStmtsCont = new StmtShowQueryContainer();
+    //    }
+    for (ESqlFiltri fl : ESqlFiltri.values()) {
+      if ( !fl.isSet(filtriQuery))
+        continue;
+      switch (fl) {
+        case Id:
+          dbconn.setStmtInt(p_stmt, k++, p_rig.getRigaid());
+          break;
+        case tipo:
+          dbconn.setStmtString(p_stmt, k++, p_rig.getTiporec());
+          break;
+        case Dtmov:
+          dbconn.setStmtDatetime(p_stmt, k++, p_rig.getDtmov());
+          break;
+        case Dtval:
+          dbconn.setStmtDatetime(p_stmt, k++, p_rig.getDtval());
+          break;
+        case Dare:
+          dbconn.setStmtImporto(p_stmt, k++, p_rig.getDare());
+          break;
+        case Avere:
+          dbconn.setStmtImporto(p_stmt, k++, p_rig.getAvere());
+          break;
+        case Descr:
+          dbconn.setStmtString(p_stmt, k++, p_rig.getDescr());
+          break;
+        case ABICaus:
+          dbconn.setStmtString(p_stmt, k++, p_rig.getAbicaus());
+          break;
+        case Cardid:
+          dbconn.setStmtString(p_stmt, k++, p_rig.getCardid());
+          break;
+        case IdCodstat:
+          dbconn.setStmtInt(p_stmt, k++, p_rig.getIdcodstat());
+          break;
+        default:
+          break;
+      }
+    }
+    return p_stmt;
+  }
+
   @Override
   public void writeMovimento(RigaBanca ri) {
     try {
+      // FIXME Togliere il filtro quando verificata la correttezza dei dati
+      LocalDateTime dtmin = ParseData.parseData("2024-01-08 00:00:00");
+      LocalDateTime dtmax = ParseData.parseData("2024-01-08 23:59:59");
+
+      if (Utils.dateTimeBetween(ri.getDtmov(), dtmin, dtmax) && ri.getAvere() == 500.) {
+        getLog().debug("WISE riga {}  ==  {}", ri.toString(), ParseData.formatDate(dtmax));
+      }
+      // -----------------------------------------------------------------
       if (existMovimento(ri)) {
         if ( !model.isOverwrite()) {
           getLog().debug("Il movimento esiste! scarto {} ", ri.toString());
@@ -200,23 +261,31 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     }
   }
 
+  public void resetStmtExistMovimento() {
+    if (null != stmtSelMov) {
+      dbconn.closeStmt(stmtSelMov);
+      stmtSelMov = null;
+    }
+  }
+  
   @Override
   public boolean existMovimento(RigaBanca rig) {
     boolean bRet = false;
     int qta = 0;
     //
-    StringBuilder qry = new StringBuilder();
     try {
       if (null == stmtSelMov) {
-        int fq = model.getFiltriQuery();
+        StringBuilder qry = new StringBuilder();
+        int fq = model.getFiltriQueryMovimenti();
         // resetto la ricerca sul campo "Id"
         if (ESqlFiltri.Id.isSet(fq))
-          model.setFiltriQuery(fq & (ESqlFiltri.AllSets.getFlag() ^ ESqlFiltri.Id.getFlag()));
+          model.setFiltriQueryMovimenti(fq & (ESqlFiltri.AllSets.getFlag() ^ ESqlFiltri.Id.getFlag()));
         qry.append(getQrySELMov());
         qry.append(model.getCampiFiltro());
         getLog().debug("prepare existMov:{}", qry);
-        Connection conn = dbconn.getConn();
-        stmtSelMov = conn.prepareStatement(qry.toString());
+        //        Connection conn = dbconn.getConn();
+        //        stmtSelMov = conn.prepareStatement(qry.toString());
+        stmtSelMov = dbconn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
       getLog().error("Errore prep statement {} with err={}", rig.getTiporec(), e.getMessage());
@@ -224,7 +293,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     }
 
     try {
-      model.applicaFiltri(stmtSelMov, 1, dbconn, rig);
+      applicaFiltri(stmtSelMov, 1, dbconn, rig);
       try (ResultSet res = stmtSelMov.executeQuery()) {
         while (res.next())
           qta = res.getInt(1);
@@ -239,15 +308,22 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
 
   @Override
   public boolean insertMovimento(RigaBanca p_rig) {
+    // FIXME Togliere il filtro quando verificata la correttezza dei dati
+    LocalDateTime dtmin = ParseData.parseData("2024-01-08 00:00:00");
+    LocalDateTime dtmax = ParseData.parseData("2024-01-08 23:59:59");
+    if (Utils.dateTimeBetween(p_rig.getDtmov(), dtmin, dtmax) && p_rig.getAvere() == 500.) {
+      getLog().debug("Test Doppio !! " + "WISE riga {}  ==  {}", p_rig.toString(), ParseData.formatDate(dtmax));
+    }
+    // -------------------------------------------------------------------
     boolean bRet = false;
     lastRowid = -1;
     // TimerMeter tm = new TimerMeter("Insert");
     try {
       if (null == stmtInsMov) {
         String qry = getQryINSMov();
-        Connection conn = dbconn.getConn();
-        stmtInsMov = conn.prepareStatement(qry.toString());
-        // stmtLastRowId = conn.prepareStatement(getQryLASTROWID());
+        //        Connection conn = dbconn.getConn();
+        //        stmtInsMov = conn.prepareStatement(qry.toString());
+        stmtInsMov = dbconn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
       getLog().error("Errore prep statement INSERT on {} with err={}", p_rig.getTiporec(), e.getMessage());
@@ -291,15 +367,16 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
       if (null == stmtDelMov) {
         qry = new StringBuilder(getQryDELMov());
         qry.append(model.getCampiFiltro());
-        Connection conn = dbconn.getConn();
-        stmtDelMov = conn.prepareStatement(qry.toString());
+        //        Connection conn = dbconn.getConn();
+        //        stmtDelMov = conn.prepareStatement(qry.toString());
+        stmtDelMov = dbconn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
       getLog().error("Errore prep statement DELETE on {} with err={}", qry, e.getMessage());
       return 0;
     }
     try {
-      model.applicaFiltri(stmtDelMov, 1, dbconn, rig);
+      applicaFiltri(stmtDelMov, 1, dbconn, rig);
       qtaDel = stmtDelMov.executeUpdate();
     } catch (SQLException e) {
       getLog().error("Errore DELETE on {} with err={}", qry, e.getMessage());
@@ -316,8 +393,9 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
       if (null == stmtModMov) {
         qry = new StringBuilder(getQryMODMov());
         qry.append(model.getCampiFiltro());
-        Connection conn = dbconn.getConn();
-        stmtModMov = conn.prepareStatement(qry.toString());
+        //        Connection conn = dbconn.getConn();
+        //        stmtModMov = conn.prepareStatement(qry.toString());
+        stmtModMov = dbconn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
       getLog().error("Errore UPDATE on {} with err={}", qry, e.getMessage());
@@ -358,8 +436,9 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     szQry += " order by id";
     PreparedStatement lstmt = null;
     try {
-      Connection conn = getDbconn().getConn();
-      lstmt = conn.prepareStatement(szQry);
+      //      Connection conn = getDbconn().getConn();
+      //      lstmt = conn.prepareStatement(szQry);
+      lstmt = dbconn.prepareStatement(szQry);
     } catch (SQLException e) {
       getLog().error("Errore prep statement {} on ImpFiles with err={}", szQry, e.getMessage());
     }
@@ -372,8 +451,13 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
         while (res.next()) {
           CsvImpFile csvImpf = new CsvImpFile();
           csvImpf.setId(res.getInt(ConstsSQL.CsvImpFile_ColNo_id));
-          csvImpf.setFileName(res.getString(ConstsSQL.CsvImpFile_ColNo_filename));
-          csvImpf.setRelDir(res.getString(ConstsSQL.CsvImpFile_ColNo_reldir));
+          String szFilNam = res.getString(ConstsSQL.CsvImpFile_ColNo_filename);
+          String szRelDir = res.getString(ConstsSQL.CsvImpFile_ColNo_reldir);
+          csvImpf.assignPath(Paths.get(szRelDir), Paths.get(szFilNam));
+          csvImpf.setInDb(true);
+          // mi fido di quello che mi restituisce il file sistem
+          // csvImpf.setFileName(res.getString(ConstsSQL.CsvImpFile_ColNo_filename));
+          // csvImpf.setRelDir(res.getString(ConstsSQL.CsvImpFile_ColNo_reldir));
           if ( !Utils.isValue(csvImpf.getSize()))
             csvImpf.setSize(res.getInt(ConstsSQL.CsvImpFile_ColNo_size));
           if ( !Utils.isValue(csvImpf.getQtarecs()))
@@ -421,8 +505,9 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
       if (null == stmtSelCsvImpFile) {
         qry.append(getQrySELCsvImpFile());
         getLog().debug("prepare existCsvImpFile:{}", qry);
-        Connection conn = dbconn.getConn();
-        stmtSelCsvImpFile = conn.prepareStatement(qry.toString());
+        //        Connection conn = dbconn.getConn();
+        //        stmtSelCsvImpFile = conn.prepareStatement(qry.toString());
+        stmtSelCsvImpFile = dbconn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
       getLog().error("Errore prep statement existCsvImpFile with err={}", e.getMessage());
@@ -465,8 +550,9 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     try {
       if (null == stmtInsCsvImpFile) {
         String qry = getQryINSCsvImpFile();
-        Connection conn = dbconn.getConn();
-        stmtInsCsvImpFile = conn.prepareStatement(qry.toString());
+        //        Connection conn = dbconn.getConn();
+        //        stmtInsCsvImpFile = conn.prepareStatement(qry.toString());
+        stmtInsCsvImpFile = dbconn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
       getLog().error("Errore prep statement INSERT File {} with err={}", p_csvfile.getFileName(), e.getMessage());
@@ -517,8 +603,9 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
         qry = new StringBuilder(getQryDELCsvImpFile());
         // la delete e' sempre sul campo ID, quindi non serve applicare i filtri
         // qry.append(model.getCampiFiltro());
-        Connection conn = dbconn.getConn();
-        stmtDelCsvImpFile = conn.prepareStatement(qry.toString());
+//        Connection conn = dbconn.getConn();
+//        stmtDelCsvImpFile = conn.prepareStatement(qry.toString());
+        stmtDelCsvImpFile = dbconn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
       getLog().error("Errore prep statement DELETE on {} with err={}", qry, e.getMessage());
@@ -551,7 +638,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     long qtaDel = 0;
     final String szQryMas = "DELETE FROM %s WHERE %s IN (%s)";
     Connection conn = getDbconn().getConn();
-    for (String szTb : SqlGest.allTables) {
+    for (String szTb : SqlGest.allMovTables) {
       String szId = "id";
       if (szTb.startsWith("mov"))
         szId = "idfile";
@@ -574,8 +661,9 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
       if (null == stmtModCsvImpFile) {
         qry = new StringBuilder(getQryMODCsvImpFile());
         // qry.append(model.getCampiFiltro());
-        Connection conn = dbconn.getConn();
-        stmtModCsvImpFile = conn.prepareStatement(qry.toString());
+        //        Connection conn = dbconn.getConn();
+        //        stmtModCsvImpFile = conn.prepareStatement(qry.toString());
+        stmtModCsvImpFile = dbconn.prepareStatement(qry.toString());
       }
     } catch (SQLException e) {
       getLog().error("Errore UPDATE on {} with err={}", qry, e.getMessage());
@@ -622,8 +710,9 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   public void insertCodStat(CodStat cdsCurr) {
     try {
       if (null == stmtInsCodStat) {
-        Connection conn = dbconn.getConn();
-        stmtInsCodStat = conn.prepareStatement(getQryINSCodstat());
+        //        Connection conn = dbconn.getConn();
+        //        stmtInsCodStat = conn.prepareStatement(getQryINSCodstat());
+        stmtInsCodStat = dbconn.prepareStatement(getQryINSCodstat());
       }
     } catch (SQLException e) {
       getLog().error("Query {}; err={}", getQryINSCodstat(), e.getMessage(), e);
@@ -645,7 +734,6 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   public boolean updateCodStat(RigaBanca rig) {
     String qry1 = getQryMODMovCodstat();
     String qry2 = String.format(qry1, rig.getTiporec());
-
     Connection conn = dbconn.getConn();
     try (PreparedStatement stmtModCod = conn.prepareStatement(qry2)) {
       int k = 1;
@@ -669,7 +757,6 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
 
     for (RigaBanca rig : rigs) {
       String qry2 = String.format(qry1, rig.getTiporec());
-
       try (PreparedStatement stmtModCod = conn.prepareStatement(qry2)) {
         int k = 1;
         dbconn.setStmtInt(stmtModCod, k++, rig.getIdcodstat());
@@ -697,10 +784,10 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
       szRet = String.format("Insufficienti info per cancellare <br/>%s", null != cds ? cds.toStringEx() : "*null*");
       return szRet;
     }
-    Connection conn = dbconn.getConn();
+
     try {
       if (null == stmtDelCodStat) {
-        stmtDelCodStat = conn.prepareStatement(getQryDELCodstat());
+        stmtDelCodStat = dbconn.prepareStatement(getQryDELCodstat());
       }
     } catch (SQLException e) {
       getLog().error("Query {}; err={}", getQryDELCodstat(), e.getMessage());
@@ -731,7 +818,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     try (PreparedStatement stmtAzzeraIdCds = conn.prepareStatement(qry)) {
       qtaRecs = stmtAzzeraIdCds.executeUpdate();
     } catch (SQLException e) {
-      getLog().error("Errore AzZERAMENTO riferimenti codstat con err={}", e.getMessage());
+      getLog().error("Errore AZZERAMENTO riferimenti codstat con err={}", e.getMessage());
     }
     return qtaRecs;
   }
@@ -826,10 +913,9 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   public void updadetCodStat(CodStat cdsCurr) {
     if (null == cdsCurr || cdsCurr.getIdCodStat() == 0)
       return;
-    Connection conn = dbconn.getConn();
     try {
       if (null == stmtModCodStat) {
-        stmtModCodStat = conn.prepareStatement(getQryMODCodstat());
+        stmtModCodStat = dbconn.prepareStatement(getQryMODCodstat());
       }
     } catch (SQLException e) {
       getLog().error("Query {}; err={}", getQryMODCodstat(), e.getMessage(), e);

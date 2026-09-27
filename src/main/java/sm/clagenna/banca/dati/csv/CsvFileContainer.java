@@ -148,9 +148,8 @@ public class CsvFileContainer {
   public void saveDb(CsvImpFile impf) {
     if (null == sqlGest) 
       sqlGest = model.getSqlgest();
-    sqlGest.writeCsvImpFile(impf);
     impf.setUltagg(LocalDateTime.now());
-    impf.salvaFileSuDb((SqlGest) sqlGest);
+    impf.salvaFileSuDb((SqlGest) sqlGest);  // ???
     // int qta = 0;
     //    try {
     //      CsvImpFile tmp = (CsvImpFile) impf.clone();
@@ -225,63 +224,13 @@ public class CsvFileContainer {
   public List<CsvImpFile> controllaFilesAssenti() {
     List<CsvImpFile> lipth = new ArrayList<>();
     Path basep = model.getLastDir();
-    for (CsvImpFile imp : getFilesFromDB()) {
+    SqlGest sqlg = (SqlGest) model.getSqlgest();
+    for (CsvImpFile imp : sqlg.getListCsvImpFiles()) {
       Path pth = imp.fullPath(basep);
       if ( !Files.exists(pth, LinkOption.NOFOLLOW_LINKS))
         lipth.add(imp);
     }
     return lipth;
-  }
-
-  /**
-   * Legge dal DB la lista dei files di importazione
-   *
-   * @return lista dei files di importazione presenti nel DB
-   * @deprecated usa la SqlGest.getListCsvImpFiles per questa funzione
-   */
-  @Deprecated
-  private List<CsvImpFile> getFilesFromDB() {
-    throw new UnsupportedOperationException(
-        "Metodo deprecato, usare SqlGest.getListCsvImpFiles() per leggere le info dei files di importazione dal DB");
-    //    List<CsvImpFile> liDbFiles = new ArrayList<>();
-    //    String szQry = ConstsSQL.QRY_IMPFILES_SEL.substring(0, ConstsSQL.QRY_IMPFILES_SEL.indexOf("WHERE"));
-    //    szQry += " order by id";
-    //    PreparedStatement lstmt = null;
-    //
-    //    try {
-    //      Connection conn = sqlGest.getDbconn().getConn();
-    //      lstmt = conn.prepareStatement(szQry);
-    //    } catch (SQLException e) {
-    //      s_log.error("Errore prep statement {} on ImpFiles with err={}", szQry, e.getMessage());
-    //    }
-    //    try {
-    //      try (ResultSet res = lstmt.executeQuery()) {
-    //        if (res.isClosed()) {
-    //          s_log.warn("dataset closed on SEL info ImpFiles");
-    //          return liDbFiles;
-    //        }
-    //        while (res.next()) {
-    //          CsvImpFile csvImpf = new CsvImpFile();
-    //          csvImpf.setId(res.getInt(CO_id));
-    //          csvImpf.setFileName(res.getString(CO_filename));
-    //          csvImpf.setRelDir(res.getString(CO_reldir));
-    //          if ( !Utils.isValue(csvImpf.getSize()))
-    //            csvImpf.setSize(res.getInt(CO_size));
-    //          if ( !Utils.isValue(csvImpf.getQtarecs()))
-    //            csvImpf.setQtarecs(res.getInt(CO_qtarecs));
-    //          if ( !Utils.isValue(csvImpf.getDtmin()))
-    //            csvImpf.setDtmin(ParseData.parseData(res.getString(CO_dtmin)));
-    //          if ( !Utils.isValue(csvImpf.getDtmax()))
-    //            csvImpf.setDtmax(ParseData.parseData(res.getString(CO_dtmax)));
-    //          if ( !Utils.isValue(csvImpf.getUltagg()))
-    //            csvImpf.setUltagg(ParseData.parseData(res.getString(CO_ultagg)));
-    //          liDbFiles.add(csvImpf);
-    //        }
-    //      }
-    //    } catch (SQLException e) {
-    //      s_log.error("Errore get info ImpFiles with err={}", e.getMessage(), e);
-    //    }
-    //    return liDbFiles;
   }
 
   /**
@@ -297,7 +246,7 @@ public class CsvFileContainer {
     String szWhe = li.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
     final String szQryMas = "DELETE FROM %s WHERE %s IN (%s)";
     Connection conn = sqlGest.getDbconn().getConn();
-    for (String szTb : SqlGest.allTables) {
+    for (String szTb : SqlGest.allMovTables) {
       String szId = "id";
       if (szTb.startsWith("mov"))
         szId = "idfile";

@@ -31,6 +31,7 @@ import sm.clagenna.banca.dati.GuessCodStat;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.dati.TreeCodStat;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
+import sm.clagenna.banca.javafx.MessageDialog;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.sql.DBConn;
@@ -41,30 +42,30 @@ import sm.clagenna.stdcla.utils.Utils;
 public class AnalizzaCodStats extends Task<String> implements ChangeListener<String> {
   private static final Logger s_log = LogManager.getLogger(AnalizzaCodStats.class);
 
-//  /** query per i record gia riconosciuti per formare il vocabolario */
-//  private static final String CSZ_QRY_KNOWN   = """
-//      SELECT  descr
-//           ,codstat
-//           FROM ListaMovimenti
-//           WHERE 1=1
-//             AND codstat IS NOT NULL
-//           ORDER BY descr""";
-//  /** query per i record da indovinare */
-//  private static final String CSZ_QRY_UNKNOWN = """
-//      SELECT id
-//            ,idFile
-//            ,tipo
-//            ,dtmov
-//            ,dare
-//            ,avere
-//            ,cardid
-//            ,descr
-//           FROM ListaMovimenti
-//            WHERE 1=1
-//             %s
-//             AND (dare <> 0 OR avere <> 0)
-//             AND codstat IS NULL
-//          ORDER BY descr""";
+  //  /** query per i record gia riconosciuti per formare il vocabolario */
+  //  private static final String CSZ_QRY_KNOWN   = """
+  //      SELECT  descr
+  //           ,codstat
+  //           FROM ListaMovimenti
+  //           WHERE 1=1
+  //             AND codstat IS NOT NULL
+  //           ORDER BY descr""";
+  //  /** query per i record da indovinare */
+  //  private static final String CSZ_QRY_UNKNOWN = """
+  //      SELECT id
+  //            ,idFile
+  //            ,tipo
+  //            ,dtmov
+  //            ,dare
+  //            ,avere
+  //            ,cardid
+  //            ,descr
+  //           FROM ListaMovimenti
+  //            WHERE 1=1
+  //             %s
+  //             AND (dare <> 0 OR avere <> 0)
+  //             AND codstat IS NULL
+  //          ORDER BY descr""";
 
   @Getter @Setter
   private DBConn     dbconn;
@@ -237,7 +238,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
           // System.out.println("CodStat.changed()=NULL");
           String szMsg = String.format("Il codice Statistico \"%s\" *NON* esiste !", newValue);
           s_log.error(szMsg);
-          Platform.runLater(() -> mainApp.msgBox(szMsg, AlertType.ERROR));
+          Platform.runLater(() -> MessageDialog.messageDialog(AlertType.ERROR, szMsg));
         }
       }
     }

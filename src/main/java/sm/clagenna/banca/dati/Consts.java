@@ -88,6 +88,7 @@ public class Consts {
   public static final String PROP_PERC_INDOV         = "PERC_INDOV";
   public static final String PROP_SCARTA_DESCR       = "scartaDescr";
   public static final String PROP_FILTER_FILES       = "filter_files";
+  public static final String PROP_DEBUG_QRY          = "showStmtQry";
 
   /**
    * Eventi

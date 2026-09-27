@@ -179,7 +179,7 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
 
   private void prepareFiltro() {
     bSema = ROSSO;
-    int filtr = model.getFiltriQuery();
+    int filtr = model.getFiltriQueryMovimenti();
     ckTipo.setSelected(ESqlFiltri.tipo.isSet(filtr));
     ckDtmov.setSelected(ESqlFiltri.Dtmov.isSet(filtr));
     ckDtval.setSelected(ESqlFiltri.Dtval.isSet(filtr));

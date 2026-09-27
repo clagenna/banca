@@ -57,10 +57,10 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.Consts;
-import sm.clagenna.banca.dati.csv.CsvFileContainer;
-import sm.clagenna.banca.dati.csv.CsvImpFile;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.RigaBanca;
+import sm.clagenna.banca.dati.csv.CsvFileContainer;
+import sm.clagenna.banca.dati.csv.CsvImpFile;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.AutoCompleteComboBoxListener;
@@ -541,7 +541,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   void btSaveQueryClick(ActionEvent event) {
     String szNam = cbSaveQuery.getSelectionModel().getSelectedItem();
     if ( !m_gestQry.saveQuery(szNam))
-      m_appmain.msgBox(m_gestQry.getErrorMesg(), AlertType.ERROR);
+      MessageDialog.messageDialog(AlertType.ERROR, m_gestQry.getErrorMesg());
     else
       m_gestQry.caricaCombo(cbSaveQuery);
   }
@@ -714,8 +714,13 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     mi1.setOnAction((ActionEvent _) -> {
       tableRow_dblclick(null);
     });
+    MenuItem mi2 = new MenuItem("Cancella Movimento");
+    mi2.setOnAction((ActionEvent _) -> {
+      List<Object> rows = tblview.getSelectionModel().getSelectedItem();
+      tableRow_deleteMov(rows);
+    });
     ContextMenu menu = new ContextMenu();
-    menu.getItems().add(mi1);
+    menu.getItems().addAll(mi1, mi2);
     // liBanca.setContextMenu(menu);
     tblview.setContextMenu(menu);
 
@@ -768,17 +773,17 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       // passando a SQLite qui mi torna un Float invece che un Double ?!?
       coln = EColsTableView.dare.getColNo();
       var vvDare = aa.get(coln);
-      Double tabDare = (vvDare instanceof Float) ? ((Float) vvDare).doubleValue() : (Double) vvDare;
+      Double tabDare = vvDare instanceof Float ? ((Float) vvDare).doubleValue() : (Double) vvDare;
       vvDare = c.get(coln);
-      Double mioDare = (vvDare instanceof Float) ? ((Float) vvDare).doubleValue() : (Double) vvDare;
+      Double mioDare = vvDare instanceof Float ? ((Float) vvDare).doubleValue() : (Double) vvDare;
       if ( !Utils.isValueEq(tabDare, mioDare))
         continue;
 
       coln = EColsTableView.avere.getColNo();
       var vvAvere = aa.get(coln);
-      Double tabAvere = (vvAvere instanceof Float) ? ((Float) vvAvere).doubleValue() : (Double) vvAvere;
+      Double tabAvere = vvAvere instanceof Float ? ((Float) vvAvere).doubleValue() : (Double) vvAvere;
       vvAvere = c.get(coln);
-      Double mioAvere = (vvAvere instanceof Float) ? ((Float) vvAvere).doubleValue() : (Double) vvAvere;
+      Double mioAvere = vvAvere instanceof Float ? ((Float) vvAvere).doubleValue() : (Double) vvAvere;
       if ( !Utils.isValueEq(tabAvere, mioAvere))
         continue;
 
@@ -805,7 +810,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
 
       case Consts.EVT_CODSTAT_STRING:
         CodStat cds1 = (CodStat) evt.getNewValue();
-        if ( null == cds1)
+        if (null == cds1)
           return;
         m_codStatSel = cds1.getCodice();
         if ( !Utils.isValue(m_codStatSel))
@@ -906,6 +911,19 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     } catch (IOException e) {
       s_log.error("Desktop launch error:{}", e.getMessage(), e);
     }
+  }
+
+  protected void tableRow_deleteMov(List<Object> rows) {
+    if (null == rows || rows.size() == 0) {
+      s_log.warn("Nessun record selezionato per la cancellazione");
+      return;
+    }
+    int qtaDel = 0;
+    for (Object obj : rows) {
+      if (obj instanceof RigaBanca rb)
+        qtaDel += m_db.deleteMovimento(rb);
+    }
+    s_log.info("Cancellati {} Movimenti selezionati", qtaDel);
   }
 
   @FXML

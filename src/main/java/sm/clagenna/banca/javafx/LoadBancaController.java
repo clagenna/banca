@@ -429,7 +429,9 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     s_log.debug("Verifica presenza files registrati nel DB sul dir");
     List<CsvImpFile> li = model.getContCsv().controllaFilesAssenti();
     if (null == li || li.size() == 0) {
-      s_log.info("Tutti i file registrati sono presenti");
+      String szMsg = "Tutti i file nel registrati su DB sono presenti sul File System";
+      MessageDialog.messageDialog(AlertType.INFORMATION, szMsg);
+      s_log.info(szMsg);
       return;
     }
     Alert dial = new Alert(AlertType.INFORMATION);
@@ -442,6 +444,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     ButtonType btClear = new ButtonType("Elimina Regs.");
     ButtonType btOk = new ButtonType("Ok");
     dial.getButtonTypes().setAll(btClear, btOk);
+    dial.initOwner(getStage());
     Optional<ButtonType> res = dial.showAndWait();
     if (res.get() == btClear) {
       SqlGest sqlg = (SqlGest) model.getSqlgest();
@@ -592,8 +595,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   @FXML
   public void mnuhAbout() {
     String szMsg = "Versione dell'applicazione\n" + Versione.getVersionEx();
-    var mainapp = LoadBancaMainApp.getInst();
-    mainapp.msgBox(szMsg, AlertType.INFORMATION, LoadBancaMainApp.CSZ_MAIN_ICON);
+    MessageDialog.messageDialog(AlertType.INFORMATION, szMsg);
   }
 
   @FXML
