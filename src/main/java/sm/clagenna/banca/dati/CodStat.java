@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,34 +13,42 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class CodStat implements Comparable<CodStat> {
+public class CodStat implements Comparable<CodStat>, Cloneable {
   private static final Logger s_log = LogManager.getLogger(CodStat.class);
 
   @Getter @Setter
-  private int    cod1;
+  private int          idCodStat;
   @Getter @Setter
-  private int    cod2;
+  private int          cod1;
   @Getter @Setter
-  private int    cod3;
+  private int          cod2;
   @Getter @Setter
-  private String codice;
+  private int          cod3;
   @Getter @Setter
-  private String descr;
+  private String       codice;
   @Getter @Setter
-  private int    livello;
+  private String       descr;
   @Getter @Setter
-  private double totdare;
+  private int          livello;
   @Getter @Setter
-  private double totavere;
-
+  private double       totdare;
+  @Getter @Setter
+  private double       totavere;
   private CodStat      father;
   @Getter @Setter
-  private boolean       matched;
+  private boolean      matched;
   @Getter
   private Set<CodStat> figli;
 
   public CodStat() {
     livello = 0;
+  }
+
+  public CodStat(int idCd, String cods, String desc) {
+    this.assign(CodStat.parse(cods));
+    // la parse torna un nuovo CodStat senza idCodStat
+    idCodStat = idCd;
+    descr = desc;
   }
 
   public void assign(int cd1, int cd2, int cd3) {
@@ -59,12 +68,28 @@ public class CodStat implements Comparable<CodStat> {
   }
 
   public void assign(CodStat p_cds) {
+    setIdCodStat(p_cds.idCodStat);
     assign(p_cds.cod1, p_cds.cod2, p_cds.cod3);
     setDescr(p_cds.descr);
     if (null == figli)
       figli = new TreeSet<CodStat>();
     if (null != p_cds.figli)
       figli.addAll(p_cds.figli);
+  }
+
+  public void delete(CodStat lcd) {
+    if (null == figli || figli.size() == 0)
+      return;
+    List<CodStat> trov = figli //
+        .stream() //
+        .filter(s -> s.getCodice().equals(lcd.getCodice())) //
+        .collect(Collectors.toList());
+    if (null != trov && trov.size() > 0)
+      figli.remove(trov.get(0));
+  }
+
+  public boolean isInDB() {
+    return Utils.isValue(idCodStat);
   }
 
   public CodStat getFather() {
@@ -81,13 +106,16 @@ public class CodStat implements Comparable<CodStat> {
     if (null != figli)
       figli.clear();
     figli = null;
-    cod1 = cod2 = cod3 = livello = 0;
+    idCodStat = cod1 = cod2 = cod3 = livello = 0;
     descr = null;
     matched = false;
     totavere = 0d;
     totdare = 0d;
   }
 
+  /**
+   * azzera i totali (dare, avere) partendo dal nodo root e di tutti i figli
+   */
   public void clearTotali() {
     totavere = totdare = 0;
     if (null == figli)
@@ -148,6 +176,8 @@ public class CodStat implements Comparable<CodStat> {
 
   public CodStat getPadre() {
     CodStat ret = null;
+    if (null != father)
+      return father;
     switch (livello) {
       case 3:
         ret = new CodStat();
@@ -226,6 +256,33 @@ public class CodStat implements Comparable<CodStat> {
     return p_li;
   }
 
+  /**
+   * Verifica se e' cambiato il codice statistico oppure la descrizione del
+   * modello fornito (<code>p_ob</code>)
+   *
+   * @param p_ob
+   *          altro {@link CodStat} di riferimento
+   * @return
+   */
+  public boolean hasChanged(CodStat p_ob) {
+    if (null == p_ob)
+      return false;
+    if ( (cod1 != p_ob.cod1) || (cod2 != p_ob.cod2) || (cod3 != p_ob.cod3))
+      return true;
+    return Utils.isChanged(descr, p_ob.descr);
+  }
+
+  /**
+   * Imposta {@link #matched} in base alla stringa parziale fornita in
+   * <code>p_sz</code>. Se la stringa e' contenuta nella nostra descrizione
+   * allora {@link #matched} = true altrimenti false.<br/>
+   * Serve per evindenziare dinamicamente i nodi del treeView quando si cerca un
+   * codice statistico in base ad una parola della sua descrizione
+   *
+   * @param p_sz
+   *          la stringa da cercare
+   * @return true se la stringa &quot;match-a&quot; la descrizione
+   */
   public boolean matchDescr(String p_sz) {
     setMatched(false);
     if (null == p_sz || p_sz.length() < 2 || null == descr || descr.length() < 2)
@@ -251,8 +308,6 @@ public class CodStat implements Comparable<CodStat> {
       trov = lcd.find(cds);
       if (null != trov)
         return trov;
-      //      if (lcd.equals(cds))
-      //        return lcd;
     }
     return null;
   }
@@ -341,6 +396,13 @@ public class CodStat implements Comparable<CodStat> {
     return 0;
   }
 
+  @Override
+  public int hashCode() {
+    if (null == codice)
+      return super.hashCode();
+    return codice.hashCode();
+  }
+
   public String toStringEx() {
     return String.format("%d.%d.%d %s" //
         , cod1, cod2, cod3 //
@@ -376,4 +438,13 @@ public class CodStat implements Comparable<CodStat> {
         , Utils.formatDouble(totavere));
   }
 
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    CodStat newc = new CodStat(idCodStat, codice, descr);
+    newc.figli = figli;
+    newc.father = father;
+    newc.totavere = totavere;
+    newc.totdare = totdare;
+    return newc;
+  }
 }

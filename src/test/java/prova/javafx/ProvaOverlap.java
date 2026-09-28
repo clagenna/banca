@@ -13,14 +13,13 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import sm.clagenna.banca.dati.ImpFile;
-import sm.clagenna.stdcla.utils.ParseData;
+import sm.clagenna.banca.dati.csv.CsvImpFile;
 
 public class ProvaOverlap extends Application {
   private DateTimeFormatter s_fmt_ldt = DateTimeFormatter.ofPattern("dd/MM/YY");
   private Stage             mainstage;
   private Pane              pane;
-  private List<ImpFile>     liFil;
+  private List<CsvImpFile>  liFil;
   private LocalDateTime     dtMin;
   private LocalDateTime     dtMax;
   private int               posDtMin;
@@ -64,12 +63,12 @@ public class ProvaOverlap extends Application {
 
     drawRuller();
     int k = 0;
-    for (ImpFile impf : liFil) {
+    for (CsvImpFile impf : liFil) {
       drawImpFiles(impf, k++);
     }
   }
 
-  private void drawImpFiles(ImpFile pif, int progr) {
+  private void drawImpFiles(CsvImpFile pif, int progr) {
     int lPosMin = getDtPos(pif.getDtmin());
     int intlMin = lPosMin - posDtMin;
     int lPosMax = getDtPos(pif.getDtmax());
@@ -163,20 +162,20 @@ public class ProvaOverlap extends Application {
   }
 
   private void fillFiles() {
-    liFil = new ArrayList<ImpFile>();
-    liFil.add(new ImpFile(4, "estrattoconto_BSI_2112.csv", "Banca BSI", null, 1104, 10, ParseData.parseData("2021-03-04 00:00:00"),
-        ParseData.parseData("2021-12-31 00:00:00"), ParseData.parseData("2024-12-07 17:57:12")));
-    liFil.add(new ImpFile(5, "estrattoconto_BSI_2212.csv", "Banca BSI", null, 875, 7, ParseData.parseData("2022-03-04 00:00:00"),
-        ParseData.parseData("2022-12-31 00:00:00"), ParseData.parseData("2024-12-07 17:57:13")));
-    liFil
-        .add(new ImpFile(6, "estrattoconto_BSI_2312.csv", "Banca BSI", null, 28002, 202, ParseData.parseData("2023-03-07 00:00:00"),
-            ParseData.parseData("2023-12-31 00:00:00"), ParseData.parseData("2024-12-07 17:57:15")));
-    liFil
-        .add(new ImpFile(1, "estrattoconto_BSI_2410.csv", "Banca BSI", null, 25866, 192, ParseData.parseData("2024-01-02 00:00:00"),
-            ParseData.parseData("2024-11-02 00:00:00"), ParseData.parseData("2024-12-07 17:39:18")));
-    liFil
-        .add(new ImpFile(2, "estrattoconto_BSI_2411.csv", "Banca BSI", null, 29879, 220, ParseData.parseData("2023-11-27 00:00:00"),
-            ParseData.parseData("2024-11-11 00:00:00"), ParseData.parseData("2024-12-08 14:51:20")));
+    liFil = new ArrayList<CsvImpFile>();
+    //    liFil.add(new CsvImpFile(4, "estrattoconto_BSI_2112.csv", "Banca BSI", null, 1104, 10, ParseData.parseData("2021-03-04 00:00:00"),
+    //        ParseData.parseData("2021-12-31 00:00:00"), ParseData.parseData("2024-12-07 17:57:12")));
+    //    liFil.add(new CsvImpFile(5, "estrattoconto_BSI_2212.csv", "Banca BSI", null, 875, 7, ParseData.parseData("2022-03-04 00:00:00"),
+    //        ParseData.parseData("2022-12-31 00:00:00"), ParseData.parseData("2024-12-07 17:57:13")));
+    //    liFil
+    //        .add(new CsvImpFile(6, "estrattoconto_BSI_2312.csv", "Banca BSI", null, 28002, 202, ParseData.parseData("2023-03-07 00:00:00"),
+    //            ParseData.parseData("2023-12-31 00:00:00"), ParseData.parseData("2024-12-07 17:57:15")));
+    //    liFil
+    //        .add(new CsvImpFile(1, "estrattoconto_BSI_2410.csv", "Banca BSI", null, 25866, 192, ParseData.parseData("2024-01-02 00:00:00"),
+    //            ParseData.parseData("2024-11-02 00:00:00"), ParseData.parseData("2024-12-07 17:39:18")));
+    //    liFil
+    //        .add(new CsvImpFile(2, "estrattoconto_BSI_2411.csv", "Banca BSI", null, 29879, 220, ParseData.parseData("2023-11-27 00:00:00"),
+    //            ParseData.parseData("2024-11-11 00:00:00"), ParseData.parseData("2024-12-08 14:51:20")));
     dtMin = liFil.stream().map(s -> s.getDtmin()).min(LocalDateTime::compareTo).orElseThrow(NoSuchElementException::new);
     dtMax = liFil.stream().map(s -> s.getDtmax()).max(LocalDateTime::compareTo).orElseThrow(NoSuchElementException::new);
     posDtMin = getDtPos(dtMin);

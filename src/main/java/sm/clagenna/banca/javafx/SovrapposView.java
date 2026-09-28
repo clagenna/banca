@@ -20,9 +20,9 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
-import sm.clagenna.banca.dati.CsvFileContainer;
-import sm.clagenna.banca.dati.DataController;
-import sm.clagenna.banca.dati.ImpFile;
+import sm.clagenna.banca.dati.DataModel;
+import sm.clagenna.banca.dati.csv.CsvFileContainer;
+import sm.clagenna.banca.dati.csv.CsvImpFile;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -45,8 +45,9 @@ public class SovrapposView implements Initializable, IStartApp {
   private Stage            lstage;
   private LoadBancaMainApp m_appmain;
   private AppProperties    m_mainProps;
+  private DataModel       model;
 
-  private List<ImpFile> liFil;
+  private List<CsvImpFile> liFil;
   private LocalDateTime dtMin;
   private LocalDateTime dtMax;
   private int           posDtMin;
@@ -76,6 +77,7 @@ public class SovrapposView implements Initializable, IStartApp {
     // System.out.println("SovrapposView.initApp()");
     m_appmain = LoadBancaMainApp.getInst();
     m_mainProps = m_appmain.getProps();
+    model = DataModel.getInst();
     impostaForma(m_mainProps);
     if (lstage != null)
       lstage.setOnCloseRequest(_ -> {
@@ -109,10 +111,8 @@ public class SovrapposView implements Initializable, IStartApp {
       lstage.setWidth(mm.width());
       lstage.setHeight(mm.height());
     }
-    URL url = m_appmain.getUrlCSS();
-    if (null != url)
-      myScene.getStylesheets().add(url.toExternalForm());
-  }
+    changeSkin();
+   }
 
   private Object resized() {
     win_he = (int) lstage.getHeight();
@@ -134,12 +134,12 @@ public class SovrapposView implements Initializable, IStartApp {
 
     drawRuller();
     int k = 0;
-    for (ImpFile impf : liFil) {
+    for (CsvImpFile impf : liFil) {
       drawImpFiles(impf, k++);
     }
   }
 
-  private void drawImpFiles(ImpFile pif, int progr) {
+  private void drawImpFiles(CsvImpFile pif, int progr) {
     if ( !pif.hasPeriodo()) {
       s_log.warn("Non considero {} perche' non ha periodo", pif.getFileName());
       return;
@@ -228,7 +228,7 @@ public class SovrapposView implements Initializable, IStartApp {
 
   @Override
   public void changeSkin() {
-    URL url = m_appmain.getUrlCSS();
+    URL url = model.getMainCSS();
     if (null == url || null == myScene)
       return;
     myScene.getStylesheets().clear();
@@ -251,8 +251,8 @@ public class SovrapposView implements Initializable, IStartApp {
     
   }
 
-  public int setImpFileStart(ImpFile imf) {
-    DataController data = DataController.getInst();
+  public int setImpFileStart(CsvImpFile imf) {
+    DataModel data = DataModel.getInst();
     CsvFileContainer csvf = data.getContCsv();
     liFil = csvf.getListSiblings(imf);
     if (null == liFil || liFil.size() <= 1)

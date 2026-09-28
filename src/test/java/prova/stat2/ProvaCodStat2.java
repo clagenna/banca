@@ -1,6 +1,6 @@
 package prova.stat2;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import sm.clagenna.banca.dati.CodStat;
 import sm.clagenna.banca.dati.TreeCodStat;

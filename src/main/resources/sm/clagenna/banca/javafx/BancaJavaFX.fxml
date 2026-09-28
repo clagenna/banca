@@ -12,11 +12,12 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="553.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.LoadBancaController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="553.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sm.clagenna.banca.javafx.LoadBancaController">
 	<children>
 	    <MenuBar VBox.vgrow="NEVER">
 	      <menus>
@@ -76,7 +77,15 @@
 			<Button fx:id="btCercaDir" layoutX="637.0" layoutY="14.0" mnemonicParsing="false" onAction="#btCercaClick" text="Cerca..." AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="14.0" />
 			<TextField fx:id="txDirExports" layoutX="75.0" layoutY="14.0" onAction="#onEnterDirCSV" onKeyReleased="#premutoTasto" prefHeight="25.0" prefWidth="451.0" promptText="Scegli il direttorio con i files CSV" AnchorPane.leftAnchor="75.0" AnchorPane.rightAnchor="72.0" AnchorPane.topAnchor="14.0" />
 			<Button fx:id="btConvCSV" layoutX="69.0" layoutY="51.0" mnemonicParsing="false" onAction="#btConvCSV_Click" prefHeight="25.0" prefWidth="131.0" text="Import" AnchorPane.leftAnchor="69.0" AnchorPane.topAnchor="51.0" />
-                        <Button layoutX="317.0" layoutY="51.0" mnemonicParsing="false" onAction="#mnuConfMostraDatiClick" prefHeight="25.0" prefWidth="68.0" text="Dati" />
+            <Button layoutX="317.0" layoutY="51.0" mnemonicParsing="false" onAction="#mnuConfMostraDatiClick" prefHeight="25.0" prefWidth="68.0" text="Dati">
+            <tooltip>
+               <Tooltip text="Mostra la form di visualizzazione delle registrazioni sul DB" />
+            </tooltip></Button>
+         <Button layoutX="418.0" layoutY="51.0" mnemonicParsing="false" onAction="#mnuConfMostraCodStatClick" prefHeight="25.0" prefWidth="77.0" text="Cod. Stats">
+            <tooltip>
+               <Tooltip text="Mostra la Form di gestione dei Codici Statistici" />
+            </tooltip>
+         </Button>
 			<SplitPane fx:id="spltPane" dividerPositions="0.7" layoutY="85.0" orientation="VERTICAL" prefHeight="443.0" prefWidth="701.0" AnchorPane.bottomAnchor="27.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="85.0">
 				<items>
 					<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="253.0" prefWidth="679.0">

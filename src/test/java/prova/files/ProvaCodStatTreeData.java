@@ -1,6 +1,6 @@
 package prova.files;
 
-import sm.clagenna.banca.dati.DataController;
+import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.TreeCodStat;
 import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 import sm.clagenna.stdcla.utils.AppProperties;
@@ -8,8 +8,8 @@ import sm.clagenna.stdcla.utils.AppProperties;
 public class ProvaCodStatTreeData {
 
   private AppProperties props;
-  DataController        datac;
-  TreeCodStat          cdsdata;
+  DataModel             model;
+  TreeCodStat           cdsdata;
 
   public ProvaCodStatTreeData() {
     //
@@ -24,8 +24,8 @@ public class ProvaCodStatTreeData {
     props = new AppProperties();
     props.leggiPropertyFile("Banca.properties");
 
-    datac = new DataController();
-    datac.initApp(props);
+    model = new DataModel();
+    model.initApp(props);
 
     cdsdata = new TreeCodStat();
 
