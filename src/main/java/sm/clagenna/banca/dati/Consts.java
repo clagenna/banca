@@ -102,7 +102,7 @@ public class Consts {
   public static final String EVT_SAVEDBROW           = "savedbrow";
   public static final String EVT_ENDSAVEDB           = "endsavedb";
   public static final String EVT_CHANGESKIN          = "changeskin";
-  public static final String EVT_CODSTAT_STRING      = "codstat";
+  // public static final String EVT_CODSTAT_STRING      = "codstat";
   public static final String EVT_SELCODSTAT          = "selcodstat";
   public static final String EVT_CERCACODSTAT        = "cercacodstat";
   public static final String EVT_NEW_QUERY_RESULT    = "dtsresult";

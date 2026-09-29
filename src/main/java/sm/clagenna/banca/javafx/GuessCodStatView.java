@@ -102,6 +102,8 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   @FXML
   private Button                             btAssignCodStat;
   @FXML
+  private Label                              lbAssignCodStat;
+  @FXML
   private Label                              lbMsg;
   @FXML
   private TableView<GuessCodStat>            tblview;
@@ -136,7 +138,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   private AppProperties    mainProps;
   private Integer          m_annoComp;
   private boolean          bSemaf;
-  private String           m_codStatSel;
+  private CodStat          m_codStatSel;
   private AnalizzaCodStats m_tbvf;
   private Parent           cercaCodStatForm;
 
@@ -400,9 +402,15 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
 
     colCodstat.setOnEditCommit((TableColumn.CellEditEvent<GuessCodStat, String> t) -> { //
       var row = t.getTableView().getItems().get(t.getTablePosition().getRow());
-      row.setCodstat(t.getNewValue());
-      assegnaCodStatAiSelected(t.getNewValue());
-      accettaSel_click(null);
+      String szCodst = t.getNewValue();
+      CodStat cds = model.getCodStatData().getMapCodStat().get(szCodst);
+      if (null != cds) {
+        row.setCodstat(szCodst);
+        assegnaCodStatAiSelected(cds);
+        accettaSel_click(null);
+      } else {
+        MessageDialog.messageDialog(AlertType.WARNING, "Codice Statistico " + szCodst + " non trovato");
+      }
     });
     colAssigned.setOnEditCommit((TableColumn.CellEditEvent<GuessCodStat, Boolean> t) -> { //
       var row = t.getTableView().getItems().get(t.getTablePosition().getRow());
@@ -473,12 +481,12 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       colAssigned.setPrefWidth(vv);
   }
 
-  private void assegnaCodStatAiSelected(String newValue) {
+  private void assegnaCodStatAiSelected(CodStat newValue) {
     Platform.runLater(() -> tblview //
         .getSelectionModel() //
         .getSelectedItems() //
         .forEach(s -> {
-          s.setCodstat(newValue);
+          s.setCodstat(newValue.getCodice());
           s.setAssigned(true);
         }) //
     );
@@ -770,18 +778,25 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
         changeSkin();
         break;
 
-      case Consts.EVT_CODSTAT_STRING:
-        m_codStatSel = evt.getNewValue().toString();
+      case Consts.EVT_CERCACODSTAT:
+      case Consts.EVT_SELCODSTAT:
+        if (evt.getNewValue() instanceof CodStat cds)
+          m_codStatSel = cds;
+        else {
+          s_log.warn("EVT_SELCODSTAT: newValue non e' un CodStat ma {}", evt.getNewValue().getClass().getSimpleName());
+          return;
+        }
         Platform.runLater(() -> {
           // DataController data = m_appmain.getData();
           // CodStat cds = data.getCodStatData().decodeCodStat(m_codStatSel);
           //          String szLb = "...";
           //          if (null != cds)
           //            szLb = cds.getDescr();
-          btAssignCodStat.setText(m_codStatSel);
+          btAssignCodStat.setText(m_codStatSel.getCodice());
+          lbAssignCodStat.setText(m_codStatSel.getDescr());
           abilitaBottoni();
+          btAssignCodStatClick(null);
         });
-
         break;
 
       case Consts.EVT_DATASET_CREATED:
@@ -801,26 +816,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
         buildTableView();
         break;
 
-      case Consts.EVT_CERCACODSTAT:
-      case Consts.EVT_SELCODSTAT:
-        //        if (myScene.focusOwnerProperty().get() instanceof TableView<?> tbl) {
-        //          if (tbl == tblview) {
-        //            System.out.println("GuesCodstatView. EVT_CERCACODSTAT - Focus sulla GUESS");
-        //            break;
-        //          }
-        //        }
-
-        // if (myScene.focusOwnerProperty().get() instanceof TableView<?> tbl) {
-        //   if (tbl == tblview) {
-        if (model.isPadreCercaCodstat(myScene)) {
-          // if (tblview.getSelectionModel().getSelectedItems().size() != 0) {
-          if (evt.getNewValue() instanceof CodStat cds) {
-            m_codStatSel = cds.getCodice();
-            btAssignCodStat.setText(m_codStatSel);
-            btAssignCodStatClick(null);
-          }
-        }
-
+      default:
         break;
 
     }

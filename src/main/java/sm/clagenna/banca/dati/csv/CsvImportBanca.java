@@ -22,7 +22,6 @@ import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.ETipoBanca;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.javafx.EColsTableView;
-import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
@@ -221,8 +220,8 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
     CsvImpFile impf = contcsv.getFromPath(getCsvImpFile().getPathName());
     getLogger().info("Scrivo file {} di {} recs su DB({}) over={}", getCsvImpFile().getFileName(), getRigheBanca().size(),
         idServer.name(), model.isOverwrite());
-    int qryFiltrBefore = model.getFiltriQueryMovimenti();
-    int qryFiltrNow = qryFiltrBefore;
+    // int qryFiltrBefore = model.getFiltriQueryMovimenti();
+    // int qryFiltrNow = qryFiltrBefore;
     int nRow = 0;
     try {
       sqlg.setDbconn(dbconn);
@@ -254,7 +253,7 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
     } catch (Exception e) {
       getLogger().error("Error save DB : {}", e.getMessage());
     } finally {
-      model.setFiltriQueryMovimenti(qryFiltrBefore);
+      // model.setFiltriQueryMovimenti(qryFiltrBefore);
       firePropertyChange(Consts.EVT_ENDSAVEDB, dblQtaRows * 2.);
       getLogger().debug("CsvImportBanca.saveSuDB() - " + Consts.EVT_ENDSAVEDB);
     }
@@ -407,7 +406,7 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
       return;
     }
     dtval = ParseData.parseData(val.toString());
-    // -----------------  DARE ------------------------ 
+    // -----------------  DARE ------------------------
     val = getRowVal(EColsTableView.dare, row);
     if ( !Utils.isValue(val))
       dare = 0.;

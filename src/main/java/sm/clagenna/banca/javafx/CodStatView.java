@@ -228,7 +228,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         CodStat cds = row.getValue();
         // System.out.println("Click su:" + cds.getCodice());
         // se è premuto Shift aggiungo un figlio, altrimenti modifico il codice Stat selezionato
-        model.firePropertyChange(Consts.EVT_CODSTAT_STRING, null, cds);
+        model.firePropertyChange(Consts.EVT_SELCODSTAT, null, cds);
         }
       }
     );
@@ -392,6 +392,9 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     stageModCodStat.setX(20.);
     stageModCodStat.setY(20.);
     JFXUtils.readPosStage(stageModCodStat, mainProps, Consts.PROP_POSVIEW_modcodstat);
+    TreeItem<CodStat> ticds = treeview.getSelectionModel().getSelectedItem();
+    if ( null == cds && null != ticds)
+      cds = ticds.getValue();
     CodStat cdsLavoro = null;
     try {
       cdsLavoro = null != cds ? (CodStat) cds.clone() : null;
@@ -712,10 +715,10 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   //   dialog.showAndWait();
   //}
 
-  private void enableMenuContestuale(boolean bSel) {
-    mnuFiltraMovimenti.setDisable( !bSel);
-    mnuModifica.setDisable( !bSel);
-    mnuAggiungi.setDisable( !bSel);
+  private void enableMenuContestuale(boolean bEna) {
+    mnuFiltraMovimenti.setDisable( !bEna);
+    mnuModifica.setDisable( !bEna);
+    mnuAggiungi.setDisable( !bEna);
   }
 
   @FXML

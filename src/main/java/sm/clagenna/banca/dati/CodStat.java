@@ -144,7 +144,9 @@ public class CodStat implements Comparable<CodStat>, Cloneable {
         throw new UnsupportedOperationException("Codice Stat non valido " + szCod);
     }
     if (nl >= 3) {
-      cd3 = Integer.parseInt(arr[2]);
+      String s3 = arr[2];
+      String arrs3n[] = s3.split(" ");
+      cd3 = Integer.parseInt(arrs3n[0]);
       if (cd3 <= 0)
         throw new UnsupportedOperationException("Codice Stat non valido " + szCod);
     }

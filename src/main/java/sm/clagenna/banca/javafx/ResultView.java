@@ -158,7 +158,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private DataModel              model;
   @Getter @Setter
   private boolean                csvBlankOnZero;
-  private String                 m_codStatSel;
+  private CodStat                m_codStatSel;
   private boolean                bSemaf;
   private boolean                bSemafCercaClick;
   private Double                 precDare;
@@ -579,9 +579,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       return;
     ObservableList<List<Object>> locLi = tblview.getSelectionModel().getSelectedItems();
     if (null == locLi || locLi.size() == 0) {
-      String szMsg = String.format("Nessun record selezionato per l'assegnamento di %s", m_codStatSel);
+      String szMsg = String.format("Nessun record di ResView selezionato per l'assegnamento di %s", m_codStatSel);
       s_log.debug(szMsg);
-      MessageDialog.messageDialog(AlertType.WARNING, szMsg);
+      // MessageDialog.messageDialog(AlertType.WARNING, szMsg);
       liSelRowsForCodStat = null;
       return;
     }
@@ -601,7 +601,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       m_db.beginTrans();
       for (List<Object> elem : liSelRowsForCodStat) {
         RigaBanca riga = RigaBanca.parse(elem);
-        riga.setCodstat(m_codStatSel);
+        riga.setCodstat(m_codStatSel.getCodice());
         m_db.updateCodStat(riga);
         elem.set(EColsTableView.codstat.getColNo(), m_codStatSel);
       }
@@ -808,20 +808,19 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         changeSkin();
         break;
 
-      case Consts.EVT_CODSTAT_STRING:
-        CodStat cds1 = (CodStat) evt.getNewValue();
-        if (null == cds1)
-          return;
-        m_codStatSel = cds1.getCodice();
-        if ( !Utils.isValue(m_codStatSel))
+      case Consts.EVT_SELCODSTAT:
+        m_codStatSel = (CodStat) evt.getNewValue();
+        if (null == m_codStatSel)
           break;
         Platform.runLater(() -> {
-          DataModel data = m_appmain.getModel();
-          CodStat cds = data.getCodStatData().find(m_codStatSel);
+          // questa e' un po troppo immediata e nel assegnare il codstat alla riga selezionata della ResView
+          // potrei aver semplicemente selezionato il padre di un codstat e quindi non avere ancora selezionato la riga giusta della ResView
+          // btAssignCodStatClick(null);
+          // lasciamo che l'utente prema il bottone per assegnare il codstat alla riga selezionata della ResView
           String szLb = "...";
-          if (null != cds)
-            szLb = cds.getDescr();
-          btAssignCodStat.setText(m_codStatSel);
+          if (null != m_codStatSel)
+            szLb = m_codStatSel.getDescr();
+          btAssignCodStat.setText(m_codStatSel.getCodice());
           lbAssignCodStat.setText(szLb);
           abilitaBottoni();
         });
@@ -854,22 +853,20 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         // if ( !LoadBancaMainApp.getInst().isGuessCodStatViewOpened()) {
         if (model.isPadreCercaCodstat(myScene)) {
           if (evt.getNewValue() instanceof CodStat cds) {
-            m_codStatSel = cds.getCodice();
+            m_codStatSel = cds;
             String szLb = "...";
             if (null != cds)
               szLb = cds.getDescr();
-            btAssignCodStat.setText(m_codStatSel);
+            btAssignCodStat.setText(m_codStatSel.getCodice());
             lbAssignCodStat.setText(szLb);
-            btAssignCodStatClick(null);
+            // idem come sopra
+            // questa e' un po troppo immediata e nel assegnare il codstat alla riga selezionata della ResView
+            // potrei aver semplicemente selezionato il padre di un codstat e quindi non avere ancora selezionato la riga giusta della ResView
+            // btAssignCodStatClick(null);
+            // lasciamo che l'utente prema il bottone per assegnare il codstat alla riga selezionata della ResView
           }
         }
 
-        break;
-      case Consts.EVT_SELCODSTAT:
-        if (evt.getNewValue() instanceof CodStat cds) {
-          m_codStatSel = cds.getCodice();
-          btAssignCodStatClick(null);
-        }
         break;
 
       case Consts.EVT_APP_CLOSE:
