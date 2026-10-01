@@ -61,6 +61,7 @@ import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.dati.csv.CsvFileContainer;
 import sm.clagenna.banca.dati.csv.CsvImpFile;
+import sm.clagenna.banca.sql.ConstsSQL;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.AutoCompleteComboBoxListener;
@@ -80,17 +81,6 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private static final Logger s_log = LogManager.getLogger(ResultView.class);
 
   public static final String CSZ_FXMLNAME = "ResultView.fxml";
-  //  private static final String     CSZ_PROP_POSRESVIEW_X = "resview.x";
-  //  private static final String     CSZ_PROP_POSRESVIEW_Y = "resview.y";
-  //  private static final String     CSZ_PROP_DIMRESVIEW_X = "resview.lx";
-  //  private static final String     CSZ_PROP_DIMRESVIEW_Y = "resview.ly";
-  private static final String     CSZ_QRY_TRUE = "1=1";
-  private static final String[][] shortcuts    = {                  //
-      { "F5", "Ripeti la ricerca" }, { "Ctrl+S", "Salva query" },   //
-      { "Ctrl+Enter", "Esegui ricerca" },                           //
-      { "Num +", "Su riga di tabella dati - cerca il CodStat" },    //
-      { "Esc", "Chiudi Help" },                                     //
-  };
 
   @FXML
   protected ComboBox<String>  cbTipoBanca;
@@ -212,7 +202,10 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     view.setFitHeight(40);
     view.setPreserveRatio(true);
     btIndovinaCodStat.setGraphic(view);
-
+    // non ho ancora l'elenco delle colonne della tableview, quindi non posso ripristinare le dimensioni delle colonne
+    //    Platform.runLater(() -> {
+    //      JFXUtils.restoreTableviewColWidth(tblview, mainProps, Consts.PROP_COLRESVIEW);
+    //    });
     abilitaBottoni();
   }
 
@@ -349,7 +342,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         if (ev.isShiftDown()) {
           ev.consume();
           // caricaCercaCodStat();
-          LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
+          // LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
+          String szPrologo = "Hai premuto 'Quote' + Shift per mostrare la guida agli shortcuts";
+          JFXUtils.showHelpPopup(lstage, szPrologo, Consts.main_shortcuts, "Guida agli shortcuts");
         }
         break;
       default:
@@ -371,7 +366,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         if (p_e.isShiftDown()) {
           p_e.consume();
           // caricaCercaCodStat();
-          LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
+          // LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
+          String szPrologo = "Hai premuto 'Quote' + Shift per mostrare la guida agli shortcuts";
+          JFXUtils.showHelpPopup(lstage, szPrologo, Consts.main_shortcuts, "Guida agli shortcuts");
         }
         break;
       default:
@@ -389,9 +386,11 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     myScene.getStylesheets().add(url.toExternalForm());
   }
 
+  // FIXME non viene salvato la dimensione delle colonne della tableView
   @Override
   public void closeApp(AppProperties p_props) {
     m_appmain.removeResView(this);
+    JFXUtils.saveTableviewColWidth(tblview, p_props, Consts.PROP_COLRESVIEW);
     autoCbComp = null;
     if (null != m_gestQry)
       m_gestQry.closeApp(p_props);
@@ -399,8 +398,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       s_log.error("Il campo Scene risulta = **null**");
       return;
     }
-    JFXUtils.savePosStage(lstage, p_props, Consts.PROP_POSRESVIEW);
     model.removePropertyChangeListener(this);
+    JFXUtils.savePosStage(lstage, p_props, Consts.PROP_POSRESVIEW);
   }
 
   @FXML
@@ -630,13 +629,13 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       s_log.warn("Non hai selezionato una query");
       return szQryFltr;
     }
-    int n = m_qry.indexOf(CSZ_QRY_TRUE);
+    int n = m_qry.indexOf(ConstsSQL.QRY_TRUE);
     if (n < 0) {
       s_log.warn("Query \"{}\" malformata", m_qry);
       return szQryFltr;
     }
-    String szLeft = m_qry.substring(0, n + CSZ_QRY_TRUE.length());
-    String szRight = m_qry.substring(n + CSZ_QRY_TRUE.length());
+    String szLeft = m_qry.substring(0, n + ConstsSQL.QRY_TRUE.length());
+    String szRight = m_qry.substring(n + ConstsSQL.QRY_TRUE.length());
     StringBuilder szFiltr = new StringBuilder();
     if (Utils.isValue(m_fltrTipoBanca)) {
       szFiltr.append(String.format(" AND tipo='%s'", m_fltrTipoBanca));
@@ -745,6 +744,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     btExportCsv.setDisable(false);
     bSemaf = false;
     bBackGrRunning = false;
+    JFXUtils.restoreTableviewColWidth(tblview, mainProps, Consts.PROP_COLRESVIEW);
 
     if (null == liSelRowsForCodStat || liSelRowsForCodStat.size() == 0) {
       liSelRowsForCodStat = null;
@@ -752,7 +752,6 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     }
     TableViewSelectionModel<List<Object>> selmod = tblview.getSelectionModel();
     liSelRowsForCodStat.forEach(c -> vediESelezionaLaRigaGiusta(selmod, c));
-
   }
 
   private Object vediESelezionaLaRigaGiusta(TableViewSelectionModel<List<Object>> selmod, List<Object> c) {

@@ -34,7 +34,8 @@ public class Consts {
   public static final String COL_MOV_CodStat   = "codstat";
   public static final String COL_MOV_IdCodStat = "idcodstat";
 
-  // FIXME questa fa lo stesso di ConvertCsv2RigaBanca analizzaBanca per AMAZON con cnvRb.readConvProperties(pthCols);
+  // FIXTO questa fa lo stesso di ConvertCsv2RigaBanca analizzaBanca per AMAZON con cnvRb.readConvProperties(pthCols);
+  // --> eliminato le classi Convert2CsvCol.java e ConvertCsv2RigaBanca.java
   /**
    * mappa delle colonne std con quali stringhe sono associate nelle
    * intestazioni dei vari files CSV
@@ -43,7 +44,7 @@ public class Consts {
   public static final Map<EColsTableView, List<String>> nomiCols;
   static {
     // mappa delle colonne std con quali stringhe sono associate nelle intestazioni dei vari files CSV
-    // ATTENZIONE: Vanno messe in ordine di *LUNGHEZZA DISCENDENTE* !! 
+    // ATTENZIONE: Vanno messe in ordine di *LUNGHEZZA DISCENDENTE* !!
     // Vedi junit test ProvaCsvImpTutteBanche per il test di tutte le banche
     nomiCols = new HashMap<>();
     nomiCols.put(EColsTableView.tipo, //
@@ -73,22 +74,29 @@ public class Consts {
   /**
    * Proprieta nel Properties file
    */
-  public static final String PROP_CHECK_CONV         = "check.convdb";
-  public static final String PROP_LOG_LEVEL          = "logLevel";
-  public static final String PROP_SPLITPOS           = "splitpos";
-  public static final String PROP_COL_time           = "log_time";
-  public static final String PROP_COL_leve           = "log_lev";
-  public static final String PROP_COL_mesg           = "log_mesg";
-  public static final String PROP_POSRESVIEW         = "resview";
-  public static final String PROP_POSVIEW_modcodstat = "modcodstat";
-  public static final String PROP_PROP_SCARTA        = "voci.scarta";
-  public static final String PROP_EXCLUDEDCOLS       = "excludedcols";
-  public static final String PROP_FLAG_FILTRI        = "FLAG_FILTRI";
-  public static final String PROP_QTA_THREADS        = "QTA_THREADS";
-  public static final String PROP_PERC_INDOV         = "PERC_INDOV";
-  public static final String PROP_SCARTA_DESCR       = "scartaDescr";
-  public static final String PROP_FILTER_FILES       = "filter_files";
-  public static final String PROP_DEBUG_QRY          = "showStmtQry";
+  public static final String PROP_CHECK_CONV          = "check.convdb";
+  public static final String PROP_LOG_LEVEL           = "logLevel";
+  public static final String PROP_SPLITPOS            = "splitpos";
+  public static final String PROP_COL_time            = "log_time";
+  public static final String PROP_COL_leve            = "log_lev";
+  public static final String PROP_COL_mesg            = "log_mesg";
+  public static final String PROP_POSRESVIEW          = "resview";
+  public static final String PROP_COLRESVIEW          = "resview.col";
+  public static final String PROP_POSview_codstatView = "cdstt";
+  public static final String PROP_POSVIEW_modcodstat  = "modcodstat";
+  public static final String PROP_PROP_SCARTA         = "voci.scarta";
+  public static final String PROP_EXCLUDEDCOLS        = "excludedcols";
+  public static final String PROP_FLAG_FILTRI         = "FLAG_FILTRI";
+  public static final String PROP_QTA_THREADS         = "QTA_THREADS";
+  public static final String PROP_PERC_INDOV          = "PERC_INDOV";
+  public static final String PROP_SCARTA_DESCR        = "scartaDescr";
+  public static final String PROP_FILTER_FILES        = "filter_files";
+  public static final String PROP_DEBUG_QRY           = "showStmtQry";
+  public static final String PROP_CDST_DIM_COL1       = "cdstt.col1";
+  public static final String PROP_CDST_DIM_COL2       = "cdstt.col2";
+  public static final String PROP_CDST_DIM_DARE       = "cdstt.dare";
+  public static final String PROP_CDST_DIM_AVERE      = "cdstt.avere";
+  public static final String PROP_CDST_DIM_SALDO      = "cdstt.saldo";
 
   /**
    * Eventi
@@ -102,7 +110,6 @@ public class Consts {
   public static final String EVT_SAVEDBROW           = "savedbrow";
   public static final String EVT_ENDSAVEDB           = "endsavedb";
   public static final String EVT_CHANGESKIN          = "changeskin";
-  // public static final String EVT_CODSTAT_STRING      = "codstat";
   public static final String EVT_SELCODSTAT          = "selcodstat";
   public static final String EVT_CERCACODSTAT        = "cercacodstat";
   public static final String EVT_NEW_QUERY_RESULT    = "dtsresult";
@@ -150,31 +157,37 @@ public class Consts {
   public static final String BANCA_WISE          = "wise";
 
   /**
-   * Queries
+   * Menu di Help
    */
-  /** query per i record gia riconosciuti per formare il vocabolario */
-  public static final String QRY_KNOWN_CODSTATS   = """
-      SELECT  descr
-           ,codstat
-           FROM ListaMovimenti
-           WHERE 1=1
-             AND codstat IS NOT NULL
-           ORDER BY descr""";
-  /** query per i record da indovinare */
-  public static final String QRY_UNKNOWN_CODSTATS = """
-      SELECT id
-            ,idFile
-            ,tipo
-            ,dtmov
-            ,dare
-            ,avere
-            ,cardid
-            ,descr
-           FROM ListaMovimenti
-            WHERE 1=1
-             %s
-             AND (dare <> 0 OR avere <> 0)
-             AND codstat IS NULL
-          ORDER BY descr""";
+  public static final String[][] main_shortcuts = { //
+      { "ShortCuts sui Files", "" }, //
+      { "Ctrl-Shft-R ", " Rescan Dirs" }, //
+      { "Ctrl-Shft-M ", " Check Presenza Files" }, //
+      { "Ctrl-Shft-I ", " Import Sels Files" }, //
+      { "", "" }, //
+      { "Ctrl-Shft-O ", " Opzioni" }, //
+      { "Ctrl-Shft-S ", " Mosta Sovrapposizioni" }, //
+      { "Ctrl-Shft-D ", " Mosta Dati" }, //
+      { "Ctrl-Shft-T ", " Mostra Codici Stat." }, //
+      { "Ctrl-Shft-C ", " Gestione Contanti" }, //
+      { "Ctrl-Shft-I ", " Indovina Cod. Stat" }, //
+      //
+      { "ShortCuts sulla form dei risultati", "" }, //
+      { "F5", "Ripeti la ricerca" }, //
+      { "Ctrl+S", "Salva query" }, //
+      { "Ctrl+Enter", "Esegui ricerca" }, //
+      { "Num +", "Su riga di tabella dati - cerca il CodStat" }, //
+      { "Esc", "Chiudi Help" }, //
+      //
+      { "ShortCuts sui Codici Statistici", "" }, //
+      { "F5", "Ripeti la ricerca" }, //
+      { "Enter", "Esegui la ricerca o conferma la selezione" }, //
+      { "Shift", "Attiva la selezione multipla su piu righe consecutive" }, //
+      { "Ctrl", "Attiva la selezione multipla non consecutive" }, //
+      { "Dbl click", "Modifica il codice Stat. selezionato" }, //
+      { "Ctrl + Dbl click", "Aggiunge un figlio al codice Stat. selezionato" }, //
+      { "?", "Mostra questo aiuto" }, //
+      { "Esc", "Chiudi Help" }, //
+  };
 
 }

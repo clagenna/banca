@@ -592,10 +592,29 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     stageViewCont.show();
   }
 
+  /**
+   * Mostra la finestra con le informazioni sull'applicazione e gli shortcut
+   * disponibili:
+   * 
+   * <pre>
+   * ShortCuts
+  Ctrl-R  Rescan Dirs
+  Ctrl-M  Check Presenza Files
+  Ctrl-Shft-I Import Sels Files
+  
+  Ctrl-O  Opzioni
+  Ctrl-Alt-S  Mosta Sovrapposizioni
+  Ctrl-D  Mosta Dati
+  Ctrl-Alt-T  Mostra Codici Stat.
+  Ctrl-Shft-C Gestione Contanti
+  Shft-Alt-I  Indovina Cod. Stat
+   * </pre>
+   */
   @FXML
   public void mnuhAbout() {
-    String szMsg = "Versione dell'applicazione\n" + Versione.getVersionEx();
-    MessageDialog.messageDialog(AlertType.INFORMATION, szMsg);
+    String szPrologo = "Versione dell'applicazione<br/>" + Versione.getVersionEx();
+    szPrologo += "<br/>" + "Autore: Claudio<br/>";
+    JFXUtils.showHelpPopup(getStage(), szPrologo, Consts.main_shortcuts, "Guida agli shortcuts");
   }
 
   @FXML
@@ -824,7 +843,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     stageResults.setScene(scene);
     stageResults.setWidth(800);
     stageResults.setHeight(600);
-    JFXUtils.readPosStage(stageResults, props, CodStatView.PROP_POSview_codstatView);
+    JFXUtils.readPosStage(stageResults, props, Consts.PROP_POSview_codstatView);
     stageResults.initOwner(primaryStage);
     stageResults.initModality(Modality.NONE);
     stageResults.setTitle("Visualizzazione Codici Statistici");

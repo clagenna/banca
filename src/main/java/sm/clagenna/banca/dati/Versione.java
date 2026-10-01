@@ -66,7 +66,7 @@ public class Versione implements Serializable {
   }
 
   public static String getVersionEx() {
-    String sz = String.format("%s: %s ver. %s pubbl.il %s", NOME_APPL, DESC_APPL, Versione.getVersion(), CSZ_DATEDEPLOY);
+    String sz = String.format("%s<br/>%s<br/>ver. %s<br/>pubbl.il %s", NOME_APPL, DESC_APPL, Versione.getVersion(), CSZ_DATEDEPLOY);
     return sz;
   }
 }

@@ -32,6 +32,7 @@ import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.dati.TreeCodStat;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.javafx.MessageDialog;
+import sm.clagenna.banca.sql.ConstsSQL;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.sql.DBConn;
@@ -116,7 +117,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
 
   private void popolaKnownPhrase() {
     compr = new PhraseComparator();
-    try (PreparedStatement stmt = conn.prepareStatement(Consts.QRY_KNOWN_CODSTATS); ResultSet res = stmt.executeQuery()) {
+    try (PreparedStatement stmt = conn.prepareStatement(ConstsSQL.QRY_KNOWN_CODSTATS); ResultSet res = stmt.executeQuery()) {
       if (null == res || res.isClosed())
         return;
       while (res.next()) {
@@ -128,7 +129,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
       }
       compr.creaVectors();
     } catch (SQLException e) {
-      s_log.error("Errore su query {}, msg={}", Consts.QRY_KNOWN_CODSTATS, e.getMessage());
+      s_log.error("Errore su query {}, msg={}", ConstsSQL.QRY_KNOWN_CODSTATS, e.getMessage());
     }
   }
 
@@ -158,7 +159,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
       LocalDateTime dtA2 = LocalDateTime.of(ldt, dtA);
       whe.append(String.format(" AND dtmov <= '%s'", ParseData.s_fmtTsT.format(dtA2)));
     }
-    String qry = String.format(Consts.QRY_UNKNOWN_CODSTATS, whe.toString());
+    String qry = String.format(ConstsSQL.QRY_UNKNOWN_CODSTATS, whe.toString());
 
     s_log.trace("Cerca Training con: {}", qry);
     try (PreparedStatement stmt = conn.prepareStatement(qry); ResultSet res = stmt.executeQuery()) {

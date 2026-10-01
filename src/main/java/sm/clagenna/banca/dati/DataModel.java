@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -145,15 +146,6 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     }
     associd = new CardidAssoc();
     associd.load(props);
-    //    try {
-    //      codstats = new AppProperties();
-    //      codstats.leggiPropertyFile(FILE_CODSTAT, true, false);
-    //    } catch (AppPropsException e) {
-    //      e.printStackTrace();
-    //      return;
-    //    }
-    //    codStatData = new TreeitemCodStat();
-    //    codStatData.readTreeCodStats();
     refreshCodstatData();
 
   }
@@ -449,7 +441,21 @@ public class DataModel implements IStartApp, PropertyChangeListener {
 
   @Override
   public void closeApp(AppProperties p_props) {
-    // TODO Auto-generated method stub
+    for (PropertyChangeListener pl : propsChange.getPropertyChangeListeners())
+      propsChange.removePropertyChangeListener(pl);
+
+    p_props.setIntProperty(Consts.PROP_FLAG_FILTRI, filtriQueryMovimenti);
+    p_props.setIntProperty(Consts.PROP_QTA_THREADS, qtaThreads);
+    p_props.setIntProperty(Consts.PROP_PERC_INDOV, getPercIndov());
+    String sz;
+    if (null != scartaVoci) {
+      sz = String.join(",", scartaVoci);
+      p_props.setProperty(Consts.PROP_PROP_SCARTA, sz);
+    }
+    if (null != excludeCols) {
+      sz = excludeCols.stream().map(s -> s.toString()).collect(Collectors.joining(","));
+      p_props.setProperty(Consts.PROP_EXCLUDEDCOLS, sz);
+    }
 
   }
 

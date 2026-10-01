@@ -141,7 +141,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   }
 
   private void updateTxAllCds() {
-    System.out.printf("Real ModTreeCodStat(%d)\n", hashCode() % 1023);
+    System.out.printf("Real ModTreeCodStat(hash=%d)\n", hashCode() % 1023);
     // System.out.printf("ModTreeCodStat.updateTxAllCds(\"%s\")\n", cdsCurr.toStringEx());
     lbIdCodstat.setText(cdsLavoro.isInDB() ? Utils.formatLong((long) cdsLavoro.getIdCodStat()) : "-");
     txCd1.setText(String.valueOf(cdsLavoro.getCod1()));

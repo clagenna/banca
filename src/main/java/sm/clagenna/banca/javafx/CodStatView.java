@@ -76,29 +76,6 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   private static final Logger s_log = LogManager.getLogger(CodStatView.class);
 
   public static final String CSZ_FXMLNAME             = "CodStatView.fxml";
-  public static final String PROP_POSview_codstatView = "cdstt";
-  //  private static final String CSZ_PROP_POScdstt_X = "cdstt.x";
-  //  private static final String CSZ_PROP_POScdstt_Y = "cdstt.y";
-  //  private static final String CSZ_PROP_DIMcdstt_X = "cdstt.lx";
-  //  private static final String CSZ_PROP_DIMcdstt_Y = "cdstt.ly";
-  private static final String     CSZ_PROP_DIM_COL1  = "cdstt.col1";
-  private static final String     CSZ_PROP_DIM_COL2  = "cdstt.col2";
-  private static final String     CSZ_PROP_DIM_DARE  = "cdstt.dare";
-  private static final String     CSZ_PROP_DIM_AVERE = "cdstt.avere";
-  private static final String     CSZ_PROP_DIM_SALDO = "cdstt.saldo";
-  private static final String[][] shortcuts          = {                              //
-      { "F5", "Ripeti la ricerca" },                                                  //
-      { "Ctrl", "Attiva la selezione multipla non consecutive" },                     //
-      { "Shift", "Attiva la selezione multipla su piu righe consecutive" },           //
-      { "Enter", "Esegui la ricerca o conferma la selezione" },                       //
-      { "Doppio click", "Modifica il codice Stat. selezionato" },                     //
-      { "Shift + Doppio click", "Aggiunge un figlio al codice Stat. selezionato" },   //
-      { "Ctrl + Doppio click", "Aggiunge un figlio al codice Stat. selezionato" },    //
-      { "?", "Mostra questo aiuto" },                                                 //
-      { "Esc", "Chiudi Help" },                                                       //
-  };
-
-  // private static final AlertType AlertType = null;
 
   @FXML
   private TextField                        txFileCodStat;
@@ -185,31 +162,31 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
   private void impostaTreeView(AppProperties p_props) {
     colCodStat.setCellValueFactory(new TreeItemPropertyValueFactory<>("codice"));
-    double vv = p_props.getDoubleProperty(CSZ_PROP_DIM_COL1);
+    double vv = p_props.getDoubleProperty(Consts.PROP_CDST_DIM_COL1);
     if (vv > 0)
       colCodStat.setPrefWidth(vv);
 
     colDescr.setCellValueFactory(new TreeItemPropertyValueFactory<>("descr"));
-    vv = p_props.getDoubleProperty(CSZ_PROP_DIM_COL2);
+    vv = p_props.getDoubleProperty(Consts.PROP_CDST_DIM_COL2);
     if (vv > 0)
       colDescr.setPrefWidth(vv);
 
     colTotDare.setCellValueFactory(new TreeItemPropertyValueFactory<>("totdare"));
-    vv = p_props.getDoubleProperty(CSZ_PROP_DIM_DARE);
+    vv = p_props.getDoubleProperty(Consts.PROP_CDST_DIM_DARE);
     if (vv > 0)
       colTotDare.setPrefWidth(vv);
     colTotDare.setStyle("-fx-alignment: center-right;");
     colTotDare.setCellValueFactory(param -> new SimpleObjectProperty<String>(formattaCella("dare", param.getValue())));
 
     colTotAvere.setCellValueFactory(new TreeItemPropertyValueFactory<>("totavere"));
-    vv = p_props.getDoubleProperty(CSZ_PROP_DIM_AVERE);
+    vv = p_props.getDoubleProperty(Consts.PROP_CDST_DIM_AVERE);
     if (vv > 0)
       colTotAvere.setPrefWidth(vv);
     colTotAvere.setStyle("-fx-alignment: center-right;");
     colTotAvere.setCellValueFactory(param -> new SimpleObjectProperty<String>(formattaCella("avere", param.getValue())));
 
     colSaldo.setCellValueFactory(new TreeItemPropertyValueFactory<>("saldo"));
-    vv = p_props.getDoubleProperty(CSZ_PROP_DIM_SALDO);
+    vv = p_props.getDoubleProperty(Consts.PROP_CDST_DIM_SALDO);
     if (vv > 0)
       colSaldo.setPrefWidth(vv);
     colSaldo.setStyle("-fx-alignment: center-right;");
@@ -229,9 +206,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         // System.out.println("Click su:" + cds.getCodice());
         // se è premuto Shift aggiungo un figlio, altrimenti modifico il codice Stat selezionato
         model.firePropertyChange(Consts.EVT_SELCODSTAT, null, cds);
-        }
       }
-    );
+    });
     // Cell factory per evidenziare i match della descrizione
     treeview.setRowFactory(_ -> new TreeTableRow<CodStat>() {
 
@@ -393,7 +369,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     stageModCodStat.setY(20.);
     JFXUtils.readPosStage(stageModCodStat, mainProps, Consts.PROP_POSVIEW_modcodstat);
     TreeItem<CodStat> ticds = treeview.getSelectionModel().getSelectedItem();
-    if ( null == cds && null != ticds)
+    if (null == cds && null != ticds)
       cds = ticds.getValue();
     CodStat cdsLavoro = null;
     try {
@@ -558,7 +534,7 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       s_log.error("Non trovo lo stage per CodStatView");
       return;
     }
-    JFXUtils.readPosStage(lstage, p_props, PROP_POSview_codstatView);
+    JFXUtils.readPosStage(lstage, p_props, Consts.PROP_POSview_codstatView);
     changeSkin();
     txFileCodStat.focusedProperty().addListener((_, _, nw) -> {
       if ( !nw) {
@@ -652,7 +628,8 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         break;
       case QUOTE:
         if (p_e.isShiftDown()) {
-          LoadBancaMainApp.getInst().showHelpPopup(lstage, shortcuts);
+          String szPrologo = "Hai premuto 'Quote', Guida agli shortcuts";
+          JFXUtils.showHelpPopup(lstage, szPrologo, Consts.main_shortcuts, "Guida agli shortcuts");
         }
         break;
       default:
@@ -660,60 +637,6 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     }
     return null;
   }
-
-  /**
-   * Mostra un popup con la guida alle scorciatoie da tastiera
-   *
-   * @param owner
-   *          stage proprietario del popup
-   */
-  //private void   showHelpPopup(Stage owner) {
-  //   Stage dialog = new Stage();
-  //   dialog.initOwner(owner);
-  //   dialog.initModality(Modality.APPLICATION_MODAL);
-  //   dialog.initStyle(StageStyle.UTILITY);
-  //   dialog.setTitle("Guida ai tasti");
-  //   dialog.setResizable(false);
-  //
-  //   // Titolo
-  //   Label title = new Label("Scorciatoie da tastiera");
-  //   title.setFont(Font.font("System", FontWeight.BOLD, 14));
-  //
-  //   // Griglia tasto → descrizione
-  //   GridPane grid = new GridPane();
-  //   grid.setHgap(16);
-  //   grid.setVgap(8);
-  //   grid.setPadding(new Insets(12, 0, 4, 0));
-  //
-  //
-  //   for (int i = 0; i < shortcuts.length; i++) {
-  //       Label key  = new Label(shortcuts[i][0]);
-  //       Label desc = new Label(shortcuts[i][1]);
-  //       key.setFont(Font.font("Monospaced", 13));
-  //       key.setStyle(
-  //           "-fx-background-color: #e8e8e8;" +
-  //           "-fx-border-color: #aaa;" +
-  //           "-fx-border-radius: 4;" +
-  //           "-fx-background-radius: 4;" +
-  //           "-fx-padding: 2 8 2 8;"
-  //       );
-  //       grid.add(key,  0, i);
-  //       grid.add(desc, 1, i);
-  //   }
-  //
-  //   VBox root = new VBox(8, title, grid);
-  //   root.setPadding(new Insets(16, 20, 16, 20));
-  //
-  //   Scene scene = new Scene(root);
-  //
-  //   // Chiudi con Escape o cliccando fuori
-  //   scene.setOnKeyPressed(e -> {
-  //       if (e.getCode() == KeyCode.ESCAPE) dialog.close();
-  //   });
-  //
-  //   dialog.setScene(scene);
-  //   dialog.showAndWait();
-  //}
 
   private void enableMenuContestuale(boolean bEna) {
     mnuFiltraMovimenti.setDisable( !bEna);
@@ -861,17 +784,17 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       s_log.error("Il campo Scene risulta = **null**");
       return;
     }
-    JFXUtils.savePosStage(lstage, p_props, PROP_POSview_codstatView);
+    JFXUtils.savePosStage(lstage, p_props, Consts.PROP_POSview_codstatView);
     double vv = colCodStat.getWidth();
-    p_props.setProperty(CSZ_PROP_DIM_COL1, Integer.valueOf((int) vv));
+    p_props.setProperty(Consts.PROP_CDST_DIM_COL1, Integer.valueOf((int) vv));
     vv = colDescr.getWidth();
-    p_props.setProperty(CSZ_PROP_DIM_COL2, Integer.valueOf((int) vv));
+    p_props.setProperty(Consts.PROP_CDST_DIM_COL2, Integer.valueOf((int) vv));
     vv = colTotDare.getWidth();
-    p_props.setProperty(CSZ_PROP_DIM_DARE, Integer.valueOf((int) vv));
+    p_props.setProperty(Consts.PROP_CDST_DIM_DARE, Integer.valueOf((int) vv));
     vv = colTotAvere.getWidth();
-    p_props.setProperty(CSZ_PROP_DIM_AVERE, Integer.valueOf((int) vv));
+    p_props.setProperty(Consts.PROP_CDST_DIM_AVERE, Integer.valueOf((int) vv));
     vv = colSaldo.getWidth();
-    p_props.setProperty(CSZ_PROP_DIM_SALDO, Integer.valueOf((int) vv));
+    p_props.setProperty(Consts.PROP_CDST_DIM_SALDO, Integer.valueOf((int) vv));
 
   }
 

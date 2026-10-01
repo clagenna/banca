@@ -1,0 +1,99 @@
+@startuml
+' Banca project class diagram (simplified)
+skinparam packageStyle rectangle
+
+package "sm.clagenna.banca" {
+  package "javafx" {
+    class LoadBancaMainApp {
+      +start(Stage)
+      +initApp(AppProperties)
+      +showHelpPopup(Stage, String[][])
+      -model: DataModel
+    }
+    class LoadBancaController
+    class ResultView {
+      +initApp(AppProperties)
+      +btCercaClick(ActionEvent)
+      -tblview: TableView<List<Object>>
+    }
+    class TableViewFillerBanca
+    class CodStatView
+    class GuessCodStatView
+    class CercaCodStat
+    class GestResViewQueryParams
+    class MessageDialog
+    class ViewContanti
+  }
+
+  package "dati" {
+    class DataModel {
+      +getInst(): DataModel
+      +initApp(AppProperties)
+      +addPropertyChangeListener(PropertyChangeListener)
+      -dbConn: DBConn
+      -sqlgest: ISQLGest
+    }
+    class CodStat
+    class TreeitemCodStat
+    class CsvFileContainer
+    class CsvImpFile
+    class RigaBanca
+    class ScartaDescr
+    class CardidAssoc
+  }
+
+  package "sql" {
+    interface ISQLGest
+    class SqlGest
+    class SqlGestFactory
+    class SqlServerGest
+    class SQLiteGest
+    enum ESqlFiltri
+  }
+}
+
+package "sm.clagenna.stdcla.javafx" {
+  class TableViewFiller
+  class AutoCompleteComboBoxListener
+  class JFXUtils
+}
+package "sm.clagenna.stdcla.sql" {
+  class DBConn
+  class DBConnFactory
+  class Dataset
+}
+package "sm.clagenna.stdcla.utils" {
+  class AppProperties
+  class Utils
+}
+
+' Relationships
+LoadBancaMainApp --> DataModel : uses
+LoadBancaMainApp --> LoadBancaController : manages
+LoadBancaMainApp --> AppProperties
+LoadBancaController --> ResultView : opens
+ResultView --> TableViewFillerBanca : uses
+TableViewFillerBanca -|> TableViewFiller
+ResultView --> ISQLGest : uses
+ResultView --> DataModel : listens to
+DataModel --> DBConn : holds
+DataModel --> ISQLGest : holds
+DataModel --> CsvFileContainer
+ISQLGest <|-- SqlGest
+ISQLGest <|-- SqlServerGest
+ISQLGest <|-- SQLiteGest
+SqlGestFactory --> ISQLGest : factory
+DBConnFactory --> DBConn : factory
+ResultView --> Dataset
+TableViewFiller --> Dataset
+ResultView --> CsvFileContainer
+
+note top of DataModel
+Singleton (inst) - holds app state, properties, DB connection and listeners
+end note
+
+note right of ResultView
+JavaFX controller: builds queries, runs TableViewFiller tasks, handles CSV export and CodStat assignment
+end note
+
+@enduml

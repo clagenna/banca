@@ -221,7 +221,7 @@ public class ConstsSQL {
       FROM impFiles
       WHERE filename = ?
       AND relDir = ?""";
-  public static final String QRY_SQLITE_UPD_ImpFiles = """
+  public static final String QRY_SQLITE_UPD_ImpFiles    = """
       UPDATE impFiles SET
              filename=?,
              reldir=?,
@@ -231,7 +231,7 @@ public class ConstsSQL {
              dtmax=?,
              ultagg=?
       WHERE id = ?""";
-  public static final String QRY_SQLITE_INS_ImpFiles = """
+  public static final String QRY_SQLITE_INS_ImpFiles    = """
        INSERT INTO impFiles (
             filename,
             reldir,
@@ -241,10 +241,9 @@ public class ConstsSQL {
             dtmax,
             ultagg)
       VALUES ( ?, ?, ?, ?, ?, ?, ? )""";
-  public static final String QRY_SQLITE_DEL_ImpFiles = """
-       DELETE FROM impFiles 
-       WHERE id = ?""";
-
+  public static final String QRY_SQLITE_DEL_ImpFiles    = """
+      DELETE FROM impFiles
+      WHERE id = ?""";
 
   // Colonne della tabella impFiles
   public static final int CsvImpFile_ColNo_id       = 1;
@@ -255,5 +254,34 @@ public class ConstsSQL {
   public static final int CsvImpFile_ColNo_dtmin    = 6;
   public static final int CsvImpFile_ColNo_dtmax    = 7;
   public static final int CsvImpFile_ColNo_ultagg   = 8;
+
+  /*
+   * Per le query del LLM AnalizzaCodstats
+   */
+  public static final String     QRY_TRUE = "1=1";
+  /** query per i record gia riconosciuti per formare il vocabolario */
+  public static final String QRY_KNOWN_CODSTATS   = """
+      SELECT  descr
+           ,codstat
+           FROM ListaMovimenti
+           WHERE 1=1
+             AND codstat IS NOT NULL
+           ORDER BY descr""";
+  /** query per i record da indovinare */
+  public static final String QRY_UNKNOWN_CODSTATS = """
+      SELECT id
+            ,idFile
+            ,tipo
+            ,dtmov
+            ,dare
+            ,avere
+            ,cardid
+            ,descr
+           FROM ListaMovimenti
+            WHERE 1=1
+             %s
+             AND (dare <> 0 OR avere <> 0)
+             AND codstat IS NULL
+          ORDER BY descr""";
 
 }

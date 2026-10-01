@@ -2,10 +2,14 @@ package sm.clagenna.banca.javafx;
 
 import java.util.Optional;
 
+import javafx.application.Platform;
+import javafx.concurrent.Worker;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
+import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import lombok.Setter;
@@ -35,7 +39,7 @@ public class MessageDialog {
   public static Optional<ButtonType> messageDialog(AlertType typ, String p_msg, ButtonType bt) {
     Alert alert = new Alert(typ);
     alert.setResizable(true);
-    if ( null == stage)
+    if (null == stage)
       stage = LoadBancaMainApp.getInst().getPrimaryStage();
     if (null != stage)
       alert.initOwner(stage);
@@ -82,10 +86,34 @@ public class MessageDialog {
       alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
     }
     //    alert.setContentText(p_msg);
+    DialogPane dialogPane = alert.getDialogPane();
     WebView webView = new WebView();
+    webView.setPrefSize(300, 120);
+    WebEngine webEngine = webView.getEngine();
+    // 3. Ascolta la fine del caricamento della pagina HTML per poi adattare l'altezza della WebView
+    webEngine.getLoadWorker().stateProperty().addListener((_, _, newState) -> {
+      if (newState == Worker.State.SUCCEEDED) {
+        // Esegui lo script per ottenere l'altezza del body HTML
+        Object result = webEngine.executeScript("Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);");
+
+        if (result instanceof Number) {
+          double height = ((Number) result).doubleValue();
+
+          // Imposta l'altezza della WebView (+ un piccolo margine di sicurezza)
+          webView.setPrefHeight(height + 20);
+
+          // Forza la finestra dell'Alert ad adattarsi al nuovo contenuto
+          Platform.runLater(() -> {
+            if (dialogPane.getScene() != null && dialogPane.getScene().getWindow() != null) {
+              dialogPane.getScene().getWindow().sizeToScene();
+            }
+          });
+        }
+      }
+    });
     webView.getEngine().loadContent(p_msg);
-    webView.setPrefSize(300, 60);
     alert.getDialogPane().setContent(webView);
+
     Optional<ButtonType> btret = alert.showAndWait();
     return btret;
   }

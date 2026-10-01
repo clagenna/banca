@@ -61,7 +61,7 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
   private String                tipoFile;
   private boolean               skipSaveDB;
   private Dataset               dtsCsv;
-  private ConvertCsv2RigaBanca  cnvRb;
+  // private ConvertCsv2RigaBanca  cnvRb;
   private List<RigaBanca>       righeBanca;
   private DBConn                dbconn;
   private DataModel             model;

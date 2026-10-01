@@ -12,19 +12,10 @@ import org.apache.logging.log4j.Logger;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.Consts;
@@ -33,12 +24,17 @@ import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
 
-// FIXME ci sono piu voci identiche per tipo,dtmov,dtval,dare,descr
-// FIXTO nei dati se nel combo del anno si mette l'anno a null la query continua a mantenere la precedente
-// FIXTO nel form indovina mettere un combo con l'anno di competenza
-// FIXTO nel form indovina mettere lo stesso cerca codice con il +
-// FIXTO nel form indovina manca la context menu per "apri documento"
-
+/**
+ * FIXME nel main manca la voce di menu "Importa CSV" per importare un file CSV
+ * di movimenti bancari <br/>
+ * FIXTO ci sono piu voci identiche per tipo,dtmov,dtval,dare,descr. C'era la
+ * existMovimento che faceva uso della setDtmov() su "tipo" :-(( <br/>
+ * FIXTO nei dati se nel combo del anno si mette l'anno a null la query continua
+ * a mantenere la precedente <br/>
+ * FIXTO nel form indovina mettere un combo con l'anno di competenza <br/>
+ * FIXTO nel form indovina mettere lo stesso cerca codice con il + <br/>
+ * FIXTO nel form indovina manca la context menu per "apri documento"
+ */
 public class LoadBancaMainApp extends Application implements IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(LoadBancaMainApp.class);
   // private static final String CSZ_MAIN_APP_CSS = "LoadBancaFX.css";
@@ -50,18 +46,15 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   private static LoadBancaMainApp inst;
   private static boolean          debugJDBC;
 
-  private String skin;
-  // private URL           mainCSS;
+  private String        skin;
   @Getter @Setter
   private AppProperties props;
   @Getter @Setter
   private Stage         primaryStage;
   @Getter @Setter
   private IStartApp     controller;
-  //  @Getter @Setter
-  //  private DBConn         dbConn;
   @Getter @Setter
-  private DataModel model;
+  private DataModel     model;
 
   private List<ResultView> m_liResViews;
   private ViewContanti     m_viewContanti;
@@ -81,7 +74,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   public void start(Stage p_primaryStage) throws Exception {
     doSomeDebugThings();
     setPrimaryStage(p_primaryStage);
-    MessageDialog.setStage(p_primaryStage);  // per i futuri messaggi di dialogo
+    MessageDialog.setStage(p_primaryStage); // per i futuri messaggi di dialogo
     LoadBancaMainApp.inst = this;
     initApp(null);
     URL url = getClass().getResource(LoadBancaController.CSZ_FXMLNAME);
@@ -159,52 +152,6 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     prop.salvaSuProperties();
   }
 
-  //  public void msgBox(String p_txt) {
-  //    msgBox(p_txt, AlertType.INFORMATION);
-  //  }
-
-  //  public boolean msgBox(String p_txt, AlertType tipo) {
-  //    return msgBox(p_txt, tipo, (String) null);
-  //  }
-
-  //  public boolean msgBox(String p_txt, AlertType tipo, String p_ico) {
-  //    boolean bRet = true;
-  //    // se lanciato da un Thread la chiamata ad Alert non puo funzionare
-  //    // Va' lanciata solo sul JavaFX Application Thread
-  //    if ( !Platform.isFxApplicationThread()) {
-  //      Platform.runLater(() -> msgBox(p_txt, tipo, p_ico));
-  //      return bRet;
-  //    }
-  //    Alert alt = new Alert(tipo);
-  //    Scene sce = getPrimaryStage().getScene();
-  //    if (null == sce) {
-  //      // Cerchiamo di dare un'ancora all'alert se possibile
-  //      Window.getWindows().stream().filter(Window::isShowing).findFirst().ifPresent(alt::initOwner);
-  //    }
-  //    if (null != p_ico) {
-  //      URL resico = getClass().getResource(p_ico);
-  //      if (null == resico)
-  //        resico = getClass().getClassLoader().getResource(CSZ_MAIN_ICON);
-  //      if (null != resico) {
-  //        ImageView ico = new ImageView(resico.toString());
-  //        alt.setGraphic(ico);
-  //      }
-  //    }
-  //    alt.setTitle(tipo.toString());
-  //    alt.setHeaderText(tipo.toString());
-  //    alt.setContentText(p_txt);
-  //    Optional<ButtonType> result = alt.showAndWait();
-  //    switch (tipo) {
-  //      case AlertType.CONFIRMATION:
-  //        bRet = !result.isEmpty() && result.get() == ButtonType.YES;
-  //        break;
-  //      default:
-  //        s_log.info("msg={}", p_txt);
-  //        break;
-  //    }
-  //    return bRet;
-  //  }
-
   public void addViewContanti(ViewContanti pview) {
     m_viewContanti = pview;
   }
@@ -221,7 +168,6 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     m_liResViews.add(resultView);
     DataModel cntrl = DataModel.getInst();
     if (null != m_viewCodStat) {
-      //   m_viewCodStat.addPropertyChangeListener(resultView);
       cntrl.addPropertyChangeListener(resultView);
     }
   }
@@ -231,7 +177,6 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
       return;
     DataModel cntrl = DataModel.getInst();
     if (null != m_viewCodStat) {
-      //      m_viewCodStat.removePropertyChangeListener(resultView);
       cntrl.removePropertyChangeListener(resultView);
     }
     if (m_liResViews.contains(resultView))
@@ -242,7 +187,6 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     m_viewCodStat = codStatView;
     if (null != m_liResViews) {
       DataModel cntrl = DataModel.getInst();
-      // m_liResViews.stream().forEach(s -> m_viewCodStat.addPropertyChangeListener(s));
       m_liResViews.stream().forEach(s -> cntrl.addPropertyChangeListener(s));
     }
   }
@@ -259,7 +203,6 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     m_viewGuessCodStat = view;
     if (null != m_liResViews) {
       DataModel cntrl = DataModel.getInst();
-      // m_liResViews.stream().forEach(s -> m_viewCodStat.addPropertyChangeListener(s));
       m_liResViews.stream().forEach(s -> cntrl.addPropertyChangeListener(s));
     }
   }
@@ -275,7 +218,6 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
 
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
-    // System.out.printf("ResultView.propertyChange(\"%s=%s\")\n", evt.getPropertyName(), evt.getNewValue().toString());
     String szEvt = evt.getPropertyName();
 
     switch (szEvt) {
@@ -285,66 +227,6 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
         //        scegliDB();
         break;
     }
-  }
-
-  /**
-   * Mostra un popup con la guida alle scorciatoie da tastiera
-   *
-   * @param owner
-   *          stage proprietario del popup
-   */
-  public void showHelpPopup(Stage owner, String[][] shortcuts) {
-    Stage dialog = new Stage();
-    dialog.initOwner(owner);
-    dialog.initModality(Modality.APPLICATION_MODAL);
-    dialog.initStyle(StageStyle.UTILITY);
-    dialog.setTitle("Guida ai tasti");
-    dialog.setResizable(false);
-
-    // Titolo
-    Label title = new Label("Scorciatoie da tastiera");
-    title.setFont(Font.font("System", FontWeight.BOLD, 14));
-
-    // Griglia tasto → descrizione
-    GridPane grid = new GridPane();
-    grid.setHgap(16);
-    grid.setVgap(8);
-    grid.setPadding(new Insets(12, 0, 4, 0));
-
-    //     String[][] shortcuts = {
-    //         {"F5",      "Ripeti la ricerca"},
-    //         {"Enter",   "Esegui la ricerca o conferma la selezione"},
-    //         {"Shift",   "Attiva la selezione multipla su piu righe consecutive"},
-    //         {"Ctrl",    "Attiva la selezione multipla non consecutive"},
-    //         {"Doppio click", "Modifica il codice Stat. selezionato"},
-    //         {"Ctrl + Doppio click", "Aggiunge un figlio al codice Stat. selezionato"},
-    //         {"?",       "Mostra questo aiuto"},
-    //         {"Esc",     "Chiudi Help"},
-    //     };
-
-    for (int i = 0; i < shortcuts.length; i++) {
-      Label key = new Label(shortcuts[i][0]);
-      Label desc = new Label(shortcuts[i][1]);
-      key.setFont(Font.font("Monospaced", 13));
-      key.setStyle("-fx-background-color: #e8e8e8;" + "-fx-border-color: #aaa;" + "-fx-border-radius: 4;"
-          + "-fx-background-radius: 4;" + "-fx-padding: 2 8 2 8;");
-      grid.add(key, 0, i);
-      grid.add(desc, 1, i);
-    }
-
-    VBox root = new VBox(8, title, grid);
-    root.setPadding(new Insets(16, 20, 16, 20));
-
-    Scene scene = new Scene(root);
-
-    // Chiudi con Escape o cliccando fuori
-    scene.setOnKeyPressed(e -> {
-      if (e.getCode() == KeyCode.ESCAPE)
-        dialog.close();
-    });
-
-    dialog.setScene(scene);
-    dialog.showAndWait();
   }
 
   @Override
