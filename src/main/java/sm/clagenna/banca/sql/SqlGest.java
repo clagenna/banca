@@ -361,6 +361,28 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     int qtaDel = 0;
     // TimerMeter tm = new TimerMeter("Delete");
     StringBuilder qry = null;
+
+    if (Utils.isValue(rig.getRigaid()) && rig.getRigaid() > 0) {
+      // se valorizzato il campo ID, allora cancello solo quello
+      if (null != stmtDelMov) {
+        dbconn.closeStmt(stmtDelMov);
+        stmtDelMov = null;
+      }
+      qry = new StringBuilder(getQryDELMov());
+      qry.append(" AND id = ?");
+      try {
+        stmtDelMov = dbconn.prepareStatement(qry.toString());
+        dbconn.setStmtInt(stmtDelMov, 1, rig.getRigaid());
+        qtaDel = stmtDelMov.executeUpdate();
+      } catch (SQLException e) {
+        getLog().error("Errore prep statement DELETE on {} with err={}", qry, e.getMessage());
+      } finally {
+        dbconn.closeStmt(stmtDelMov);
+        stmtDelMov = null;
+      }
+      return qtaDel;
+    }
+
     try {
       if (null == stmtDelMov) {
         qry = new StringBuilder(getQryDELMov());

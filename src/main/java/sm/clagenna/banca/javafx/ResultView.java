@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -36,6 +37,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
@@ -75,8 +77,6 @@ import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 import sm.clagenna.stdcla.utils.sys.ex.DatasetException;
 
-// FIXME se seleziono una query dal combo questa non viene recepita dal DB
-// FIXATO Aggiungere la colonna della decodifica del CodStat (se presente)
 public class ResultView implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(ResultView.class);
 
@@ -362,6 +362,11 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         p_e.consume();
         caricaCercaCodStat();
         break;
+      case KeyCode.DELETE:
+        p_e.consume();
+        ObservableList<List<Object>> righe = tblview.getSelectionModel().getSelectedItems();
+        tableRow_deleteMov(righe);
+        break;
       case QUOTE:
         if (p_e.isShiftDown()) {
           p_e.consume();
@@ -412,9 +417,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   @FXML
   void cbAnnoCompSel(ActionEvent event) {
     Integer ii = cbAnnoComp.getSelectionModel().getSelectedItem();
-    if (null == ii) {
+    if (ii == null) {
       m_fltrAnnoComp = null;
-      model.setAnnoComp(m_fltrAnnoComp);
+      model.setAnnoComp(0);
       caricaComboMesecomp();
       abilitaBottoni();
       return;
@@ -715,8 +720,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     });
     MenuItem mi2 = new MenuItem("Cancella Movimento");
     mi2.setOnAction((ActionEvent _) -> {
-      List<Object> rows = tblview.getSelectionModel().getSelectedItem();
-      tableRow_deleteMov(rows);
+      // List<Object> rows = tblview.getSelectionModel().getSelectedItem();
+      ObservableList<List<Object>> righe = tblview.getSelectionModel().getSelectedItems();
+      tableRow_deleteMov(righe);
     });
     ContextMenu menu = new ContextMenu();
     menu.getItems().addAll(mi1, mi2);
@@ -909,17 +915,46 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     }
   }
 
-  protected void tableRow_deleteMov(List<Object> rows) {
+  protected void tableRow_deleteMov(ObservableList<List<Object>> rows) {
+    //    qui arriva un array di valori
+    //    occorre ricostruire la RigaBanca con questi valori identificando
+    //    tblview.getColumns().get(0).getText() come nome di colonna
     if (null == rows || rows.size() == 0) {
       s_log.warn("Nessun record selezionato per la cancellazione");
       return;
     }
-    int qtaDel = 0;
-    for (Object obj : rows) {
-      if (obj instanceof RigaBanca rb)
-        qtaDel += m_db.deleteMovimento(rb);
+    // ObservableList<TableColumn<List<Object>, ?>> cols = tblview.getColumns();
+    //    cols.forEach(c -> {
+    //      RigaBanca rb = RigaBanca.parse(cols, rows);
+    //      String szCol = c.getText();
+    //      int nCol = EColsTableView.valueOf(szCol).getColNo();
+    //      Object val = rows.get(nCol);
+    //      s_log.debug("ResultView.tableRow_deleteMov() col={} val={}", szCol, val);
+    //    });
+    List<RigaBanca> liRiga = new ArrayList<>();
+    StringBuilder sb = new StringBuilder();
+    sb.append(String.format("Sei sicuro di voler cancellare %d Movimenti selezionati?<br/>", rows.size()));
+    for (List<Object> row : rows) {
+      RigaBanca rb = RigaBanca.parse(row);
+      liRiga.add(rb);
+      sb.append(String.format("<br/>%s %s (dare=%s,avere=%s) %s", // tipo, dtmov, dare, avere, descr
+          rb.getTiporec(), //
+          ParseData.formatDate(rb.getDtmov()), //
+          Utils.formatDouble(rb.getDare()), //
+          Utils.formatDouble(rb.getAvere()), //
+          rb.getDescr()));
     }
-    s_log.info("Cancellati {} Movimenti selezionati", qtaDel);
+    String szLog = sb.toString().replace("<br/>", "\n");
+    s_log.info(szLog);
+    Optional<ButtonType> btRet = MessageDialog.messageDialog(AlertType.WARNING, sb.toString(), ButtonType.YES);
+    if ( !btRet.isPresent() || btRet.get() != ButtonType.YES) {
+      s_log.info("Cancellazione Movimenti selezionati annullata dall'utente");
+      return;
+    }
+
+    liRiga.forEach(rb -> m_db.deleteMovimento(rb));
+    s_log.info("Cancellati {} Movimenti selezionati", liRiga.size());
+    btCercaClick(null);
   }
 
   @FXML

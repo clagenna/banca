@@ -3,10 +3,13 @@ package sm.clagenna.banca.dati;
 import java.sql.ResultSet;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.collections.ObservableList;
+import javafx.scene.control.TableColumn;
 import lombok.Data;
 import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.stdcla.sql.DBConn;
@@ -207,8 +210,10 @@ public class RigaBanca {
   }
 
   /**
-   * Popola un record RigaBanca partendo da un List<Object>. L'ordine degli
-   * Object deve corrispondere all'ordine delle colonne.
+   * Popola un record RigaBanca partendo da un List<Object> che sono i valori
+   * della "select" del ListaMovimenti che *deve* corrispondere al enum
+   * {@link EColsTableView}. L'ordine degli Object deve corrispondere all'ordine
+   * delle colonne specificato in EColsTableView.
    *
    * @param elem
    *          i valori delle colonne sotto forma di List<Object>
@@ -219,6 +224,8 @@ public class RigaBanca {
       return null;
     int k = 0;
     RigaBanca rb = new RigaBanca();
+    // lascio decidere alla Utils.parseDouble() il locale da usare per il parse di dare e e avere.
+    Locale prevLocale = Utils.getLocale();
     for (Object col : elem) {
       EColsTableView nome = EColsTableView.colName(k++);
       if ( !Utils.isValue(col))
@@ -246,9 +253,11 @@ public class RigaBanca {
           // settato da setDtval()
           break;
         case dare:
+          Utils.setLocale(null);
           rb.setDare(Utils.parseDouble(col.toString()));
           break;
         case avere:
+          Utils.setLocale(null);
           rb.setAvere(Utils.parseDouble(col.toString()));
           break;
         case cardid:
@@ -277,6 +286,7 @@ public class RigaBanca {
 
       }
     }
+    Utils.setLocale(prevLocale);
     return rb;
   }
 
@@ -323,5 +333,136 @@ public class RigaBanca {
     //    return tiporec + "\t" + sz1 + "\t" + sz2 + "\t" + dare + "\t" + avere + "\t" + descr + "\t" + abicaus + "\t" + cardid + "\t"
     //        + codstat + "\\n";
     return sb.toString();
+  }
+
+  /**
+   * Popola un record RigaBanca partendo da un List<Object> che sono i nomi
+   * delle colonne del TableView. deduce il EColsTableView corrispondente
+   * facendo il parse(nome_colonna). e popola il record. L'ordine degli Object
+   * deve corrispondere all'ordine delle colonne.
+   * 
+   * @param elem
+   *          i valori delle colonne sotto forma di List<Object>
+   * @return un record RigaBanca popolato
+   */
+  public static RigaBanca parse(ObservableList<TableColumn<List<Object>, ?>> cols, List<Object> row) {
+    RigaBanca rb = new RigaBanca();
+    for (TableColumn<List<Object>, ?> col : cols) {
+      String colName = col.getText();
+      EColsTableView colEnum = EColsTableView.parse(colName);
+      if (null == colEnum) {
+        s_log.warn("Colonna non riconosciuta: {}", colName);
+        continue;
+      }
+      Object value = row.get(colEnum.getColNo());
+      if (value != null) {
+        switch (colEnum) {
+          case id:
+            rb.setRigaid(Integer.decode(value.toString()));
+            break;
+          case tipo:
+            rb.setTiporec(value.toString());
+            break;
+          case idfile:
+            rb.setIdfile(Integer.decode(value.toString()));
+            break;
+          case dtmov:
+            rb.setDtmov(ParseData.parseData(value.toString()));
+            break;
+          case dtval:
+            rb.setDtval(ParseData.parseData(value.toString()));
+            break;
+          case dare:
+            rb.setDare(Utils.parseDouble(value.toString()));
+            break;
+          case avere:
+            rb.setAvere(Utils.parseDouble(value.toString()));
+            break;
+          case cardid:
+            rb.setCardid(value.toString());
+            break;
+          case descr:
+            rb.setDescr(value.toString());
+            break;
+          case abicaus:
+            rb.setAbicaus(value.toString());
+            break;
+          case descrcaus:
+            rb.setDescrcaus(value.toString());
+            break;
+          case costo:
+            rb.setCosto(Integer.decode(value.toString()));
+            break;
+          case idcodstat:
+            rb.setIdcodstat(Integer.decode(value.toString()));
+            break;
+          case codstat:
+            rb.setCodstat(value.toString());
+            break;
+          default:
+            s_log.warn("Colonna non gestita: {}", colName);
+        }
+      }
+
+    }
+
+    //    
+    //    
+    //    
+    //    
+    //    cols.forEach(col -> {
+    //      String colName = col.getText();
+    //      EColsTableView colEnum = EColsTableView.parse(colName);
+    //      Object value = row.get(k++);
+    //      if (value != null) {
+    //        switch (colName) {
+    //          case "id":
+    //            rb.setRigaid(Integer.decode(value.toString()));
+    //            break;
+    //          case "tipo":
+    //            rb.setTiporec(value.toString());
+    //            break;
+    //          case "idfile":
+    //            rb.setIdfile(Integer.decode(value.toString()));
+    //            break;
+    //          case "dtmov":
+    //            rb.setDtmov(ParseData.parseData(value.toString()));
+    //            break;
+    //          case "dtval":
+    //            rb.setDtval(ParseData.parseData(value.toString()));
+    //            break;
+    //          case "dare":
+    //            rb.setDare(Utils.parseDouble(value.toString()));
+    //            break;
+    //          case "avere":
+    //            rb.setAvere(Utils.parseDouble(value.toString()));
+    //            break;
+    //          case "cardid":
+    //            rb.setCardid(value.toString());
+    //            break;
+    //          case "descr":
+    //            rb.setDescr(value.toString());
+    //            break;
+    //          case "abicaus":
+    //            rb.setAbicaus(value.toString());
+    //            break;
+    //          case "descrcaus":
+    //            rb.setDescrcaus(value.toString());
+    //            break;
+    //          case "costo":
+    //            rb.setCosto(Integer.decode(value.toString()));
+    //            break;
+    //          case "idcodstat":
+    //            rb.setIdcodstat(Integer.decode(value.toString()));
+    //            break;
+    //          case "codstat":
+    //            rb.setCodstat(value.toString());
+    //            break;
+    //          default:
+    //            break;
+    //        }
+    //      }
+    //    });
+    return rb;
   }
 }
