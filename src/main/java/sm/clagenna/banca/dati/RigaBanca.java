@@ -35,6 +35,7 @@ public class RigaBanca {
   private String        descr;
   private String        abicaus;
   private String        descrcaus;
+  /** 0 = non considerare, 1 = calcolato, 2 = costo bancario */
   private Integer       costo;
   private String        cardid;
   private String        codstat;

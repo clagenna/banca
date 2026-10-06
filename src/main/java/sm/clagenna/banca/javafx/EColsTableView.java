@@ -17,7 +17,7 @@ public enum EColsTableView {
   descr(10), //   "CANONE INTERNET BANK" (id=214)
   abicaus(11), // "16" (id=215)
   descrcaus(12), // "Comissioni su pagamenti" (id=216)
-  costo(13), // Integer  (id=168)
+  costo(13), // Integer  (id=168) 0 = non considerare, 1 = calcolato, 2 = costo bancario 
   idcodstat(14), //  null
   codstat(15), //  null
   descrstat(16), //  null

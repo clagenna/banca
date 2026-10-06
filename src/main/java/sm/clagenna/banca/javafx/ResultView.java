@@ -284,6 +284,12 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     cbQuery.getItems().addAll(liNam);
     if (null != liNam && liNam.size() == 1)
       cbQuery.getSelectionModel().select(1);
+    String szLastQry = mainProps.getProperty(Consts.PROP_RESVIEWQRY);
+    if (Utils.isValue(szLastQry)) {
+      int k = liNam.indexOf(szLastQry);
+      if (k > 0)
+        cbQuery.getSelectionModel().select(k + 1);
+    }
     cbQuerySel(null);
   }
 
@@ -397,6 +403,9 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     m_appmain.removeResView(this);
     JFXUtils.saveTableviewColWidth(tblview, p_props, Consts.PROP_COLRESVIEW);
     autoCbComp = null;
+    String szLastQry = cbQuery.getSelectionModel().getSelectedItem();
+    if (Utils.isValue(szLastQry))
+      p_props.setProperty(Consts.PROP_RESVIEWQRY, szLastQry);
     if (null != m_gestQry)
       m_gestQry.closeApp(p_props);
     if (myScene == null) {

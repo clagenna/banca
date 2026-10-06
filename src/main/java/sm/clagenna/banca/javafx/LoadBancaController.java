@@ -214,9 +214,37 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
 
     colSize = new TableColumn<>("Dimensione");
     colSize.setCellValueFactory(cell -> cell.getValue().getOSize());
+    colSize.setCellFactory(_ -> new TableCell<CsvImpFile, Number>() {
+      @Override
+      protected void updateItem(Number item, boolean empty) {
+        super.updateItem(item, empty);
+        if (item == null || empty) {
+          setText(null);
+          setStyle("");
+          return;
+        }
+        String sz = Utils.formatLong(item.longValue());
+        setText(sz);
+        setStyle("-fx-alignment: center-right;");
+      }
+    });
 
     colQtaRecs = new TableColumn<>("Qta. Righe");
     colQtaRecs.setCellValueFactory(cell -> cell.getValue().getOQtarecs());
+    colQtaRecs.setCellFactory(_ -> new TableCell<CsvImpFile, Number>() {
+      @Override
+      protected void updateItem(Number item, boolean empty) {
+        super.updateItem(item, empty);
+        if (item == null || empty) {
+          setText(null);
+          setStyle("");
+          return;
+        }
+        String sz = Utils.formatLong(item.longValue(), true);
+        setText(sz);
+        setStyle("-fx-alignment: center-right;");
+      }
+    });
 
     colDtmin = new TableColumn<>("Data min.");
     colDtmin.setCellValueFactory(cell -> cell.getValue().getODtmin());

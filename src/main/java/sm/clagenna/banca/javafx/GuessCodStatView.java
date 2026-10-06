@@ -70,10 +70,11 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
   private static final Logger s_log = LogManager.getLogger(GuessCodStatView.class);
 
   public static final String  CSZ_FXMLNAME          = "GuessCodStatView.fxml";
-  private static final String CSZ_PROP_POS_X        = "gcdstview.x";
-  private static final String CSZ_PROP_POS_Y        = "gcdstview.y";
-  private static final String CSZ_PROP_DIM_X        = "gcdstview.lx";
-  private static final String CSZ_PROP_DIM_Y        = "gcdstview.ly";
+  private static final String PROP_POS_GCDVIEW        = "gcdstview";
+//  private static final String CSZ_PROP_POS_X        = "gcdstview.x";
+//  private static final String CSZ_PROP_POS_Y        = "gcdstview.y";
+//  private static final String CSZ_PROP_DIM_X        = "gcdstview.lx";
+//  private static final String CSZ_PROP_DIM_Y        = "gcdstview.ly";
   private static final String CSZ_PROP_COL_Id       = "gcdstview.colId";
   private static final String CSZ_PROP_COL_Tipo     = "gcdstview.colTipo";
   private static final String CSZ_PROP_COL_Dtmov    = "gcdstview.colDtmov";
@@ -185,18 +186,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       s_log.error("Non trovo lo stage per CodStatView");
       return;
     }
-
-    int px = p_props.getIntProperty(CSZ_PROP_POS_X);
-    int py = p_props.getIntProperty(CSZ_PROP_POS_Y);
-    int dx = p_props.getIntProperty(CSZ_PROP_DIM_X);
-    int dy = p_props.getIntProperty(CSZ_PROP_DIM_Y);
-    var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
-      lstage.setX(mm.poxX());
-      lstage.setY(mm.posY());
-      lstage.setWidth(mm.width());
-      lstage.setHeight(mm.height());
-    }
+    JFXUtils.readPosStage(lstage, p_props, PROP_POS_GCDVIEW);
     changeSkin();
     myScene.addEventFilter(KeyEvent.KEY_PRESSED, ev -> gestKey(ev));
   }
@@ -737,20 +727,7 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
       s_log.error("Il campo Scene risulta = **null**");
       return;
     }
-
-    double px = myScene.getWindow().getX();
-    double py = myScene.getWindow().getY();
-    double dx = myScene.getWindow().getWidth();
-    double dy = myScene.getWindow().getHeight();
-
-    // double splPos = spltPane.getDividerPositions()[0];
-    // String szDiv = String.format("%0.6f", splPos).replace(",", ".");
-    // String szDiv = s_xfmt.format(splPos).replace(",", ".");
-    p_props.setProperty(CSZ_PROP_POS_X, (int) px);
-    p_props.setProperty(CSZ_PROP_POS_Y, (int) py);
-    p_props.setProperty(CSZ_PROP_DIM_X, (int) dx);
-    p_props.setProperty(CSZ_PROP_DIM_Y, (int) dy);
-
+    JFXUtils.savePosStage(lstage, p_props, PROP_POS_GCDVIEW);
     saveDimCols(p_props);
 
   }

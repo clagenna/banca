@@ -9,6 +9,7 @@ import org.apache.commons.math3.linear.RealVector;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.application.Platform;
 import javafx.scene.control.Alert.AlertType;
 import lombok.Getter;
 import sm.clagenna.banca.dati.GuessCodStat;
@@ -59,7 +60,7 @@ public class PhraseComparator {
   public int creaVectors() {
     if (null == knowns || knowns.size() == 0) {
       var msg = "Non esistono registrazioni contenenti Codici Statistici!! Impossibile apprendere qualcosa.";
-      MessageDialog.messageDialog(AlertType.WARNING, msg);
+      Platform.runLater(() -> MessageDialog.messageDialog(AlertType.WARNING, msg));
       s_log.warn(msg);
       return 0;
     }
@@ -82,6 +83,9 @@ public class PhraseComparator {
   public Similarity similarity(String p_sz) {
     Phrase phr = new Phrase(p_sz);
     phr.analyse();
+    if ( wordIndex == null || knowns == null || knowns.size() == 0) {
+      return new Similarity(-1d, null);
+    }
     // aggiorno vocabolario con eventuali parole sconosciute
     int oldSize = wordIndex.size();
     for (String tok : phr.getToks()) {

@@ -178,6 +178,8 @@ public class CsvImportBancaAmazon extends CsvImportBanca {
           String szVal2 = null;
           if (arr.length > 1) {
             szVal2 = arr[1].trim().replace(";", "").replace("€", "");
+            // ci potrebbero essere "," o punto come sep decimali, grrrr....
+            Utils.setLocale(null);
             Double dbl = Utils.parseDouble(szVal2);
             if (dbl > 0)
               dare = dbl;
@@ -192,6 +194,8 @@ public class CsvImportBancaAmazon extends CsvImportBanca {
       val = row.get("unit price");
       if (null != val && val.toString().length() > 0) {
         String szVal2 = val.toString().trim().replace("€", "");
+        // ci potrebbero essere "," o punto come sep decimali, grrrr....
+        Utils.setLocale(null);
         Double dbl = Utils.parseDouble(szVal2);
         if (dbl > 0)
           dare = dbl;

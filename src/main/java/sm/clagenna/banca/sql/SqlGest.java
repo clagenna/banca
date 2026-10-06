@@ -187,6 +187,27 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     //    }
   }
 
+  /**
+   * Applica i filtri di ricerca sul PreparedStatement passato come
+   * parametro.<br/>
+   * I filtri da applicare sono definiti nel model (DataModel) e sono
+   * rappresentati da un intero che e' la somma dei flag di ESqlFiltri.
+   *
+   * IMPORTANTE! Vedi commento a insertMovimento() perche' il filtro sul campo
+   * DTMOV puo' essere fuorviante
+   *
+   * @param p_stmt
+   *          PreparedStatement su cui applicare i filtri
+   * @param k
+   *          indice del primo parametro da settare
+   * @param dbconn
+   *          connessione al DB
+   * @param p_rig
+   *          RigaBanca con i valori da applicare come filtri
+   * @return PreparedStatement con i parametri settati
+   * @throws SQLException
+   *           se si verifica un errore SQL
+   */
   public PreparedStatement applicaFiltri(PreparedStatement p_stmt, int k, DBConn dbconn, RigaBanca p_rig) throws SQLException {
     int filtriQuery = model.getFiltriQueryMovimenti();
     //    Object obj = null;
@@ -205,10 +226,13 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
           dbconn.setStmtString(p_stmt, k++, p_rig.getTiporec());
           break;
         case Dtmov:
-          dbconn.setStmtDatetime(p_stmt, k++, p_rig.getDtmov());
+          // c'era un problema con la gestione dei datetime in quanto alcuni CSV riportano la data come YYYY-MM-DD ma altri come YYYY-MM-DD HH:mm:ss. <br/>
+          // vedi commento presente in insertMovimento() perche' il filtro sul campo DTMOV puo' essere fuorviante
+          // dbconn.setStmtDatetime(p_stmt, k++, p_rig.getDtmov());
+          dbconn.setStmtDatetime(p_stmt, k++, ParseData.toLocalDateSolo(p_rig.getDtmov()));
           break;
         case Dtval:
-          dbconn.setStmtDatetime(p_stmt, k++, p_rig.getDtval());
+          dbconn.setStmtDatetime(p_stmt, k++, ParseData.toLocalDateSolo(p_rig.getDtval()));
           break;
         case Dare:
           dbconn.setStmtImporto(p_stmt, k++, p_rig.getDare());
@@ -307,9 +331,10 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   @Override
   public boolean insertMovimento(RigaBanca p_rig) {
     // FIXME Togliere il filtro quando verificata la correttezza dei dati
-    LocalDateTime dtmin = ParseData.parseData("2024-01-08 00:00:00");
-    LocalDateTime dtmax = ParseData.parseData("2024-01-08 23:59:59");
-    if (Utils.dateTimeBetween(p_rig.getDtmov(), dtmin, dtmax) && p_rig.getAvere() == 500.) {
+    LocalDateTime dtmin = ParseData.parseData("2024-06-06 00:00:00");
+    LocalDateTime dtmax = ParseData.parseData("2024-06-06 23:59:59");
+    if (Utils.dateTimeBetween(p_rig.getDtmov(), dtmin,
+        dtmax) /* && p_rig.getAvere() == 500. */) {
       getLog().debug("Test Doppio !! " + "WISE riga {}  ==  {}", p_rig.toString(), ParseData.formatDate(dtmax));
     }
     // -------------------------------------------------------------------
@@ -338,8 +363,23 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
       int k = 1;
       dbconn.setStmtString(stmtInsMov, k++, p_rig.getTiporec());
       dbconn.setStmtInt(stmtInsMov, k++, p_rig.getIdfile());
-      dbconn.setStmtDatetime(stmtInsMov, k++, p_rig.getDtmov());
-      dbconn.setStmtDatetime(stmtInsMov, k++, p_rig.getDtval());
+      /**
+       * nei movimenti avere un datetime e' fuorviente perche spesso certi CSV
+       * riportano la dtmov come YYYY-MM-DD ma poco dopo (vedi Amazon) me la
+       * propongono come YYYY-MM-DD HH:mm:ss.<br/>
+       * A questo punto se faccio un confronto con un movimento precedente con
+       * dtmov,dare,avere la existMovimento() mi dice che il movimento non
+       * esiste! Quando in realta esiste con un date e stesso importo per cui mi
+       * propone la insert invece della update <br/>
+       */
+      //      dbconn.setStmtDatetime(stmtInsMov, k++, p_rig.getDtmov());
+      //      dbconn.setStmtDatetime(stmtInsMov, k++, p_rig.getDtval());
+      LocalDateTime dtmov = ParseData.toLocalDateSolo(p_rig.getDtmov());
+      LocalDateTime dtval = ParseData.toLocalDateSolo(p_rig.getDtval());
+
+      dbconn.setStmtDate(stmtInsMov, k++, dtmov);
+      dbconn.setStmtDate(stmtInsMov, k++, dtval);
+      // ---------------------------------------------------
       dbconn.setStmtImporto(stmtInsMov, k++, p_rig.getDare());
       dbconn.setStmtImporto(stmtInsMov, k++, p_rig.getAvere());
       dbconn.setStmtString(stmtInsMov, k++, szDescr);

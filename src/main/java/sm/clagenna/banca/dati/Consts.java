@@ -82,6 +82,7 @@ public class Consts {
   public static final String PROP_COL_mesg            = "log_mesg";
   public static final String PROP_POSRESVIEW          = "resview";
   public static final String PROP_COLRESVIEW          = "resview.col";
+  public static final String PROP_RESVIEWQRY          = "resview.qry";
   public static final String PROP_POSview_codstatView = "cdstt";
   public static final String PROP_POSVIEW_modcodstat  = "modcodstat";
   public static final String PROP_PROP_SCARTA         = "voci.scarta";

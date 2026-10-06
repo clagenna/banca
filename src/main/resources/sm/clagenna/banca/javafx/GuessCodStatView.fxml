@@ -69,13 +69,13 @@
                </tooltip>
             </Label>
             <DatePicker fx:id="txDtA" layoutX="330.0" layoutY="77.0" prefHeight="25.0" prefWidth="131.0" />
-            <Button fx:id="btSalva" layoutX="611.0" layoutY="77.0" mnemonicParsing="false" onAction="#btSalvaClick" prefHeight="25.0" prefWidth="97.0" text="Salva" AnchorPane.rightAnchor="161.0" />
+            <Button fx:id="btSalva" layoutX="504.0" layoutY="77.0" mnemonicParsing="false" onAction="#btSalvaClick" prefHeight="25.0" prefWidth="97.0" text="Salva" AnchorPane.leftAnchor="504.0" />
             <ImageView fitHeight="54.0" fitWidth="97.0" layoutX="14.0" layoutY="11.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@magic-hat.png" />
                </image>
             </ImageView>
-            <Label fx:id="lbAssignCodStat" alignment="CENTER_RIGHT" contentDisplay="RIGHT" layoutX="722.0" layoutY="81.0" prefHeight="17.0" prefWidth="141.0" text="..." textAlignment="RIGHT" />
+            <Label fx:id="lbAssignCodStat" alignment="CENTER_RIGHT" contentDisplay="RIGHT" layoutX="722.0" layoutY="81.0" prefHeight="17.0" prefWidth="141.0" text="..." textAlignment="RIGHT" AnchorPane.rightAnchor="6.0" />
 			</children>
 		</AnchorPane>
 		<TableView fx:id="tblview" layoutY="118.0" maxHeight="1.7976931348623157E308" prefHeight="360.0" prefWidth="869.0" AnchorPane.bottomAnchor="26.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="118.0">

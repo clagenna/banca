@@ -1,9 +1,5 @@
 package sm.clagenna.banca.javafx;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -20,13 +16,12 @@ import lombok.Setter;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.Utils;
-import sm.clagenna.stdcla.utils.sys.ex.AppPropsException;
 
 public class GestResViewQueryParams implements IStartApp {
   private static final Logger s_log = LogManager.getLogger(GestResViewQueryParams.class);
 
   /** nel file properties SQry_001=Bsi;importUnion;2024;2024.04... etc */
-  private static final String PROP_FILE    = "Filtri.properties";
+  // private static final String PROP_FILE    = "Filtri.properties";
   private static final String PROP_KEY     = "SQry_%03d";
   private static final String PROP_SEP     = "@";
   @SuppressWarnings("unused")
@@ -63,7 +58,7 @@ public class GestResViewQueryParams implements IStartApp {
   @Getter @Setter
   private String errorMesg;
 
-  private File fileProps;
+  // private File fileProps;
 
   interface ChiamaMap<T> {
     void doit(T s);
@@ -238,19 +233,22 @@ public class GestResViewQueryParams implements IStartApp {
 
   @Override
   public void initApp(AppProperties p_props) {
-    try {
-      props = new AppProperties();
-      String curr = this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
-      curr = curr.substring(1).replace("/target/classes/", "");
-      Path pthCurr = Paths.get(curr);
-      if (curr.toLowerCase().endsWith(".jar"))
-        pthCurr = pthCurr.getParent();
-      fileProps = Paths.get(pthCurr.toAbsolutePath().toString(), PROP_FILE).toFile();
-      props.leggiPropertyFile(fileProps, false, false);
-    } catch (AppPropsException | URISyntaxException e) {
-      s_log.error("Errore apertura file properties dei filtri:{}", PROP_FILE);
-      return;
-    }
+    props = p_props;
+    if (null == props)
+      props = LoadBancaMainApp.getInst().getModel().getProps();
+    //    try {
+    //      props = new AppProperties();
+    //      String curr = this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+    //      curr = curr.substring(1).replace("/target/classes/", "");
+    //      Path pthCurr = Paths.get(curr);
+    //      if (curr.toLowerCase().endsWith(".jar"))
+    //        pthCurr = pthCurr.getParent();
+    //      fileProps = Paths.get(pthCurr.toAbsolutePath().toString(), PROP_FILE).toFile();
+    //      props.leggiPropertyFile(fileProps, false, false);
+    //    } catch (AppPropsException | URISyntaxException e) {
+    //      s_log.error("Errore apertura file properties dei filtri:{}", PROP_FILE);
+    //      return;
+    //    }
     mapName2Id = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
     mapId2Text = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
     readPropQryParams();
