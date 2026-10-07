@@ -1,26 +1,35 @@
-CREATE VIEW MovimentiDoppi
+/****** Oggetto: View dbo.MovimentiDoppi    Data dello script 07/10/2026 08:30:46 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW dbo.MovimentiDoppi
 AS
 WITH grup (
         conta
+      ,tipo
       ,dtmov
       ,dare
       ,avere
    )  as (
 SELECT 
 	count(*) as conta
+      ,tipo
       ,dtmov
       ,dare
       ,avere
   FROM listaMovimenti
-  GROUP BY  
-      dtmov
+  GROUP BY 
+      tipo
+      ,dtmov
       ,dare
       ,avere
 )
 SELECT li.* 
    FROM dbo.listaMovimenti li
 	FULL OUTER JOIN grup 
-      ON li.dtmov = grup.dtmov
+      ON li.tipo = grup.tipo
+      AND li.dtmov = grup.dtmov
 	  AND li.dare = grup.dare
       AND li.avere = grup.avere
 	  
