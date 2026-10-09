@@ -12,6 +12,7 @@
 		<java.version>25</java.version>
 		<stdc.version>0.10-SNAPSHOT</stdc.version>
 		<lombok.version>1.18.32</lombok.version>
+		<testfx.version>4.0.18</testfx.version>
 	</properties>
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
@@ -63,10 +64,19 @@
 		<dependency>
 			<groupId>org.testfx</groupId>
 			<artifactId>testfx-core</artifactId>
-			<version>4.0.18</version>
+			<version>${testfx.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- Source: https://mvnrepository.com/artifact/org.testfx/testfx-junit -->
+		<dependency>
+			<groupId>org.testfx</groupId>
+			<artifactId>testfx-junit</artifactId>
+			<version>${testfx.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+
 	<build>
 		<finalName>${project.name}</finalName>
 		<plugins>

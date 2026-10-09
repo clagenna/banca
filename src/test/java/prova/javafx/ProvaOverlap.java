@@ -13,7 +13,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import sm.clagenna.banca.dati.ETipoBanca;
 import sm.clagenna.banca.dati.csv.CsvImpFile;
+import sm.clagenna.stdcla.utils.ParseData;
 
 public class ProvaOverlap extends Application {
   private DateTimeFormatter s_fmt_ldt = DateTimeFormatter.ofPattern("dd/MM/YY");
@@ -173,9 +175,18 @@ public class ProvaOverlap extends Application {
     //    liFil
     //        .add(new CsvImpFile(1, "estrattoconto_BSI_2410.csv", "Banca BSI", null, 25866, 192, ParseData.parseData("2024-01-02 00:00:00"),
     //            ParseData.parseData("2024-11-02 00:00:00"), ParseData.parseData("2024-12-07 17:39:18")));
-    //    liFil
-    //        .add(new CsvImpFile(2, "estrattoconto_BSI_2411.csv", "Banca BSI", null, 29879, 220, ParseData.parseData("2023-11-27 00:00:00"),
-    //            ParseData.parseData("2024-11-11 00:00:00"), ParseData.parseData("2024-12-08 14:51:20")));
+        liFil
+            .add(new CsvImpFile( //
+                1 //
+                , ETipoBanca.Bsi //
+                , "estrattoconto_BSI_2410.csv" //
+                , "Banca BSI"
+                , "cla"
+                , 25866
+                , 192
+                , ParseData.parseData("2024-01-02 00:00:00")
+                , ParseData.parseData("2024-11-02 00:00:00")
+                , ParseData.parseData("2024-12-07 17:39:18")));
     dtMin = liFil.stream().map(s -> s.getDtmin()).min(LocalDateTime::compareTo).orElseThrow(NoSuchElementException::new);
     dtMax = liFil.stream().map(s -> s.getDtmax()).max(LocalDateTime::compareTo).orElseThrow(NoSuchElementException::new);
     posDtMin = getDtPos(dtMin);
