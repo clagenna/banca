@@ -94,7 +94,7 @@ public class CsvImportBancaBsi extends CsvImportBanca {
       firePropertyChange(Consts.EVT_ENDDTSROW, (double) dts.size());
       if ( !DataModel.isJunit())
         updateProgress(nRow, nRow);
-      System.out.println("CsvImportBanca.analizzaBanca - " + Consts.EVT_ENDDTSROW);
+      // System.out.println("CsvImportBanca.analizzaBanca - " + Consts.EVT_ENDDTSROW);
     }
     return getRigheBanca();
   }

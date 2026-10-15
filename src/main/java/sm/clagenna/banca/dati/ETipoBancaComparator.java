@@ -3,6 +3,10 @@ package sm.clagenna.banca.dati;
 import java.util.Comparator;
 
 public class ETipoBancaComparator implements Comparator<String> {
+  
+  ETipoBancaComparator() {
+    // default constructor
+  }
 
   /**
    * Compare two strings, ignoring case considerations. If one string is a prefix of the other, the shorter string is considered 

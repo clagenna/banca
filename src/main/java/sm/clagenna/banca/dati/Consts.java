@@ -41,7 +41,7 @@ public class Consts {
    * intestazioni dei vari files CSV
    */
   @Getter
-  public static final Map<EColsTableView, List<String>> nomiCols;
+  private static final Map<EColsTableView, List<String>> nomiCols;
   static {
     // mappa delle colonne std con quali stringhe sono associate nelle intestazioni dei vari files CSV
     // ATTENZIONE: Vanno messe in ordine di *LUNGHEZZA DISCENDENTE* !!
@@ -123,7 +123,7 @@ public class Consts {
   public static final String EVT_GUESSDATA_CREATED   = "guessdataCreated";
   public static final String EVT_OPTZ_FILTR_CHANGE   = "optzFiltrChange";
 
-  /**
+  /*
    * Costanti per i tipi di ABICAUS
    */
 
@@ -191,4 +191,7 @@ public class Consts {
       { "Esc", "Chiudi Help" }, //
   };
 
+  public Consts() {
+    // nothing to do 
+  }
 }

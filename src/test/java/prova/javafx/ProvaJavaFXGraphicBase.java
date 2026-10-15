@@ -2,9 +2,6 @@ package prova.javafx;
 
 import java.time.LocalDateTime;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -20,6 +17,7 @@ public class ProvaJavaFXGraphicBase extends Application {
   private Pane  pane;
 
   private int right_pad;
+  @SuppressWarnings("unused")
   private int top_pad;
   private int left_pad;
   private int bottom_pad;
@@ -90,7 +88,7 @@ public class ProvaJavaFXGraphicBase extends Application {
         if (i == 0 || i == qtaMesi)
           strk = Color.PURPLE;
       }
-      double px = left_pad + (int) (i * dlt_x);
+      double px = left_pad + i * dlt_x;
       Line tickLine = new Line(px, pyRuller, px, pyRuller - ticHe);
       tickLine.setStroke(strk);
       pane.getChildren().add(tickLine);

@@ -1,6 +1,4 @@
-<project xmlns="https://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="https://maven.apache.org/POM/4.0.0" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>sm.clagenna</groupId>
 	<artifactId>banca</artifactId>
@@ -11,7 +9,7 @@
 		<compiler.plugin>3.12.1</compiler.plugin>
 		<java.version>25</java.version>
 		<stdc.version>0.10-SNAPSHOT</stdc.version>
-		<lombok.version>1.18.32</lombok.version>
+		<lombok.version>1.18.48</lombok.version>
 		<testfx.version>4.0.18</testfx.version>
 	</properties>
 	<dependencies>
@@ -48,13 +46,24 @@
 			<version>${lombok.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		<!--		<dependency>-->
-		<!--			<groupId>junit</groupId>-->
-		<!--			<artifactId>junit</artifactId>-->
-		<!--			<version>4.12</version>-->
-		<!--			<scope>test</scope>-->
-		<!--		</dependency>-->
-
+		<!--
+		<dependency>
+		-->
+		<!--
+			<groupId>junit</groupId>
+		-->
+		<!--
+			<artifactId>junit</artifactId>
+		-->
+		<!--
+			<version>4.12</version>
+		-->
+		<!--
+			<scope>test</scope>
+		-->
+		<!--
+		</dependency>
+		-->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
@@ -75,8 +84,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-
 	<build>
 		<finalName>${project.name}</finalName>
 		<plugins>
@@ -90,6 +97,7 @@
 					</descriptorRefs>
 					<finalName>${project.artifactId}</finalName>
 					<appendAssemblyId>false</appendAssemblyId>
+					<classifier></classifier>
 					<archive>
 						<manifest>
 							<mainClass>${mainClassName}</mainClass>
@@ -153,26 +161,18 @@
   arg  enable-preview< / arg 
 						-->
 						<arg>-Xlint:all</arg>
-						<arg>
-							-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
-						<arg>
-							-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
-						<arg>
-							-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
-						<arg>
-							-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
-						<arg>
-							-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
-						<arg>
-							-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
-						<arg>
-							-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
-						<arg>
-							-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
-						<arg>
-							-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
-						<arg>
-							-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED</arg>
+						<arg>-Xlint:-requires-automatic</arg>
+						<arg>-Xlint:-requires-transitive-automatic</arg>
+						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
+						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED</arg>
 					</compilerArgs>
 					<annotationProcessorPaths>
 						<path>

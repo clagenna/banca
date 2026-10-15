@@ -18,15 +18,13 @@ public class EsportaTutteTable {
             ,descrcaus
             ,costo
         FROM causali
-      ORDER BY abicaus
-            """;
+      ORDER BY abicaus""";
   private static final String           EXP_CodiciStat = """
       SELECT idCodStat
             ,codstat
             ,descrstat
         FROM CodiciStat
-      ORDER BY codstat
-            """;
+      ORDER BY codstat""";
   private static final String           EXP_impFiles   = """
       SELECT id
             ,filename
@@ -37,8 +35,7 @@ public class EsportaTutteTable {
             ,dtmax
             ,ultagg
         FROM impFiles
-      ORDER BY filename
-            """;
+      ORDER BY filename""";
   private static final String           EXP_Movimenti  = """
       SELECT id
             ,tipo
@@ -52,8 +49,7 @@ public class EsportaTutteTable {
             ,cardid
             ,idCodStat
         FROM movimenti
-      ORDER BY dtmov,dtval,dare,avere
-            """;
+      ORDER BY dtmov,dtval,dare,avere""";
 
   private static final String              EXPORT_DIR = "dati/export";
   private static final Map<String, String> arrQry;

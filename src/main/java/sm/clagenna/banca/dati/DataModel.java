@@ -48,7 +48,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   private AppProperties         props;
   private DBConn                dbConn;
   private ISQLGest              sqlgest;
-  // private Stage                 primaryStage;
+  // private Stage              primaryStage;
   private String skin;
   private URL    mainCSS;
   private Scene  padreCercaCodstat;

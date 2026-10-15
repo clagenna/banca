@@ -214,7 +214,7 @@ public class ConstsSQL {
            filename,
            reldir,
            size,
-           qtarecs,
+           (SELECT COUNT(*) FROM movimenti mo WHERE mo.idFile=impFiles.id) as  qtarecs,
            dtmin,
            dtmax,
            ultagg
@@ -258,7 +258,7 @@ public class ConstsSQL {
   /*
    * Per le query del LLM AnalizzaCodstats
    */
-  public static final String     QRY_TRUE = "1=1";
+  public static final String QRY_TRUE             = "1=1";
   /** query per i record gia riconosciuti per formare il vocabolario */
   public static final String QRY_KNOWN_CODSTATS   = """
       SELECT  descr
@@ -284,4 +284,7 @@ public class ConstsSQL {
              AND codstat IS NULL
           ORDER BY descr""";
 
+  public ConstsSQL() {
+    // nothing to do
+  }
 }

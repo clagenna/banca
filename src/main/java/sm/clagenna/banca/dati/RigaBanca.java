@@ -172,6 +172,8 @@ public class RigaBanca {
   }
 
   public void suply(int i) {
+    if (null == dtmov)
+      return;
     LocalDateTime ldt = dtmov.plusSeconds(i);
     dtmov = ldt;
   }

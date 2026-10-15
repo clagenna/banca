@@ -492,7 +492,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
   public List<CsvImpFile> getListCsvImpFiles() {
     List<CsvImpFile> liDbFiles = new ArrayList<>();
     // SQLite e SQLServer sono compatibili
-    String szQry = ConstsSQL.QRY_SQLITE_SEL_ImpFiles.substring(0, ConstsSQL.QRY_SQLITE_SEL_ImpFiles.indexOf("WHERE"));
+    String szQry = ConstsSQL.QRY_SQLITE_SEL_ImpFiles.substring(0, ConstsSQL.QRY_SQLITE_SEL_ImpFiles.lastIndexOf("WHERE"));
     szQry += " order by id";
     PreparedStatement lstmt = null;
     try {
@@ -649,7 +649,7 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
    */
   @Override
   public int deleteCsvImpFile(CsvImpFile csvif) {
-    // throw new UnsupportedOperationException("La deleteCsvImpFile() non e' supportata !");
+
     int qtaDel = 0;
     // TimerMeter tm = new TimerMeter("Delete");
     StringBuilder qry = null;
@@ -697,18 +697,24 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
     String szWhe = liFiles.stream().map(s -> String.valueOf(s.getId())).collect(Collectors.joining(","));
     long qtaDel = 0;
     final String szQryMas = "DELETE FROM %s WHERE %s IN (%s)";
+    getDbconn().beginTrans();
     Connection conn = getDbconn().getConn();
-    for (String szTb : SqlGest.allMovTables) {
-      String szId = "id";
-      if (szTb.startsWith("mov"))
-        szId = "idfile";
-      String szQry = String.format(szQryMas, szTb, szId, szWhe);
-      try (Statement stmt = conn.createStatement()) {
-        qtaDel += stmt.executeLargeUpdate(szQry);
-        getLog().warn("Delete da tabella {} con ID files {}", szTb, szWhe);
-      } catch (Exception e) {
-        getLog().error("Errore SQL \"{}\"", szQry, e);
+    try {
+      for (String szTb : SqlGest.allMovTables) {
+        String szId = "id";
+        if (szTb.startsWith("mov"))
+          szId = "idfile";
+        String szQry = String.format(szQryMas, szTb, szId, szWhe);
+        try (Statement stmt = conn.createStatement()) {
+          qtaDel += stmt.executeLargeUpdate(szQry);
+          getLog().warn("Delete da tabella {} con ID files {}", szTb, szWhe);
+        }
       }
+      getDbconn().commitTrans();
+    } catch (Exception e) {
+      getLog().error("Errore SQL deleteCsvImpFiles() con ID files {}", szWhe, e);
+      getDbconn().rollBackTrans();
+      qtaDel = -1;
     }
     return (int) qtaDel;
   }

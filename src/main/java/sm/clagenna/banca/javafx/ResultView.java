@@ -478,6 +478,14 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     abilitaBottoni();
   }
 
+  /**
+   * Abilita il bottone di salvataggio della query solo se il nome della query e' valido
+   * 
+   * @param obj
+   * @param old
+   * @param nv
+   * @return null
+   */
   private Object cbSaveQueryUpd(ObservableValue<? extends String> obj, String old, String nv) {
     btSaveQuery.setDisable( ! (Utils.isValue(nv) && nv.length() > 2));
     return null;

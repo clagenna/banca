@@ -399,6 +399,10 @@ public abstract class CsvImportBanca extends Task<String> implements Closeable {
       return;
     }
     dtmov = ParseData.parseData(val.toString());
+    if (null == dtmov) {
+      getLogger().debug("Scarto riga (no dtmov2): {}", row.toString());
+      return;
+    }
     // -----------------  DT VAL ------------------------
     val = getRowVal(EColsTableView.dtval, row);
     if (null == val) {

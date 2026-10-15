@@ -66,6 +66,8 @@ public interface ISQLGest {
   /** elimina tutte le registrazioni pertinenti al file di importazione */
   int deleteCsvImpFile(CsvImpFile rig);
 
+  int deleteCsvImpFiles(List<CsvImpFile> liFiles);
+
   boolean insertCsvImpFile(CsvImpFile p_rig);
 
   // -------------  Card Holder, TipoCard, Anni, Mesi, CausABI  ----------------

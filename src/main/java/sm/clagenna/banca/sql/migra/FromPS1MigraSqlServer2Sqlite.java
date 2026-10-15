@@ -22,6 +22,10 @@ import java.util.Properties;
  * driver nativo).
  */
 public class FromPS1MigraSqlServer2Sqlite {
+  
+  public FromPS1MigraSqlServer2Sqlite() {
+    // costruttore vuoto
+  }
 
   public static void main(String[] args) throws Exception {
     String sqlServerHost = args.length > 0 && args[0] != null && !args[0].isEmpty() ? args[0] : "localhost";

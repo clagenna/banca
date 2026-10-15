@@ -970,17 +970,27 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   }
 
   private void eliminaRegistrazioni() {
-    CsvImpFile imf = tblvFiles.getSelectionModel().getSelectedItem();
-    // LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
-    Optional<ButtonType> ret = MessageDialog.messageDialog(AlertType.CONFIRMATION,
-        "Sei sicuro di voler eliminare le registrazioni di <br/><b>" + imf.getFileName() + "</b>");
+    ObservableList<CsvImpFile> imFiles = tblvFiles.getSelectionModel().getSelectedItems();
+    
+    if ( null == imFiles || imFiles.size() == 0) {
+      s_log.warn("Devi selezionare un file per eliminare le sue registrazioni");
+      MessageDialog.messageDialog(AlertType.WARNING, "Devi selezionare un file per eliminare le sue registrazioni");
+      return;
+    }
+    String szMsg = "Sei sicuro di voler eliminare le registrazioni di <br/>";
+    for (CsvImpFile imf : imFiles) {
+      szMsg += "<b>" + imf.getFileName() + "</b><br/>";
+    }
+    Optional<ButtonType> ret = MessageDialog.messageDialog(AlertType.CONFIRMATION, szMsg, ButtonType.OK);
     if (ret.isEmpty() || ret.get() != ButtonType.OK)
       return;
-    // System.out.printf("LoadBancaController.eliminaRegistrazioni(%s)\n", imf.getFileName());
-    s_log.warn("Elimino le registrazioni di {}", imf.getFileName());
+    s_log.warn("Elimino {} registrazioni di files CSV", imFiles.size());
     // model.getContCsv().cancellaRegsFiles(Arrays.asList(new CsvImpFile[] { imf }));
-    model.getSqlgest().deleteCsvImpFile(imf);
-    imf.garbleName(model.getLastDir());
+    int qtaDel = model.getSqlgest().deleteCsvImpFiles(imFiles);
+    if ( qtaDel > 0)
+      imFiles.forEach(imf -> imf.garbleName(model.getLastDir()));
+    else
+      s_log.warn("Nessuna registrazione eliminata per i files selezionati");
     Platform.runLater(() -> reloadListFilesCSV());
   }
 

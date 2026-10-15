@@ -39,6 +39,11 @@ public class MigraSQL2SQLite {
 
   private DBConnSQLite m_dbConnLite;
   private DBConnSQL    m_dbConnSQL;
+  
+  public MigraSQL2SQLite() {
+    m_dbConnLite = null;
+    m_dbConnSQL = null;
+  }
 
   public static void main(String[] args) {
     s_log.info("MigraSQL2SQLite - start");

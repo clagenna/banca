@@ -110,6 +110,11 @@ public class Phrase implements Comparable<Phrase> {
   }
 
   @Override
+  public int hashCode() {
+    return phrase.hashCode();
+  }
+
+  @Override
   public String toString() {
     String sz = String.format("%-40s %s ", phrase, key);
     return sz;
