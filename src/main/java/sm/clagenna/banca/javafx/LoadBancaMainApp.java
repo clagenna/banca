@@ -25,7 +25,7 @@ import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 /**
- * FIXME nel main manca la voce di menu "Importa CSV" per importare un file CSV
+ * FIXto nel main manca la voce di menu "Importa CSV" per importare un file CSV
  * di movimenti bancari <br/>
  * FIXTO ci sono piu voci identiche per tipo,dtmov,dtval,dare,descr. C'era la
  * existMovimento che faceva uso della setDtmov() su "tipo" :-(( <br/>

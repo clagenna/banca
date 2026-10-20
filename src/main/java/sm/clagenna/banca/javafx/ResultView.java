@@ -686,6 +686,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     TableViewFiller.setNullRetValue("");
 
     m_tbvf = new TableViewFillerBanca(tblview, dbconn);
+    m_tbvf.setProps(mainProps);
+    m_tbvf.setPropPrefix(Consts.PROP_COLRESVIEW);
 
     // m_tbvf.setResView(this);
     if (fltrParolaRegEx) {

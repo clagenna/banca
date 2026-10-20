@@ -37,6 +37,7 @@ public class TableViewFillerBanca extends TableViewFiller {
     super(tblview, p_dbc);
     myExcludeCols = LoadBancaMainApp.getInst().getModel().getExcludeCols();
     model = DataModel.getInst();
+    setProps(model.getProps());
   }
 
   @Override
