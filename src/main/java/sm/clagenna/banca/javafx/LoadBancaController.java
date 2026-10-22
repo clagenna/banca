@@ -71,6 +71,7 @@ import sm.clagenna.banca.dati.csv.CsvImportBancaFactory;
 import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
+import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ILog4jReader;
 import sm.clagenna.stdcla.utils.Log4jRow;
@@ -82,6 +83,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   public static final String  CSZ_FXMLNAME = "BancaJavaFX.fxml";
 
   private Stage     stage;
+  @FXML
+  private MenuItem  mnuBackupDB;
   @FXML
   private MenuItem  mnuGEstDati;
   @FXML
@@ -539,6 +542,21 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     checkPresenceFilesCSV();
   }
 
+  @FXML
+  void mnuBackupDBClick(ActionEvent event) {
+    Path pth = model.backupDB();
+    if (pth != null) {
+      String sz = pth.toAbsolutePath().toString().replace("\\.", "");
+      String szMsg = String.format("Backup del DB in <code>\"%s\"</code><br/> eseguito con successo", sz);
+      MessageDialog.messageDialog(AlertType.INFORMATION, szMsg);
+      s_log.info(szMsg);
+    } else {
+      String szMsg = "Errore nel backup del DB ";
+      MessageDialog.messageDialog(AlertType.ERROR, szMsg);
+      s_log.error(szMsg);
+    }
+  }
+  
   @FXML
   void mnuExitClick(ActionEvent event) {
     Platform.exit();

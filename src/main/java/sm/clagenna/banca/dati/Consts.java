@@ -163,6 +163,7 @@ public class Consts {
   public static final String[][] main_shortcuts = { //
       { "ShortCuts sui Files", "" }, //
       { "Ctrl-Shft-R ", " Rescan Dirs" }, //
+      { "Ctrl-Shft-B ", " Backup Data Base" }, //
       { "Ctrl-Shft-M ", " Check Presenza Files" }, //
       { "Ctrl-Shft-I ", " Import Sels Files" }, //
       { "", "" }, //

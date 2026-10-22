@@ -22,21 +22,21 @@
 			<DefaultRolloverStrategy max="5" />
 		</RollingFile>
 
-
-		<appender name="roll-by-time-and-size" class="org.apache.log4j.rolling.RollingFileAppender">
-			<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
-				<param name="ActiveFileName" value="log/rollTimeSizeBanca.log" />
-				<param name="FileNamePattern" value="log/rollTimeSizeBanca_%d{HH-mm}.log" />
-			</rollingPolicy>
-			<triggeringPolicy
-				class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy">
-				<param name="MaxFileSize" value="100" />
-			</triggeringPolicy>
-			<layout class="org.apache.log4j.PatternLayout">
-				<param name="ConversionPattern"
-					value="%-32c{3}  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />
-			</layout>
-		</appender>
+<!-- mi dava invalid appender name -->
+<!--		<appender name="roll-by-time-and-size" class="org.apache.log4j.rolling.RollingFileAppender">-->
+<!--			<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">-->
+<!--				<param name="ActiveFileName" value="log/rollTimeSizeBanca.log" />-->
+<!--				<param name="FileNamePattern" value="log/rollTimeSizeBanca_%d{HH-mm}.log" />-->
+<!--			</rollingPolicy>-->
+<!--			<triggeringPolicy-->
+<!--				class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy">-->
+<!--				<param name="MaxFileSize" value="100" />-->
+<!--			</triggeringPolicy>-->
+<!--			<layout class="org.apache.log4j.PatternLayout">-->
+<!--				<param name="ConversionPattern"-->
+<!--					value="%-32c{3}  %d{yyyy-MM-dd HH:mm:ss} %-5p: %m%n %throwable{3}" />-->
+<!--			</layout>-->
+<!--		</appender>-->
 
 
 		<MioAppender name="MIOAPPENDER">

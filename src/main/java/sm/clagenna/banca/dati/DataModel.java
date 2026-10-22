@@ -321,7 +321,6 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     return szRet.toString();
   }
 
-
   public boolean scartaVoce(String descr) {
     if (descr == null)
       return true;
@@ -377,4 +376,14 @@ public class DataModel implements IStartApp, PropertyChangeListener {
 
   }
 
+  public Path backupDB() {
+    DBConn db = getDbConn();
+    Path pth = null;
+    if (db != null) {
+      pth = db.backupDB(Paths.get("."));
+      if (pth != null)
+        s_log.info("Backup del DB in {}", pth.toString());
+    }
+    return pth;
+  }
 }

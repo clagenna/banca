@@ -1,5 +1,6 @@
 .wix
 .vscode
+**/Banca
 **/target
 **/*.bak
 **/*.csv

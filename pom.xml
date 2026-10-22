@@ -1,14 +1,17 @@
-<project xmlns="https://maven.apache.org/POM/4.0.0" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="https://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>sm.clagenna</groupId>
 	<artifactId>banca</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<mainClassName>sm.clagenna.banca.javafx.LoadBancaMainApp</mainClassName>
+		<mainClassName>sm.clagenna.banca.javafx.LauncherBanca</mainClassName>
 		<compiler.plugin>3.12.1</compiler.plugin>
 		<java.version>25</java.version>
 		<stdc.version>0.10-SNAPSHOT</stdc.version>
+		<launch4j.version>2.6.0</launch4j.version>
 		<lombok.version>1.18.48</lombok.version>
 		<testfx.version>4.0.18</testfx.version>
 	</properties>
@@ -163,16 +166,26 @@
 						<arg>-Xlint:all</arg>
 						<arg>-Xlint:-requires-automatic</arg>
 						<arg>-Xlint:-requires-transitive-automatic</arg>
-						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
-						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
-						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
-						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
-						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
-						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
-						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
-						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
-						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
-						<arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED</arg>
+						<arg>
+							-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+						<arg>
+							-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+						<arg>
+							-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+						<arg>
+							-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+						<arg>
+							-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+						<arg>
+							-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
+						<arg>
+							-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+						<arg>
+							-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+						<arg>
+							-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+						<arg>
+							-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED</arg>
 					</compilerArgs>
 					<annotationProcessorPaths>
 						<path>
@@ -198,6 +211,84 @@
 				<configuration>
 					<skip>true</skip>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.6.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>shaded</shadedClassifierName>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>${mainClassName}</mainClass>
+								</transformer>
+							</transformers>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>module-info.class</exclude>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+			<plugin>
+				<groupId>com.akathist.maven.plugins.launch4j</groupId>
+				<artifactId>launch4j-maven-plugin</artifactId>
+				<version>${launch4j.version}</version>
+				<executions>
+					<execution>
+						<id>l4j-gui</id>
+						<phase>package</phase>
+						<goals>
+							<goal>launch4j</goal>
+						</goals>
+						<configuration>
+							<!-- "console" per vedere l'output in debug -->
+							<headerType>gui</headerType>          
+							<outfile>target/Banca.exe</outfile>
+							<jar>target/${project.artifactId}-${project.version}-shaded.jar</jar>
+							<!-- il JAR viene incorporato nell'exe -->
+							<dontWrapJar>false</dontWrapJar>      
+							<icon>src/main/resources/sm/clagenna/banca/javafx/banca-100.ico</icon>
+							<errTitle>Banca</errTitle>
+							<classPath>
+								<mainClass>${mainClassName}</mainClass>
+							</classPath>
+							<jre>
+								<minVersion>25.0.0</minVersion>
+								<jdkPreference>preferJre</jdkPreference>
+								<initialHeapSize>128</initialHeapSize>
+								<maxHeapSize>2048</maxHeapSize>
+								<opts>
+									<opt>--enable-native-access=ALL-UNNAMED</opt>
+									<opt>--module-path "C:\Program Files\Java\javafx-sdk-25.0.2\lib"</opt> 
+									<opt>--add-modules javafx.base,javafx.controls,javafx.fxml,javafx.media,javafx.graphics,javafx.web</opt> 
+									<opt>--enable-native-access=javafx.graphics</opt> 
+									<opt>--enable-native-access=javafx.web</opt> 
+									<opt>--enable-native-access=org.xerial.sqlitejdbc</opt>
+								</opts>
+							</jre>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

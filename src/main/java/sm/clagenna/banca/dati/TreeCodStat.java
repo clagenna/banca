@@ -24,8 +24,8 @@ import sm.clagenna.stdcla.sql.DtsRow;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class TreeCodStat {
-  private static final Logger s_log = LogManager.getLogger(TreeCodStat.class);
-  private static final DecimalFormat fmt = new DecimalFormat("00,00");
+  private static final Logger        s_log = LogManager.getLogger(TreeCodStat.class);
+  private static final DecimalFormat fmt   = new DecimalFormat("00,00");
 
   @Getter @Setter
   private Path                 fileCodStats;
@@ -253,13 +253,13 @@ public class TreeCodStat {
       sqlGest.insertCodStat(cdsCurr);
   }
 
-  @Deprecated
-  public void saveAll() {
-    //    codstats.salvaSuProperties();
-    //    if (null != datac)
-    //      datac.firePropertyChange(DataController.EVT_FILECODSTATS, "*null*", fileCodStats.toString());
-    // s_log.info("Salvato il file Codici Statistici {}", codstats.getPropertyFile().toString());
-  }
+  //  @Deprecated
+  //  public void saveAll() {
+  //    codstats.salvaSuProperties();
+  //    if (null != datac)
+  //      datac.firePropertyChange(DataController.EVT_FILECODSTATS, "*null*", fileCodStats.toString());
+  // s_log.info("Salvato il file Codici Statistici {}", codstats.getPropertyFile().toString());
+  //  }
 
   @Override
   public String toString() {
