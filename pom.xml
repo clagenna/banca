@@ -279,7 +279,7 @@
 								<maxHeapSize>2048</maxHeapSize>
 								<opts>
 									<opt>--enable-native-access=ALL-UNNAMED</opt>
-									<opt>--module-path "C:\Program Files\Java\javafx-sdk-25.0.2\lib"</opt> 
+									<opt>--module-path "${env.JAVAFX_HOME}\lib"</opt> 
 									<opt>--add-modules javafx.base,javafx.controls,javafx.fxml,javafx.media,javafx.graphics,javafx.web</opt> 
 									<opt>--enable-native-access=javafx.graphics</opt> 
 									<opt>--enable-native-access=javafx.web</opt> 
