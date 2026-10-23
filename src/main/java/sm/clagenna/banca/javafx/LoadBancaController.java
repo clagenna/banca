@@ -358,6 +358,11 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private void initTxLastDir(AppProperties props2) {
     String szLastDir = props.getLastDir();
     if (szLastDir != null) {
+      if ( !Files.exists(Paths.get(szLastDir), LinkOption.NOFOLLOW_LINKS)) {
+        // szLastDir = System.getenv("TEMP");
+        szLastDir = new File(".").getAbsolutePath();
+        szLastDir = szLastDir.replace("\\.", "");
+      }
       txDirExports.setText(szLastDir);
       settaFileIn(Paths.get(szLastDir), true, true);
     }
@@ -413,6 +418,13 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   }
 
   private void reloadListFilesCSV() {
+    Path lastd = model.getLastDir();
+    if ( !Files.exists(lastd, LinkOption.NOFOLLOW_LINKS)) {
+      String szMsg = String.format("Non trovo il direttorio \"%s\" oppure non e' valido", lastd.toString());
+      MessageDialog.messageDialog(AlertType.ERROR, szMsg);
+      s_log.error(szMsg);
+      return;
+    }
     s_log.debug("Ricarico la lista files CSV da: {}", model.getLastDir());
     ObservableList<CsvImpFile> liFilesCSV = model.getContCsv().loadListFiles();
     tblvFiles.getItems().clear();
@@ -556,7 +568,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       s_log.error(szMsg);
     }
   }
-  
+
   @FXML
   void mnuExitClick(ActionEvent event) {
     Platform.exit();
@@ -989,8 +1001,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
 
   private void eliminaRegistrazioni() {
     ObservableList<CsvImpFile> imFiles = tblvFiles.getSelectionModel().getSelectedItems();
-    
-    if ( null == imFiles || imFiles.size() == 0) {
+
+    if (null == imFiles || imFiles.size() == 0) {
       s_log.warn("Devi selezionare un file per eliminare le sue registrazioni");
       MessageDialog.messageDialog(AlertType.WARNING, "Devi selezionare un file per eliminare le sue registrazioni");
       return;
@@ -1005,7 +1017,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     s_log.warn("Elimino {} registrazioni di files CSV", imFiles.size());
     // model.getContCsv().cancellaRegsFiles(Arrays.asList(new CsvImpFile[] { imf }));
     int qtaDel = model.getSqlgest().deleteCsvImpFiles(imFiles);
-    if ( qtaDel > 0)
+    if (qtaDel > 0)
       imFiles.forEach(imf -> imf.garbleName(model.getLastDir()));
     else
       s_log.warn("Nessuna registrazione eliminata per i files selezionati");

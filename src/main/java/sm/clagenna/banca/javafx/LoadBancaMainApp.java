@@ -3,6 +3,7 @@ package sm.clagenna.banca.javafx;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +84,12 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     if (url == null)
       throw new FileNotFoundException(String.format("Non trovo reource %s", LoadBancaController.CSZ_FXMLNAME));
     /* url = */ model.getUrlSkin(); // prima load prima della scene controller
-    Parent radice = FXMLLoader.load(url);
+    Parent radice = null;
+    try {
+      radice = FXMLLoader.load(url);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     Scene scene = new Scene(radice, 725, 550);
 
     // <a target="_blank" href="https://icons8.com/icon/Qd0k8d5D0tSe/invoice">Invoice</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>

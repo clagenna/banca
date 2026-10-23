@@ -56,7 +56,7 @@ catch
 # ---------------------------------------------------------------------
 Import-Module System.Data.Sqlite
 
-$ProjectBase = 'D:\java\conmod\banca2'   # Percorso Progetto
+$ProjectBase = 'D:\java\conmod\banca'   # Percorso Progetto
 $SQLitePath = "$ProjectBase\dati\SQLite"   # Percorso dove salvare il file SQLite
 $SQLiteDB = "$SQLitePath\fromSQLServer.db"   # Percorso dove salvare il file SQLite
 $SQLiteConnectionString = "Data Source=$SQLiteDB;Version=3"
@@ -286,7 +286,17 @@ function Write-SQLiteViews()
             $dropCmd.ExecuteNonQuery() | Out-Null
 
             # Adatta lo script per SQLite se necessario
-            $sqliteScript = "CREATE VIEW $($view.Name) AS $($view.Script);"
+            if ( $view.Script -like "create view*" ) {
+                $sqliteScript = $view.Script
+                if ( $sqliteScript -match 'EXIST ' ) {
+                    $sqliteScript = $sqliteScript -replace 'EXIST ', 'EXISTS '
+                }
+                if ( $sqliteScript -notmatch ';$' ) {
+                    $sqliteScript += ';'
+                }
+            } else {
+              $sqliteScript = "CREATE VIEW $($view.Name) AS $($view.Script);"
+            }
             
             # Esegue la creazione della vista
             $createCmd = $SqliteConn.CreateCommand()
@@ -310,4 +320,5 @@ Get-SavedSQLiteViews
 Write-SQLiteViews
 
 $SqliteConn.Close()
+$SqliteConn = $null
 Write-Host "Migrazione su $SQLiteDB completata con successo!" -ForegroundColor Green

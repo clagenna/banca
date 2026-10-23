@@ -19,12 +19,14 @@ import org.apache.logging.log4j.Logger;
 
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert.AlertType;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.csv.CsvFileContainer;
 import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
+import sm.clagenna.banca.javafx.MessageDialog;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGest;
@@ -268,7 +270,9 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       if (lastDir != null && lastDir.compareTo(p_ld) == 0)
         return lastDir;
     if ( !Files.exists(p_ld, LinkOption.NOFOLLOW_LINKS)) {
-      s_log.error("Il path \"{}\" non esiste !", lastDir.toString());
+      String szMsg = String.format("Il path \"%s\" non esiste !", lastDir.toString());
+      s_log.error(szMsg);
+      Platform.runLater(() -> MessageDialog.messageDialog(AlertType.ERROR, szMsg));
       return p_ld;
     }
     lastDir = p_ld;
