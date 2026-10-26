@@ -300,6 +300,12 @@ public class CsvImpFile implements Cloneable {
       ldtMin = Utils.min(ldtMin, rb.getDtmov());
       ldtMax = Utils.max(ldtMax, rb.getDtmov());
     }
+    ldtMin = righeBanca
+        .stream()
+        .map(RigaBanca::getDtmov)
+        .min(LocalDateTime::compareTo)
+        .orElse(null);
+    
     setQtarecs(righeBanca.size());
     setDtmin(ldtMin);
     setDtmax(ldtMax);

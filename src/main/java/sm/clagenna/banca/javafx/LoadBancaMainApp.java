@@ -3,7 +3,6 @@ package sm.clagenna.banca.javafx;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +22,7 @@ import sm.clagenna.banca.dati.Consts;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
+import sm.clagenna.stdcla.javafx.MessageDialog;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 /**

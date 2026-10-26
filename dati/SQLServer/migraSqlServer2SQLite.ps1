@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+# Set-StrictMode -Version 3.0
 # ---------------------------------------------------------------------
 # 1. verifica
 # Per vedere se il modulo SqlServer e' installato correttamente esegui:
@@ -22,120 +23,124 @@ $ErrorActionPreference = 'Stop'
 #       bloccare l'importazione di Invoke-Sqlcmd.
 # ---------------------------------------------------------------------
 # 1. Configurazione Connessioni
-$SqlServer = 'localhost' # Nome del server SQL Server (può includere istanza)
-$SqlDatabase = 'Banca'         # Nome del database SQL Server
+Import-Module System.Data.Sqlite
+Import-Module SqlServer
+[System.Reflection.Assembly]::LoadWithPartialName("Microsoft.Data.SqlClient")
 
-$SqlConnectionString = "Server=$SqlServer;Database=$SqlDatabase;Integrated Security=True;TrustServerCertificate=True;"
+# -- SQLServer --
+$script:SqlServer = 'localhost' # Nome del server SQL Server (può includere istanza)
+$script:SqlDatabase = 'Banca'         # Nome del database SQL Server
+$script:SqlConnectionString = "Server=$script:SqlServer;Database=$script:SqlDatabase;Integrated Security=True;TrustServerCertificate=True;"
+$script:SqlServerConn = $null
 # Carica il provider SQL moderno
 # Import-Module Microsoft.Data.SqlClient
 # Import-Module System.Data.SqlClient
-Import-Module SqlServer
-$TestSQL = 'SELECT @@VERSION AS Version'
-try
-{
-    Invoke-Sqlcmd -ConnectionString $SqlConnectionString -Query $TestSQL | Out-Null
-    Write-Host 'Connessione a SQL Server riuscita!' -ForegroundColor Green
-}
-catch
-{
-    Write-Error "Errore di connessione a SQL Server: $_"
-    exit 1
-}
+# -- SQLite --
+$script:ProjectBase = 'D:\java\conmod\banca'   # Percorso Progetto
+$script:SQLitePath = "$script:ProjectBase\dati\SQLite"   # Percorso dove salvare il file SQLite
+$script:SQLiteDB = "$script:SQLitePath\fromSQLServer.db"   # Percorso dove salvare il file SQLite
+$script:SQLiteConnectionString = "Data Source=$script:SQLiteDB;Version=3;Pooling=False"
+$script:sqliteConn = $null
 
-# 2. Caricamento Assembly .NET per SQLite (Incluso in PowerShell 7)
-# ---------------------------------------------------------------------
-# Add-Type -AssemblyName 'System.Data.Sqlite'
-# 
-# se non funziona Sotto uno dei dir di:
-#       $Env:PSModulePath -split ';'
-# creare un dir System.Data.SQLite, esempio:
-#       F:\OneDrive\Documents\PowerShell\Modules\System.Data.SQLite
-# deve essere presente le DLL 
-#       SQLite.interop.dll
-#       System.Data.SQLite.dll
-# ---------------------------------------------------------------------
-Import-Module System.Data.Sqlite
+# 1. Pulizia iniziale preventiva (per sicurezza dal lancio precedente)
+[System.Data.SQLite.SQLiteConnection]::ClearAllPools()
+[System.GC]::Collect()
+[System.GC]::WaitForPendingFinalizers()
+$script:Tables = @()
+$script:columns = @()
+$script:Views = @()
 
-$ProjectBase = 'D:\java\conmod\banca'   # Percorso Progetto
-$SQLitePath = "$ProjectBase\dati\SQLite"   # Percorso dove salvare il file SQLite
-$SQLiteDB = "$SQLitePath\fromSQLServer.db"   # Percorso dove salvare il file SQLite
-$SQLiteConnectionString = "Data Source=$SQLiteDB;Version=3"
-$TestSQL = 'select sqlite_version();'
-# Connessione a SQLite
-$SqliteConn = $null
-# Verifico che il DB esista, altrimenti lo creo
-try
-{
-    if ( Test-Path $SQLiteDB )
-    {
-        Write-Host "File SQLite esistente trovato: $SQLiteDB" -ForegroundColor Yellow
-        Write-Host 'Lo rimuovo ' -ForegroundColor Yellow
-        Remove-Item -Path $SQLiteDB -Force -ErrorAction Stop
+# ---------------------------------------------------------------------
+function test-presenza-DBSQLite {
+    Write-Host "Verifica presenza del database SQLite $script:SQLiteDB ..." -ForegroundColor Green
+    # Aggiungi qui la logica per verificare la presenza del database SQLite
+    # Verifico che il DB esista, altrimenti lo creo
+    try {
+        if ( Test-Path $script:SQLiteDB ) {
+            Write-Host "File DB SQLite esistente trovato: $SQLiteDB" -ForegroundColor Yellow
+            Write-Host 'Lo rimuovo ' -ForegroundColor Yellow
+            Remove-Item -Path $script:SQLiteDB -Force -ErrorAction Stop
+        }
+        Write-Host "Creazione nuovo file SQLite: $script:SQLiteDB" -ForegroundColor Green
+        # Creazione del file vuoto (SQLite lo popolerà automaticamente)
+        New-Item -Path $script:SQLiteDB -ItemType File -Force -ErrorAction Stop | Out-Null    
     }
-    Write-Host "Creazione nuovo file SQLite: $SQLiteDB" -ForegroundColor Green
-    # Creazione del file vuoto (SQLite lo popolerà automaticamente)
-    New-Item -Path $SQLiteDB -ItemType File -Force -ErrorAction Stop | Out-Null    
-}
-catch
-{
-    Write-Error "Errore di Creazione DB SQLite: $_"
-    exit 1
-}
-# Ora provo ad aprire la connessione per verificare che tutto sia a posto
-try
-{
-    $SqliteConn = New-Object System.Data.Sqlite.SqliteConnection($SqliteConnectionString)
-    $SqliteConn.Open()
-}
-catch
-{   
-    Write-Error "Errore di connessione a SQLite: $_"
-    exit 1
-}
-
-try
-{
-    $Cmd = $SqliteConn.CreateCommand()
-    $Cmd.CommandText = $TestSQL
-    Write-Host 'Connessione a SQLite riuscita!' -ForegroundColor Green
-    $SqliteConn.Close()
-}
-catch
-{
-    Write-Error "Errore di connessione a SQLite: $_"
-    $SqliteConn.Close()
-    exit 1
-}
-
-# ---------------------------------------------------------------------
-# 3. Recupero lista delle tabelle da SQL Server
-Write-Host 'Recupero elenco tabelle da SQL Server...' -ForegroundColor Cyan
-$TablesQuery = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'"
-$Tables = Invoke-Sqlcmd -ConnectionString $SqlConnectionString -Query $TablesQuery
-
-# Connessione a SQLite
-$SqliteConn = [System.Data.Sqlite.SqliteConnection]::new($SqliteConnectionString)
-$SqliteConn.Open()
-
-foreach ($Row in $Tables)
-{
-    $TableName = $Row.TABLE_NAME
-    if ( $TableName.ToLower().StartsWith('sys') )
-    {
-        continue
+    catch {
+        Write-Error "Errore di Creazione DB SQLite: $_" 
+        exit 1
     }
+}
+# ---------------------------------------------------------------------
+function test-SQLiteConnection {
+    # Ora provo ad aprire la connessione per verificare che tutto sia a posto
+    Write-Host "Verifica connessione al database SQLite..." -NoNewline -ForegroundColor Green
+    try {
+        $script:sqliteConn = New-Object System.Data.SQLite.SQLiteConnection
+        $script:sqliteConn.ConnectionString = $script:SQLiteConnectionString
+        $script:sqliteConn.Open()
+        
+        $cmd = $script:sqliteConn.CreateCommand()
+        # Eseguo un semplice comando per verificare la connessione
+        $cmd.CommandText = "SELECT 1"
+        $null = $cmd.ExecuteScalar() 
+        Write-Host "Connessione al database SQLite riuscita."  -ForegroundColor Green
+    }
+    catch {
+        Write-Error "Connessione al database SQLite fallita: $_"
+    }
+}
+# ---------------------------------------------------------------------
+function test-SQLServerConnection {
+    Write-Host "Verifica connessione al server SQL..." -NoNewline -ForegroundColor Green
+    try {
+        $script:SqlServerConn = New-Object Microsoft.Data.SqlClient.SqlConnection($script:SqlConnectionString)
+        $script:SqlServerConn.Open()
+        $qry = "SELECT @@Version"
+        $cmd = New-Object Microsoft.Data.SqlClient.SqlCommand($qry, $script:SqlServerConn)
+        $result = $cmd.ExecuteScalar()
+        Write-Host "Connessione al server SQL riuscita. Versione: $result" -ForegroundColor Green
+    }
+    catch {
+        Write-Error "Connessione al server SQL fallita: $_"
+        exit 1
+    }
+}
+# ----------------------------------------------------------------------
+function read-SQLTables {
+    Write-Host 'Recupero elenco tabelle da SQL Server...' -NoNewline -ForegroundColor green
+    $qry = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'"
+    $script:Tables = Invoke-Sqlcmd -ConnectionString $script:SqlConnectionString -Query $qry
+    # try {
+    #     $cmd = New-Object Microsoft.Data.SqlClient.SqlCommand($qry, $script:SqlServerConn)
+    #     $sqlRdr = $cmd.ExecuteReader()
+    #     while ( $sqlRdr.Read() | Out-Null ) {
+    #         $tbl = $sqlRdr[0]
+    #         $script:Tables += $tbl
+    #         Write-Host "Tabella SQL Server: $($tbl)"
+    #     }
+    # }
+    # catch {
+    #     Write-Error "Errore durante la lettura delle tabelle SQL Server: $_"
+    # }
+    Write-Host "Tabelle trovate: $($Tables.Count)" -ForegroundColor green
+}
+# ----------------------------------------------------------------------
+function add-SQLiteTable {
+    param (
+        [Parameter(Mandatory = $true)]
+        $TableName  
+    )
+    # Creazione delle tabelle SQLite corrispondenti alle tabelle SQL Server e migrazione dei dati
     Write-Host "Elaborazione tabella: $TableName" -ForegroundColor Yellow
 
     # 4. Lettura Schema Colonne da SQL Server
     $SchemaQuery = "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '$TableName'"
-    $Columns = Invoke-Sqlcmd -ConnectionString $SqlConnectionString -Query $SchemaQuery
+    $script:columns = Invoke-Sqlcmd -ConnectionString $script:SqlConnectionString -Query $SchemaQuery
 
     # Mappatura dei tipi di dato SQL Server -> SQLite
-    $ColDefs = foreach ($Col in $Columns)
-    {
+    $ColDefs = foreach ($Col in $script:columns) {
         $SqlType = $Col.DATA_TYPE.ToLower()
-        $Type = switch ($SqlType)
-        {
+        $Type = switch ($SqlType) {
             { $_ -in 'int', 'bigint', 'smallint', 'tinyint', 'bit' } { 'INTEGER' }
             { $_ -in 'decimal', 'numeric', 'float', 'real', 'money' } { 'REAL' }
             { $_ -in 'binary', 'varbinary', 'image' } { 'BLOB' }
@@ -145,24 +150,39 @@ foreach ($Row in $Tables)
         "[$($Col.COLUMN_NAME)] $Type $Null"
     }
 
-    # 5. Creazione Tabella in SQLite
-    $CreateTableSql = "CREATE TABLE IF NOT EXISTS [$TableName] ($( $ColDefs -join ', ' ));"
-    $Cmd = $SqliteConn.CreateCommand()
-    $Cmd.CommandText = $CreateTableSql
-    $null = $Cmd.ExecuteNonQuery()
-
+    # 5. Creazione Tabella in SQLite con tutti le righe di $colDefs
+    try {
+        $qry = "CREATE TABLE IF NOT EXISTS [$TableName] ($( $ColDefs -join ', ' ));"
+        $cmd = $SqliteConn.CreateCommand() 
+        $cmd.CommandText = $qry
+        $null = $cmd.ExecuteNonQuery()
+        $cmd.Dispose()
+    }
+    catch {
+        Write-Error "Errore durante la creazione della tabella SQLite: $_"
+        exit 1
+    }
+}
+# ----------------------------------------------------------------------
+function copy-dataSql {
+    param (
+        [Parameter(Mandatory = $true)]
+        $TableName  
+    )
+    $reader = $null
+    $Transaction = $null
+    $insertCmd = $null
     # 6. Estrazione Dati da SQL Server usando i moduli .NET per massima velocità
-    $SqlConn = [System.Data.SqlClient.SqlConnection]::new($SqlConnectionString)
-    $SqlCmd = [System.Data.SqlClient.SqlCommand]::new("SELECT * FROM [$TableName]", $SqlConn)
-    
-    try
-    {
-        $SqlConn.Open()
+    Try {
+        $qry = "SELECT * FROM [$TableName]"
+        $SqlCmd = [Microsoft.Data.SqlClient.SqlCommand]::new($script:SqlServerConn) 
+        $SqlCmd.CommandText = $qry
+        $SqlCmd.Connection = $script:SqlServerConn
         $Reader = $SqlCmd.ExecuteReader()
 
         # Generazione comando INSERT parametrizzato per SQLite
-        $ParamNames = foreach ($Col in $Columns) { "@$($Col.COLUMN_NAME)" }
-        $ColNames = foreach ($Col in $Columns) { "[$($Col.COLUMN_NAME)]" }
+        $ParamNames = foreach ($Col in $script:columns) { "@$($Col.COLUMN_NAME)" }
+        $ColNames = foreach ($Col in $script:columns) { "[$($Col.COLUMN_NAME)]" }
         
         $InsertSql = "INSERT INTO [$TableName] ($( $ColNames -join ', ' )) VALUES ($( $ParamNames -join ', ' ))"
         
@@ -173,17 +193,14 @@ foreach ($Row in $Tables)
         $InsertCmd.Transaction = $Transaction
 
         # Creazione dei parametri SQLite riutilizzabili
-        foreach ($Col in $Columns)
-        {
+        foreach ($Col in $script:columns) {
             $null = $InsertCmd.Parameters.Add([System.Data.Sqlite.SqliteParameter]::new("@$($Col.COLUMN_NAME)", [object][System.DBNull]::Value))
         }
 
         # Lettura ciclica e scrittura bulk
         $Count = 0
-        while ($Reader.Read())
-        {
-            for ($i = 0; $i -lt $Reader.FieldCount; $i++)
-            {
+        while ($Reader.Read()) {
+            for ($i = 0; $i -lt $Reader.FieldCount; $i++) {
                 $Value = $Reader.GetValue($i)
                 $InsertCmd.Parameters[$i].Value = if ($Value -eq [System.DBNull]::Value) { [System.DBNull]::Value } else { $Value }
             }
@@ -194,41 +211,32 @@ foreach ($Row in $Tables)
         $Transaction.Commit()
         Write-Host "->Da $TableName Copiati con successo $Count record." -ForegroundColor Green
     }
-    catch
-    {
+    catch {
         if ($Transaction) { $Transaction.Rollback() }
         Write-Error "Errore durante la migrazione della tabella $TableName : $_"
     }
-    finally
-    {
+    finally {
         if ($Reader) { $Reader.Close() }
-        $SqlConn.Close()
+        if ($InsertCmd) { $InsertCmd.Dispose() }
+        if ($Transaction) { $Transaction.Dispose() }
+        if ($SqlCmd) { $SqlCmd.Dispose() }
     }
-}
+}   
+# ----------------------------------------------------------------------
+function read-SQLViews {
 
-
-# ----------------------------------------------------------------
-# 7. Migrazione delle View da SQL Server a SQLite
-# 7.1 connessione a SQL Server per le viste
-$script:views = @()
-function Get-SqlServerViews()
-{
-    $srcConn = New-Object System.Data.SqlClient.SqlConnection($SqlConnectionString)
-    $srcConn.Open()
-    $cmdView = $srcConn.CreateCommand()
-
+    $script:views = @()
     # 7.2 Query per estrarre nome e SQL CREATE VIEW da SQL Server
-    $queryView = 'SELECT TABLE_NAME AS ViewName, VIEW_DEFINITION AS ViewScript 
+    $qry = 'SELECT TABLE_NAME AS ViewName, VIEW_DEFINITION AS ViewScript 
                 FROM INFORMATION_SCHEMA.VIEWS'
-
-    $cmdView.CommandText = $queryView
+    $cmdView = $script:SqlServerConn.CreateCommand()
+    $cmdView.CommandText = $qry
+    $cmdView.Connection = $script:SqlServerConn
     $readerView = $cmdView.ExecuteReader()
 
-    while ($readerView.Read())
-    {
+    while ($readerView.Read()) {
         $viewName = $readerView['ViewName']
         $viewScript = $readerView['ViewScript'] -replace '[[\]]', '' -replace 'dbo.', ''
-
         
         $createViewSql = "CREATE VIEW [$viewName] AS $viewScript"
         $views += [PSCustomObject]@{
@@ -241,7 +249,7 @@ function Get-SqlServerViews()
         $null = $cmd.ExecuteNonQuery()
     }
     $readerView.Close()
-    $srcConn.Close()
+
     Write-Host "Trovate $($views.Count) viste." -ForegroundColor Green
 }
 
@@ -260,20 +268,9 @@ function Get-SavedSQLiteViews()
     }
     Write-Host "Trovate $($script:views.Count) viste salvate nel dir SQLite." -ForegroundColor Green
 }
-
 function Write-SQLiteViews()
 {
-    try
-    {
-        $SqliteConn = New-Object System.Data.Sqlite.SqliteConnection($SqliteConnectionString)
-        $SqliteConn.Open()
-    }
-    catch
-    {   
-        Write-Error "Errore di connessione a SQLite: $_"
-        exit 1
-    }
-
+    # Scrive le viste di SQLServer in SQLite
     foreach ($view in $script:views)
     {
         try
@@ -315,10 +312,38 @@ function Write-SQLiteViews()
     $SqliteConn.Close()
 }
 
-# Get-SqlServerViews
+# ----------------------------------------------------------------------
+# Start della migrazione
+Write-Host "Inizio della migrazione..."
+test-presenza-DBSQLite
+test-SQLiteConnection
+test-SQLServerConnection
+read-SQLTables
+
+foreach ($table in $Tables) {
+    $TableName = $table.TABLE_NAME
+    if ( $TableName.ToLower().StartsWith('sys') ) {
+        continue
+    }
+    add-SQLiteTable -Tablename $TableName
+    copy-dataSql -TableName $TableName
+}
+# read-SQLViews
 Get-SavedSQLiteViews
 Write-SQLiteViews
 
-$SqliteConn.Close()
-$SqliteConn = $null
-Write-Host "Migrazione su $SQLiteDB completata con successo!" -ForegroundColor Green
+
+if ($script:sqliteConn) {
+    $script:sqliteConn.Close()
+    $script:sqliteConn.Dispose()
+    $script:sqliteConn = $null
+}
+if ($script:SqlServerConn) {
+    $script:SqlServerConn.Close()
+    $script:SqlServerConn.Dispose()
+    $script:SqlServerConn = $null
+}
+[System.Data.SQLite.SQLiteConnection]::ClearAllPools()
+[System.GC]::Collect()
+[System.GC]::WaitForPendingFinalizers()
+Write-Host "Migrazione completata." -ForegroundColor Green

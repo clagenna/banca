@@ -2,16 +2,17 @@
 :: --------------------------------------------------------
 :: (0) Init di alcune variabili [ESC, BaseDir, MvnCmd]
 :: - - - - - 
-:: (0,1) ESC
 
+:: (0,1) ESC
 for /F %%a in ('echo prompt $E ^| cmd') do @set "ESC=%%a["
+
 setlocal ENABLEEXTENSIONS
 if "%DEBUG%" == "1" echo on
 if "%1" == "" goto noOpt
 if "%1" == "-?" goto help
 if "%1" == "-help" goto help
-if "%1" == "-updVers"  goto second
-if "%1" == "-buildStd"  goto second
+if /i "%1" == "-updVers"  goto second
+if /i "%1" == "-buildStd"  goto second
 goto help
 :second
 if "%2" == ""  goto noOpt

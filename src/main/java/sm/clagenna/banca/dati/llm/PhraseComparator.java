@@ -14,7 +14,7 @@ import javafx.scene.control.Alert.AlertType;
 import lombok.Getter;
 import sm.clagenna.banca.dati.GuessCodStat;
 import sm.clagenna.banca.dati.RigaBanca;
-import sm.clagenna.banca.javafx.MessageDialog;
+import sm.clagenna.stdcla.javafx.MessageDialog;
 import sm.clagenna.stdcla.utils.Utils;
 
 public class PhraseComparator {

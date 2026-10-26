@@ -63,6 +63,7 @@ import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
+import sm.clagenna.stdcla.javafx.MessageDialog;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;

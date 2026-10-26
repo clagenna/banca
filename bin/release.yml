@@ -1,0 +1,112 @@
+name: Build e rilascio (.exe firmato)
+
+# Salva questo file come .github/workflows/release.yml nel repository.
+#
+# - Su ogni push/PR su main: compila e salva l'.exe come artifact (non firmato).
+# - Su un tag "v*" (es. v1.2.0): compila, firma con SignPath (se configurato)
+#   e allega l'.exe alla release di GitHub.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # per creare la release e caricare l'.exe
+  actions: read     # richiesto da SignPath per verificare l'origine del build
+
+jobs:
+  build:
+    # Windows: il plugin launch4j usa i suoi binari nativi, qui nessuna sorpresa.
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 25 + cache Maven
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      # shade-plugin + launch4j-maven-plugin sono legati alla fase "package"
+      # nel tuo pom.xml, quindi basta questo comando per ottenere l'.exe.
+      - name: Build (jar + exe)
+        run: mvn -B -ntp clean package
+
+      - name: Verifica che l'.exe esista
+        run: |
+          ls -la target/*.exe
+          test "$(ls target/*.exe | wc -l)" -eq 1
+
+      - name: Carica l'.exe non firmato
+        id: upload-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: exe-non-firmato
+          path: target/*.exe
+          if-no-files-found: error
+
+      # ---------------------------------------------------------------
+      # Firma con SignPath: si attiva solo se hai impostato la variabile
+      # di repository SIGNPATH_ORGANIZATION_ID (Settings > Variables).
+      # Finché SignPath non ti ha approvato, il workflow funziona lo
+      # stesso e produce l'.exe non firmato.
+      # ---------------------------------------------------------------
+      - name: Firma con SignPath
+        id: sign
+        if: ${{ startsWith(github.ref, 'refs/tags/v') && vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+
+      - name: Controlla la firma
+        if: ${{ steps.sign.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path signed -Filter *.exe -Recurse | Select-Object -First 1
+          $sig = Get-AuthenticodeSignature $exe.FullName
+          $sig | Format-List Status, StatusMessage, SignerCertificate
+          if ($sig.Status -ne 'Valid') { throw "Firma non valida: $($sig.Status)" }
+
+      - name: Carica l'.exe firmato
+        if: ${{ steps.sign.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: exe-firmato
+          path: signed/**/*.exe
+          if-no-files-found: error
+
+      # ---------------------------------------------------------------
+      # Release su GitHub (solo con tag v*). Usa l'.exe firmato se
+      # disponibile, altrimenti quello non firmato.
+      # ---------------------------------------------------------------
+      - name: Pubblica la release
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ "${{ steps.sign.outcome }}" = "success" ]; then
+            EXE="$(find signed -name '*.exe' | head -n 1)"
+          else
+            EXE="$(ls target/*.exe | head -n 1)"
+          fi
+          echo "File da pubblicare: $EXE"
+          gh release create "$TAG" "$EXE" \
+            --title "$TAG" \
+            --generate-notes

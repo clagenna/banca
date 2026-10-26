@@ -61,6 +61,7 @@ import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
+import sm.clagenna.stdcla.javafx.MessageDialog;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
@@ -612,8 +613,12 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     mi4.setOnAction((ActionEvent _) -> {
       vediFileCSV_click(null);
     });
+    MenuItem mi5 = new MenuItem("Copia riga selezionata");
+    mi5.setOnAction((ActionEvent _) -> {
+      copiaRigaSel_click(null);
+    });
     ContextMenu menu = new ContextMenu();
-    menu.getItems().addAll(mi3, mi1, mi2, mi4);
+    menu.getItems().addAll(mi3, mi1, mi2, mi4, mi5);
     // liBanca.setContextMenu(menu);
     tblview.setContextMenu(menu);
 
@@ -677,7 +682,27 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     }
 
   }
-
+  private void  copiaRigaSel_click(Object object) {
+    GuessCodStat row = tblview.getSelectionModel().getSelectedItem();
+    if (null == row) {
+      s_log.warn("Nessuna riga selezionata per copiare");
+      return;
+    }
+    StringBuilder sb = new StringBuilder();
+    sb.append(row.getId()).append("\t");
+    sb.append(row.getTipo()).append("\t");
+    sb.append(ParseData.formatDate(row.getDtmov())).append("\t");
+    sb.append(row.getDare()).append("\t");
+    sb.append(row.getAvere()).append("\t");
+    sb.append(row.getCardid()).append("\t");
+    sb.append(row.getDescr()).append("\t");
+    sb.append(row.getCodstat()).append("\t");
+    sb.append(row.getDescrcds()).append("\t");
+    sb.append(row.isAssigned());
+    String sz = sb.toString();
+    Utils.copyToClipboard(sz);  
+  }
+  
   private void riga_dblclick() {
     System.out.println("GuessCodStatView.riga_dblclick()");
   }

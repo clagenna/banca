@@ -8,8 +8,7 @@ import org.apache.logging.log4j.Logger;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.Alert.AlertType;
 import lombok.Getter;
-import sm.clagenna.banca.javafx.MessageDialog;
-
+import sm.clagenna.stdcla.javafx.MessageDialog;
 
 public class TreeitemCodStat extends TreeCodStat {
   private static final Logger s_log = LogManager.getLogger(TreeitemCodStat.class);

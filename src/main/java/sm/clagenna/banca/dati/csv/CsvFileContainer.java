@@ -24,9 +24,9 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Alert.AlertType;
 import sm.clagenna.banca.dati.Consts;
 import sm.clagenna.banca.dati.DataModel;
-import sm.clagenna.banca.javafx.MessageDialog;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGest;
+import sm.clagenna.stdcla.javafx.MessageDialog;
 import sm.clagenna.stdcla.utils.AppProperties;
 
 public class CsvFileContainer {

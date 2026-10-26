@@ -69,6 +69,7 @@ import sm.clagenna.banca.sql.SqlGestFactory;
 import sm.clagenna.stdcla.javafx.AutoCompleteComboBoxListener;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
+import sm.clagenna.stdcla.javafx.MessageDialog;
 import sm.clagenna.stdcla.javafx.TableViewFiller;
 import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.sql.Dataset;
@@ -479,7 +480,8 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   }
 
   /**
-   * Abilita il bottone di salvataggio della query solo se il nome della query e' valido
+   * Abilita il bottone di salvataggio della query solo se il nome della query
+   * e' valido
    * 
    * @param obj
    * @param old
@@ -743,8 +745,12 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       ObservableList<List<Object>> righe = tblview.getSelectionModel().getSelectedItems();
       tableRow_deleteMov(righe);
     });
+    MenuItem mi3 = new MenuItem("Copia Riga");
+    mi3.setOnAction((ActionEvent _) -> {
+      copiaRiga_click(null);
+    });
     ContextMenu menu = new ContextMenu();
-    menu.getItems().addAll(mi1, mi2);
+    menu.getItems().addAll(mi1, mi2, mi3);
     // liBanca.setContextMenu(menu);
     tblview.setContextMenu(menu);
 
@@ -974,6 +980,30 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     liRiga.forEach(rb -> m_db.deleteMovimento(rb));
     s_log.info("Cancellati {} Movimenti selezionati", liRiga.size());
     btCercaClick(null);
+  }
+
+  private void copiaRiga_click(ActionEvent event) {
+    List<Object> r = tblview.getSelectionModel().getSelectedItem();
+    if (null == r || r.size() == 0) {
+      s_log.warn("Nessuna riga selezionata per la copia");
+      return;
+    }
+    StringBuilder sb = new StringBuilder();
+    Dataset dts = m_tbvf.getDataset();
+
+    try {
+      for (int k = 0; k < dts.getQtaCols(); k++) {
+        String szCol = dts.getColName(k);
+        Object val = r.get(k);
+        sb.append(String.format("%s=%s\n", szCol, val));
+      }
+    } catch (DatasetException e) {
+      s_log.error("Errore copia riga selezionata, err={}", e.getMessage(), e);
+    }
+    String szCopia = sb.toString();
+    Utils.copyToClipboard(szCopia);
+    MessageDialog.messageDialog(AlertType.INFORMATION, "Copia della riga selezionata sulla clipboard:\n" + szCopia);
+    s_log.info("Copia della riga selezionata sulla clipboard:\n{}", szCopia);
   }
 
   @FXML

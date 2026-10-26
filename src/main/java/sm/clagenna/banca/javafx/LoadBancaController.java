@@ -71,7 +71,7 @@ import sm.clagenna.banca.dati.csv.CsvImportBancaFactory;
 import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
-import sm.clagenna.stdcla.sql.DBConn;
+import sm.clagenna.stdcla.javafx.MessageDialog;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ILog4jReader;
 import sm.clagenna.stdcla.utils.Log4jRow;
@@ -166,6 +166,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     if (null != stage)
       return stage;
     stage = LoadBancaMainApp.getInst().getPrimaryStage();
+    MessageDialog.setStage(stage);
     return stage;
   }
 
@@ -381,11 +382,14 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   }
 
   private void impostaTitolo() {
-    String szTit = "Caricamento degli Export CSV dalle Banche su DB, %s";
+    String szTit = "Caricamento degli Export CSV dalle Banche su DB(%s), %s";
     String szDir = Versione.getVersionEx();
-    if (null != model)
+    String szTipoDB = "?";
+    if (null != model) {
       szDir = "da:" + model.getLastDir().toString();
-    final String tit = String.format(szTit, szDir);
+      szTipoDB = model.getDbConn().getServerId().toString();
+    }
+    final String tit = String.format(szTit, szTipoDB, szDir);
     Platform.runLater(() -> getStage().setTitle(tit));
   }
 
@@ -653,7 +657,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   /**
    * Mostra la finestra con le informazioni sull'applicazione e gli shortcut
    * disponibili:
-   * 
+   *
    * <pre>
    * ShortCuts
   Ctrl-R  Rescan Dirs
@@ -670,9 +674,9 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
    */
   @FXML
   public void mnuhAbout() {
-    String szPrologo = "Versione dell'applicazione<br/>" + Versione.getVersionEx();
-    szPrologo += "<br/>" + "Autore: Claudio<br/>";
-    JFXUtils.showHelpPopup(getStage(), szPrologo, Consts.main_shortcuts, "Guida agli shortcuts");
+    StringBuilder szPrologo = new StringBuilder("Versione dell'applicazione<br/>").append(Versione.getVersionEx());
+    szPrologo.append("<br/>").append("Autore: Claudio<br/>");
+    JFXUtils.showHelpPopup(getStage(), szPrologo.toString(), Consts.main_shortcuts, "Guida agli shortcuts");
   }
 
   @FXML
@@ -1007,11 +1011,11 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
       MessageDialog.messageDialog(AlertType.WARNING, "Devi selezionare un file per eliminare le sue registrazioni");
       return;
     }
-    String szMsg = "Sei sicuro di voler eliminare le registrazioni di <br/>";
+    StringBuilder szMsg = new StringBuilder("Sei sicuro di voler eliminare le registrazioni di <br/>");
     for (CsvImpFile imf : imFiles) {
-      szMsg += "<b>" + imf.getFileName() + "</b><br/>";
+      szMsg.append("<b>").append(imf.getFileName()).append("</b><br/>");
     }
-    Optional<ButtonType> ret = MessageDialog.messageDialog(AlertType.CONFIRMATION, szMsg, ButtonType.OK);
+    Optional<ButtonType> ret = MessageDialog.messageDialog(AlertType.CONFIRMATION, szMsg.toString(), ButtonType.OK);
     if (ret.isEmpty() || ret.get() != ButtonType.OK)
       return;
     s_log.warn("Elimino {} registrazioni di files CSV", imFiles.size());
