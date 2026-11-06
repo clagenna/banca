@@ -138,6 +138,7 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private String                 m_fltrMeseComp;
   private String                 m_fltrWhere;
   private String                 m_fltrParola;
+  private String                 m_fltrTipoBanca;
   @Getter @Setter
   private boolean                fltrParolaRegEx;
   private String                 m_qry;
@@ -145,7 +146,6 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
   private GestResViewQueryParams m_gestQry;
   private TableViewFillerBanca   m_tbvf;
   private Path                   m_CSVfile;
-  private String                 m_fltrTipoBanca;
   private DataModel              model;
   @Getter @Setter
   private boolean                csvBlankOnZero;

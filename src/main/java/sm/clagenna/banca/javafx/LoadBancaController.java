@@ -385,11 +385,15 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     String szTit = "Caricamento degli Export CSV dalle Banche su DB(%s), %s";
     String szDir = Versione.getVersionEx();
     String szTipoDB = "?";
+    String szDBFile = "";
+    String szDBInfo = "";
     if (null != model) {
-      szDir = "da:" + model.getLastDir().toString();
+      szDir = " da: " + model.getLastDir().toString();
       szTipoDB = model.getDbConn().getServerId().toString();
+      szDBFile = model.getDbConn().getDbname();
+      szDBInfo = String.format(" %s, %s", szTipoDB, szDBFile);
     }
-    final String tit = String.format(szTit, szTipoDB, szDir);
+    final String tit = String.format(szTit, szDBInfo, szDir);
     Platform.runLater(() -> getStage().setTitle(tit));
   }
 

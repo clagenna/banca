@@ -139,6 +139,11 @@ public class CsvImportBancaSmac extends CsvImportBanca {
       avere = dbl;
     else
       avere = Utils.parseDouble(val.toString());
+    // per gestire le causali :
+    // Eseguito trasferimento di credito (EUR -450,00) a carta n. 190225 intestata a MACHEROZZI LUCIA
+    // che danno importi negativi, ma che sono spese, quindi dare=0, avere>0
+    if (null != dare && dare < 0)
+      dare = -dare;
 
     val = row.get("Operazione");
     String op = "*";
