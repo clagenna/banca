@@ -171,16 +171,32 @@
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>6.0.3</version>
+      <artifactId>junit-jupiter</artifactId>
+      <version>6.1.3</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
-          <artifactId>opentest4j</artifactId>
-          <groupId>org.opentest4j</groupId>
+          <artifactId>junit-jupiter-api</artifactId>
+          <groupId>org.junit.jupiter</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>junit-platform-commons</artifactId>
+          <artifactId>junit-jupiter-params</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>junit-jupiter-engine</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+      <version>6.1.3</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>junit-platform-engine</artifactId>
           <groupId>org.junit.platform</groupId>
         </exclusion>
         <exclusion>
@@ -215,16 +231,12 @@
     </dependency>
     <dependency>
       <groupId>org.testfx</groupId>
-      <artifactId>testfx-junit</artifactId>
+      <artifactId>testfx-junit5</artifactId>
       <version>4.0.18</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
-          <artifactId>junit</artifactId>
-          <groupId>junit</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>hamcrest-core</artifactId>
+          <artifactId>hamcrest</artifactId>
           <groupId>org.hamcrest</groupId>
         </exclusion>
         <exclusion>
@@ -242,6 +254,7 @@
     <compiler.plugin>3.12.1</compiler.plugin>
     <mainClassName>sm.clagenna.banca.javafx.LauncherBanca</mainClassName>
     <stdc.version>0.10-SNAPSHOT</stdc.version>
+    <junit.version>6.1.3</junit.version>
     <launch4j.version>2.6.0</launch4j.version>
     <testfx.version>4.0.18</testfx.version>
   </properties>

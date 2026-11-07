@@ -11,6 +11,7 @@
 		<mainClassName>sm.clagenna.banca.javafx.LauncherBanca</mainClassName>
 		<compiler.plugin>3.12.1</compiler.plugin>
 		<java.version>25</java.version>
+		<javafx.version>25.0.5</javafx.version>
 		<stdc.version>0.10-SNAPSHOT</stdc.version>
 		<launch4j.version>2.6.0</launch4j.version>
 		<lombok.version>1.18.48</lombok.version>
@@ -44,6 +45,28 @@
 			<artifactId>opennlp-tools</artifactId>
 			<version>1.9.3</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-controls</artifactId>
+			<version>${javafx.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.openjfx/javafx-fxml -->
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-fxml</artifactId>
+			<version>${javafx.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.openjfx/javafx-web -->
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-web</artifactId>
+			<version>${javafx.version}</version>
+		</dependency>
+
+		
+		
+		
 		<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>

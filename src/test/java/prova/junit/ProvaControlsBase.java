@@ -1,4 +1,4 @@
-package prova.junit5;
+package prova.junit;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;

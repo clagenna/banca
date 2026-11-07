@@ -1,4 +1,4 @@
-package prova.junit5;
+package prova.junit;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -81,6 +81,8 @@ public class ProvaResultViewTest extends ApplicationTest {
    * Siccome non voglio che il test finisca prima della chiusura della form di
    * test, ho aggiunto un CountDownLatch per attendere la chiusura della form di
    * test.<br/>
+   * <b>IMPORTANTE</b>: va aggiunto nelle VM options di test:<br/>
+   * <code>--add-opens=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED</code>
    */
   @Test
   public void testFormIsVisible() {

@@ -1,4 +1,4 @@
-package prova.junit5;
+package prova.junit;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -119,10 +119,11 @@ public class ProvaResultView extends Application implements Initializable, IStar
 
   @Override
   public void start(Stage primaryStage) throws Exception {
-    System.out.printf("ProvaResultView.start() - primaryStage=%s\n", primaryStage);
+    // System.out.printf("ProvaResultView.start() - primaryStage=%s\n", primaryStage);
+    s_log.info("ProvaResultView.start() - primaryStage={}\n", primaryStage);
     setMyStage(primaryStage);
     buildForm();
-    
+
     // scene.widthProperty().addListener(_ -> resized());
     // scene.heightProperty().addListener(_ -> resized());
     // primaryStage.setOnShown(_ -> buildForm());
@@ -136,29 +137,31 @@ public class ProvaResultView extends Application implements Initializable, IStar
 
   @Override
   public void initialize(URL p_location, ResourceBundle p_resources) {
-    System.out.printf("ProvaResultView.initialize() - location=%s, resources=%s\n", p_location, p_resources);
+    // System.out.printf("ProvaResultView.initialize() - location=%s, resources=%s\n", p_location, p_resources);
+    s_log.info("ProvaResultView.initialize() - location={}, resources={}", p_location, p_resources);
   }
 
   @Override
   public void initApp(AppProperties p_props) {
-    System.out.printf("ProvaResultView.initApp() - props=%s\n", p_props);
+    // System.out.printf("ProvaResultView.initApp()\n");
+    s_log.info("ProvaResultView.initApp()\n");
     buildForm();
-//    URL url = getClass().getResource(CSZ_FXMLNAME);
-//    if (url == null)
-//      url = getClass().getClassLoader().getResource(CSZ_FXMLNAME);
-//    Parent radice;
-//    FXMLLoader fxmlLoad = new FXMLLoader(url);
-//    try {
-//      radice = fxmlLoad.load();
-//    } catch (IOException e) {
-//      s_log.error("Errore caricamento FXML {}", CSZ_FXMLNAME, e);
-//      Platform.runLater(() -> {
-//        MessageDialog.messageDialog(AlertType.ERROR, "Errore caricamento FXML " + CSZ_FXMLNAME + "\n" + e.getMessage());
-//      });
-//      Platform.exit();
-//      return; // inutile, ma serve al compilatore per non lamentarsi di radice non inizializzata
-//    }
-//    myScene = new Scene(radice);
+    //    URL url = getClass().getResource(CSZ_FXMLNAME);
+    //    if (url == null)
+    //      url = getClass().getClassLoader().getResource(CSZ_FXMLNAME);
+    //    Parent radice;
+    //    FXMLLoader fxmlLoad = new FXMLLoader(url);
+    //    try {
+    //      radice = fxmlLoad.load();
+    //    } catch (IOException e) {
+    //      s_log.error("Errore caricamento FXML {}", CSZ_FXMLNAME, e);
+    //      Platform.runLater(() -> {
+    //        MessageDialog.messageDialog(AlertType.ERROR, "Errore caricamento FXML " + CSZ_FXMLNAME + "\n" + e.getMessage());
+    //      });
+    //      Platform.exit();
+    //      return; // inutile, ma serve al compilatore per non lamentarsi di radice non inizializzata
+    //    }
+    //    myScene = new Scene(radice);
     if (null != myStage)
       myStage.setScene(myScene);
   }
@@ -201,7 +204,8 @@ public class ProvaResultView extends Application implements Initializable, IStar
   @FXML
   void cbTipoBancaSel(ActionEvent event) {
     m_fltrTipoBanca = cbTipoBanca.getSelectionModel().getSelectedItem();
-    System.out.printf("ProvaResultView.cbTipoBancaSel(%s)\n", m_fltrTipoBanca);
+    // System.out.printf("ProvaResultView.cbTipoBancaSel(%s)\n", m_fltrTipoBanca);
+    s_log.info("ProvaResultView.cbTipoBancaSel({})", m_fltrTipoBanca);
     //    s_log.debug("ResultView.cbTipoBancaSel(\"{}\"):", m_fltrTipoBanca);
     //    abilitaBottoni();
   }
@@ -209,7 +213,8 @@ public class ProvaResultView extends Application implements Initializable, IStar
   @FXML
   void cbAnnoCompSel(ActionEvent event) {
     m_fltrAnnoComp = cbAnnoComp.getSelectionModel().getSelectedItem();
-    System.out.printf("ProvaResultView.cbAnnoCompSel(%s)\n", m_fltrAnnoComp);
+    // System.out.printf("ProvaResultView.cbAnnoCompSel(%s)\n", m_fltrAnnoComp);
+    s_log.info("ProvaResultView.cbAnnoCompSel({})", m_fltrAnnoComp);
     //    if (ii == null) {
     //      m_fltrAnnoComp = null;
     //      model.setAnnoComp(0);
@@ -227,7 +232,8 @@ public class ProvaResultView extends Application implements Initializable, IStar
   @FXML
   void cbMeseCompSel(ActionEvent event) {
     m_fltrMeseComp = cbMeseComp.getSelectionModel().getSelectedItem();
-    System.out.printf("ProvaResultView.cbMeseCompSel(%s)\n", m_fltrMeseComp);
+    // System.out.printf("ProvaResultView.cbMeseCompSel(%s)\n", m_fltrMeseComp);
+    s_log.info("ProvaResultView.cbMeseCompSel({})", m_fltrMeseComp);
     //    if (bSemaf)
     //      return;
     //    s_log.debug("ResultView.cbMeseCompSel(\"{}\"):", m_fltrMeseComp);
@@ -237,7 +243,8 @@ public class ProvaResultView extends Application implements Initializable, IStar
   @FXML
   void cbQuerySel(ActionEvent event) {
     String szK = cbQuery.getSelectionModel().getSelectedItem();
-    System.out.printf("ProvaResultView.cbQuerySel(%s)\n", szK);
+    // System.out.printf("ProvaResultView.cbQuerySel(%s)\n", szK);
+    s_log.info("ProvaResultView.cbQuerySel({})", szK);
     //    if (null == szK)
     //      m_qry = null;
     //    else
@@ -252,7 +259,8 @@ public class ProvaResultView extends Application implements Initializable, IStar
     //    if (bSemaf)
     //      return;
     m_fltrWhere = nval;
-    System.out.printf("ProvaResultView.txWhereSel(%s)\n", m_fltrWhere);
+    // System.out.printf("ProvaResultView.txWhereSel(%s)\n", m_fltrWhere);
+    s_log.info("ProvaResultView.txWhereSel({})", m_fltrWhere);
     //    // s_log.debug("ResultView.txWhereSel({}):", m_fltrWhere);
     //    abilitaBottoni();
   }
@@ -261,7 +269,8 @@ public class ProvaResultView extends Application implements Initializable, IStar
   void txParolaSel(ObservableValue<? extends String> obj, String old, String nval) {
     //    // System.out.printf("ResultView.txParolaSel(%s)\n", nval);
     m_fltrParola = nval;
-    System.out.printf("ProvaResultView.txParolaSel(%s)\n", m_fltrParola);
+    // System.out.printf("ProvaResultView.txParolaSel(%s)\n", m_fltrParola);
+    s_log.info("ProvaResultView.txParolaSel({})", m_fltrParola);
     //    // s_log.debug("ResultView.txWhereSel({}):", m_fltrWhere);
     //    abilitaBottoni();
   }
@@ -269,7 +278,8 @@ public class ProvaResultView extends Application implements Initializable, IStar
   @FXML
   void btSaveQueryClick(ActionEvent event) {
     String szNam = cbSaveQuery.getSelectionModel().getSelectedItem();
-    System.out.printf("ProvaResultView.btSaveQueryClick(%s)\n", szNam);
+    // System.out.printf("ProvaResultView.btSaveQueryClick(%s)\n", szNam);
+    s_log.info("ProvaResultView.btSaveQueryClick({})", szNam);
     //    if ( !m_gestQry.saveQuery(szNam))
     //      MessageDialog.messageDialog(AlertType.ERROR, m_gestQry.getErrorMesg());
     //    else
@@ -279,7 +289,8 @@ public class ProvaResultView extends Application implements Initializable, IStar
   @FXML
   void cbSaveQuerySel(ActionEvent event) {
     String szNamQry = cbSaveQuery.getSelectionModel().getSelectedItem();
-    System.out.printf("ProvaResultView.cbSaveQuerySel(%s)\n", szNamQry);
+    // System.out.printf("ProvaResultView.cbSaveQuerySel(%s)\n", szNamQry);
+    s_log.info("ProvaResultView.cbSaveQuerySel({})", szNamQry);
     // System.out.printf("ResultView.cbSaveQuerySel(%s)\n", cbSaveQuery.getSelectionModel().getSelectedItem());
     //    if (bSemaf)
     //      return;
@@ -293,20 +304,23 @@ public class ProvaResultView extends Application implements Initializable, IStar
 
   @FXML
   void ckRegExpClick(ActionEvent event) {
-    System.out.println("ProvaResultView.ckRegExpClick()");
+    // System.out.println("ProvaResultView.ckRegExpClick()");
+    s_log.info("ProvaResultView.ckRegExpClick()");
     //    setFltrParolaRegEx(ckRegExp.isSelected());
   }
 
   @FXML
   void btMostraCodStatClick(ActionEvent event) {
-    System.out.println("ResultView.btMostraCodStatClick()");
+    // System.out.println("ResultView.btMostraCodStatClick()");
+    s_log.info("ResultView.btMostraCodStatClick()");
     // LoadBancaController cntr = (LoadBancaController) m_appmain.getController();
     // cntr.mnuConfMostraCodStatClick(event);
   }
 
   @FXML
   void btAssignCodStatClick(ActionEvent event) {
-    System.out.println("ProvaResultView.btAssignCodStatClick()");
+    // System.out.println("ProvaResultView.btAssignCodStatClick()");
+    s_log.info("ProvaResultView.btAssignCodStatClick()");
     // s_log.debug("ResultView.btAssignCodStatClick() - codStatSel={}", m_codStatSel);
     // System.out.println(StackViewer.viewStackTrace("btAssignCodStatClick()"));
     //    if ( !Utils.isValue(m_codStatSel))
@@ -369,7 +383,8 @@ public class ProvaResultView extends Application implements Initializable, IStar
         if (event.getSource() instanceof String szCodstat) {
           m_fltrWhere = String.format("codstat like '%s%%'", szCodstat);
           txWhere.setText(m_fltrWhere);
-          System.out.printf("ProvaResultView.btCercaClick(codstat=%s)\n", szCodstat);
+          // System.out.printf("ProvaResultView.btCercaClick(codstat=%s)\n", szCodstat);
+          s_log.info("ProvaResultView.btCercaClick(codstat={})\n", szCodstat);
         }
       }
     } finally {
@@ -393,7 +408,8 @@ public class ProvaResultView extends Application implements Initializable, IStar
 
   @FXML
   void btIndovinaCodStatClick(ActionEvent event) {
-    System.out.println("ProvaResultView.btIndovinaCodStatClick()");
+    // System.out.println("ProvaResultView.btIndovinaCodStatClick()");
+    s_log.info("ProvaResultView.btIndovinaCodStatClick()");
     // LoadBancaController cntr = (LoadBancaController) m_appmain.getController();
     // cntr.mnuConfMostraGuessCodStatClick(null);
   }

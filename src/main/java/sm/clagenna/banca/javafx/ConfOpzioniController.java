@@ -15,12 +15,14 @@ import java.util.ResourceBundle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -37,6 +39,7 @@ import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
+import sm.clagenna.stdcla.javafx.MessageDialog;
 import sm.clagenna.stdcla.sql.EServerId;
 import sm.clagenna.stdcla.utils.AppProperties;
 
@@ -227,8 +230,11 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
     txService.textProperty().addListener(new ChangeListener<String>() {
       @Override
       public void changed(ObservableValue<? extends String> p_observable, String p_oldValue, String p_newValue) {
-        if (null != p_newValue && !p_newValue.matches("\\d*"))
-          txService.setText(p_newValue.replaceAll("[^\\d]", ""));
+        if (null != p_newValue) {
+          String szServ = p_newValue.replaceAll("[^\\d]", "");
+          txService.setText(szServ);
+          service = Integer.parseInt(szServ);
+        }
       }
     });
 
@@ -409,6 +415,12 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
     m_mainProps.setProperty(AppProperties.CSZ_PROP_DB_passwd, password);
     s_log.info("Salvato le properties per il Data Base");
     DataModel.getInst().firePropertyChange(Consts.EVT_DBCHANGE, "null", nomeDB);
+    if (model.isRilanciaApp()) {
+      String szMsg = "Per applicare le modifiche al DataBase devi <b>ri-lanciare</b> l'applicazione!";
+      s_log.warn(szMsg);
+      MessageDialog.messageDialog(AlertType.WARNING, szMsg);
+      Platform.runLater(() -> Platform.exit());
+    }
   }
 
   private Path settaFileIn(Path p_fi, boolean p_setTx, boolean bForce) {
@@ -611,7 +623,7 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
 
   @FXML
   public void cbServerIdClick(EServerId newV) {
-    System.out.printf("ConfOpzioniController.cbServerIdClick(%s)\n", newV.toString());
+    s_log.debug("ConfOpzioniController.cbServerIdClick({})", newV.toString());
     serverId = newV;
     switch (serverId) {
       case HSqlDB:

@@ -72,6 +72,7 @@ import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.javafx.MessageDialog;
+import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ILog4jReader;
 import sm.clagenna.stdcla.utils.Log4jRow;
@@ -181,7 +182,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     initSplitPos(props);
     initTblFilesCSV();
     initTblLogs();
-    initTxLastDir(props);
+    if (null != model.getDbConn().getConn())
+      initTxLastDir(props);
     Platform.runLater(() -> changeSkin());
     model.addPropertyChangeListener(this);
   }

@@ -74,6 +74,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   private int                  percIndov;
   private ArrayList<String>    scartaVoci;
   private boolean              doScartaDescr;
+  private boolean              rilanciaApp;
   private ScartaDescr          scartaDescr;
   private List<EColsTableView> excludeCols;
 
@@ -85,6 +86,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     inst = this;
     // WARNING(?!?): [this-escape] possible 'this' escape before subclass is fully initialized
     propsChange = new PropertyChangeSupport(this);
+    rilanciaApp = false;
     setFiltriQueryMovimenti(ESqlFiltri.AllSets.getFlag());
     addPropertyChangeListener(this);
   }
@@ -148,8 +150,8 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     }
     associd = new CardidAssoc();
     associd.load(props);
-    refreshCodstatData();
-
+    if (null != dbConn.getConn())
+      refreshCodstatData();
   }
 
   private void openProperties() {
@@ -179,9 +181,13 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       dbConn.doConn();
       dbConn.setShowStatement(props.getBooleanProperty(Consts.PROP_DEBUG_QRY, false));
     } catch (Exception e) {
-      s_log.error("Errore apertura DB, error={}", e.getMessage(), e);
-      Platform.exit();
-      System.exit(1957);
+      String szMsg = String.format("Errore apertura DB, error=%s", e.getMessage());
+      s_log.error(szMsg, e);
+      String szM2 = szMsg + "<br>Controlla parametri del DataBase in menu Opzioni &#x2192; Database<br/> e <b>ri-lancia</b> l'applicazione.";
+      rilanciaApp = true;
+      Platform.runLater(() -> MessageDialog.messageDialog(AlertType.ERROR, szM2));
+      //      Platform.exit();
+      //      System.exit(1957);
     }
     sqlgest = SqlGestFactory.get(dbConn.getServerId());
     sqlgest.setDbconn(dbConn);
