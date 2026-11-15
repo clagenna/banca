@@ -9,35 +9,25 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import sm.clagenna.stdcla.utils.Utils;
 
+@Data
 public class CodStat implements Comparable<CodStat>, Cloneable {
   private static final Logger s_log = LogManager.getLogger(CodStat.class);
 
-  @Getter @Setter
   private int          idCodStat;
-  @Getter @Setter
   private int          cod1;
-  @Getter @Setter
   private int          cod2;
-  @Getter @Setter
   private int          cod3;
-  @Getter @Setter
   private String       codice;
-  @Getter @Setter
   private String       descr;
-  @Getter @Setter
   private int          livello;
-  @Getter @Setter
   private double       totdare;
-  @Getter @Setter
   private double       totavere;
   private CodStat      father;
-  @Getter @Setter
+  /** matched = true se la descrizione contiene la parola cercata */
   private boolean      matched;
-  @Getter
   private Set<CodStat> figli;
 
   public CodStat() {
@@ -269,7 +259,7 @@ public class CodStat implements Comparable<CodStat>, Cloneable {
   public boolean hasChanged(CodStat p_ob) {
     if (null == p_ob)
       return false;
-    if ( (cod1 != p_ob.cod1) || (cod2 != p_ob.cod2) || (cod3 != p_ob.cod3))
+    if (cod1 != p_ob.cod1 || cod2 != p_ob.cod2 || cod3 != p_ob.cod3)
       return true;
     return Utils.isChanged(descr, p_ob.descr);
   }

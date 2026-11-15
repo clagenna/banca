@@ -36,11 +36,11 @@ import sm.clagenna.stdcla.utils.Utils;
 1) Modifica
   modifica ed evidenza TreeView
   e chiusura della form ModTreeView !
-  
+
 2) cambio codice
   verificato cambio codice con clash
   verificato evidenzia nuovo elem nel tree
-  
+
 3) Inserimento
   verificato inserimento codice nuovo,
   rimane evidenziato il codice corrente + quello modificato precedentemente
@@ -72,19 +72,16 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   @FXML
   private Label     lbMessage;
 
-  private AppProperties    m_mainProps;
+  private AppProperties    props;
   private Stage            lstage;
   @Getter @Setter
   private Scene            myScene;
-  private LoadBancaMainApp m_appmain;
   private DataModel        model;
-  private TreeitemCodStat  codStatData;
   private CodStat          cdsPadre;
   @Getter @Setter
   private CodStat          cdsLavoro;
   private CodStat          cdsTree;
-
-  private boolean bSemaf;
+  private boolean          bSemaf;
 
   public ModTreeCodStat() {
     //
@@ -93,12 +90,10 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   @Override
   public void initApp(AppProperties p_props) {
     model = DataModel.getInst();
-    codStatData = model.getCodStatData();
-    m_appmain = LoadBancaMainApp.getInst();
-    m_mainProps = m_appmain.getProps();
+    props = model.getProps();
     if (null == cdsLavoro)
       cdsLavoro = new CodStat();
-    impostaForma(m_mainProps);
+    impostaForma(props);
   }
 
   private void impostaForma(AppProperties p_props) {
@@ -119,7 +114,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
     JFXUtils.readPosStage(lstage, p_props, Consts.PROP_POSVIEW_modcodstat);
     lstage.setOnHiding(_ -> {
-      closeApp(m_mainProps);
+      closeApp(props);
     });
     myScene.addEventFilter(KeyEvent.KEY_PRESSED, ev -> gestKey(ev));
     changeSkin();
@@ -209,9 +204,10 @@ public class ModTreeCodStat implements Initializable, IStartApp {
 
   // 06.02.04 => 06.02.03 trova lo stesso ?!?
   private void cercaCurrCodStat() {
-    System.out.printf("ModTreeCodStat.cercaCurrCodStat(%s)\n", null != cdsLavoro ? cdsLavoro.getCodice() : "*null*");
+    // System.out.printf("ModTreeCodStat.cercaCurrCodStat(%s)\n", null != cdsLavoro ? cdsLavoro.getCodice() : "*null*");
     Platform.runLater(() -> lbMessage.setText(""));
-    CodStat root = codStatData.getRoot();
+    // CodStat root = codStatData.getRoot();
+    CodStat root = model.getCodStatData().getRoot();
     cdsTree = root.find(cdsLavoro);
     // verifico che non ce ne sia uno in root con quel codice, altrimenti lo rifiuto
     if (null != cdsTree) {
@@ -240,7 +236,8 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   @SuppressWarnings("unused")
   private void cercaCurrCodStatX() {
     cdsPadre = null;
-    CodStat root = codStatData.getRoot();
+    // CodStat root = codStatData.getRoot();
+    CodStat root = model.getCodStatData().getRoot();
     // ---- descrizione Nodo corrente (se c'è)
     String szTreeDescr = "";
     cdsTree = root.find(cdsLavoro.getCodice());
@@ -275,9 +272,15 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   private void btSalvaClick(ActionEvent event) {
     if (btSalva.isDisabled())
       return;
+    // FIXME     qui e' da verificare se viene aggiornato l'insieme dei codici sotto model
+    //    e sotto AnalizzaCodStat ...
+    //    pare che non venga aggiornato il treeitemCodStat sotto AnalizzaCodStat
+    //    dopo un inserimento/cancellazione/modifica di un nodo, quindi se si fa una ricerca con il nuovo codice non lo trova
+
     DataModel model = DataModel.getInst();
     SqlGest sqlg = (SqlGest) DataModel.getInst().getSqlgest();
     sqlg.setDbconn(model.getDbConn());
+    TreeitemCodStat codStatData = model.getCodStatData();
     // modalita INSERIMENTO
     if (cdsLavoro.getIdCodStat() == 0) {
       codStatData.add(cdsLavoro);
@@ -300,7 +303,7 @@ public class ModTreeCodStat implements Initializable, IStartApp {
   public void initialize(URL location, ResourceBundle resources) {
     // System.out.println("ModTreeCodStat.initialize()");
     //
-    
+
   }
 
   @Override

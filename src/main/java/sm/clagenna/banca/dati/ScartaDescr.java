@@ -37,6 +37,7 @@ public class ScartaDescr {
         s_log.error("Regex error \"{}\"\n\t on \"{}\"", e.getMessage(), szRegEx);
       }
     }
+    s_log.info("Aggiunte {} regex scarto descrizioni", liPatt.size());
   }
 
   public String convert(String p_sz) {

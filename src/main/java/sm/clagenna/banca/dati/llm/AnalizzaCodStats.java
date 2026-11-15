@@ -29,7 +29,6 @@ import sm.clagenna.banca.dati.Consts;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.GuessCodStat;
 import sm.clagenna.banca.dati.RigaBanca;
-import sm.clagenna.banca.dati.TreeCodStat;
 import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ConstsSQL;
 import sm.clagenna.banca.sql.ISQLGest;
@@ -43,52 +42,23 @@ import sm.clagenna.stdcla.utils.Utils;
 public class AnalizzaCodStats extends Task<String> implements ChangeListener<String> {
   private static final Logger s_log = LogManager.getLogger(AnalizzaCodStats.class);
 
-  //  /** query per i record gia riconosciuti per formare il vocabolario */
-  //  private static final String CSZ_QRY_KNOWN   = """
-  //      SELECT  descr
-  //           ,codstat
-  //           FROM ListaMovimenti
-  //           WHERE 1=1
-  //             AND codstat IS NOT NULL
-  //           ORDER BY descr""";
-  //  /** query per i record da indovinare */
-  //  private static final String CSZ_QRY_UNKNOWN = """
-  //      SELECT id
-  //            ,idFile
-  //            ,tipo
-  //            ,dtmov
-  //            ,dare
-  //            ,avere
-  //            ,cardid
-  //            ,descr
-  //           FROM ListaMovimenti
-  //            WHERE 1=1
-  //             %s
-  //             AND (dare <> 0 OR avere <> 0)
-  //             AND codstat IS NULL
-  //          ORDER BY descr""";
-
   @Getter @Setter
-  private DBConn     dbconn;
-  private Connection conn;
-  //  private Dataset                 m_dts;
-
-  private PhraseComparator             compr;
-  private LoadBancaMainApp             mainApp;
-  private DataModel                    model;
-  private TreeCodStat                  codStatData;
+  private DBConn           dbconn;
+  private Connection       conn;
+  private PhraseComparator compr;
+  private LoadBancaMainApp mainApp;
+  private DataModel        model;
+  // private TreeCodStat                  codStatData;
   @Getter @Setter
   private ArrayList<GuessCodStat>      listGuess;
   @Getter
   private ObservableList<GuessCodStat> dati;
   @Getter @Setter
   private String                       parola;
-  //  @Getter @Setter
-  //  private Integer                      annoComp;
   @Getter @Setter
-  private LocalDateTime dtDa;
+  private LocalDateTime                dtDa;
   @Getter @Setter
-  private LocalDateTime dtA;
+  private LocalDateTime                dtA;
 
   private ISQLGest m_db;
 
@@ -96,7 +66,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
     mainApp = p_main;
     model = p_main.getModel();
     dbconn = model.getDbConn();
-    codStatData = model.getCodStatData();
+    // codStatData = model.getCodStatData();
   }
 
   @Override
@@ -146,6 +116,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   private void scanUnknown() {
     listGuess = new ArrayList<GuessCodStat>();
     double dblPercIndovina = model.getPercIndov() / 100.;
+    // codStatData = model.getCodStatData();
 
     StringBuilder whe = new StringBuilder();
     if (Utils.isValue(parola))
@@ -182,13 +153,10 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
         GuessCodStat gcds = new GuessCodStat(id, idFile, tipo, dtmov, dare, avere, cardid, descr, null, null, null, false);
         if (sim.percent() >= dblPercIndovina) {
           String codstat = phr.getKey();
-          // String codstDescr = codstats.getProperty(codstat);
-
-          CodStat cds = codStatData.find(codstat);
+          CodStat cds = model.getCodStatData().find(codstat);
           String codstDescr = "???";
           if (null != cds)
             codstDescr = cds.getDescr();
-          //GuessCodStat gcds = new GuessCodStat(id, tipo, dtmov, dare, avere, cardid, descr, codstat, codstDescr, false);
           gcds.setCodstat(codstat);
           gcds.setDescrCds(codstDescr);
 
@@ -234,7 +202,7 @@ public class AnalizzaCodStats extends Task<String> implements ChangeListener<Str
   public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
     if (observable instanceof StringProperty szp) {
       if (szp.getName().equals(GuessCodStat.COL_CODSTAT)) {
-        CodStat cds = codStatData.find(newValue);
+        CodStat cds = model.getCodStatData().find(newValue);
         if (null == cds) {
           // System.out.println("CodStat.changed()=NULL");
           String szMsg = String.format("Il codice Statistico \"%s\" *NON* esiste !", newValue);
