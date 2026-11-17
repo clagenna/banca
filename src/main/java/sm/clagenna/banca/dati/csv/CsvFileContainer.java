@@ -109,32 +109,46 @@ public class CsvFileContainer {
     if (null == p_liFiles || p_liFiles.isEmpty())
       return p_liFiles;
     List<CsvImpFile> liDb = ((SqlGest) sqlGest).getListCsvImpFiles();
-    for (CsvImpFile imp : p_liFiles) {
+    // List<CsvImpFile> liMerge = new ArrayList<>(p_liFiles);
+    liDb.forEach(dadb -> {
+      // liMerge.removeIf(f -> dadb.equals(f));
       boolean bFound = false;
-      for (CsvImpFile dbf : liDb) {
-        if (imp.equals(dbf)) {
+      for (CsvImpFile pfi : p_liFiles) {
+        if (pfi.equals(dadb)) {
           bFound = true;
-          imp.setInDb(true);
-          imp.setId(dbf.getId());
-          imp.setSize(dbf.getSize());
-          imp.setQtarecs(dbf.getQtarecs());
-          imp.setDtmin(dbf.getDtmin());
-          imp.setDtmax(dbf.getDtmax());
-          LocalDateTime dbUltagg = dbf.getUltagg();
-          if (null != dbUltagg)
-            imp.setUltagg(dbUltagg);
+          pfi.mergeInfoFrom(dadb);
           break;
         }
       }
-      if ( !bFound) {
-        // la setInFileSystem e' stata fatta nella assignPath, quindi non serve farla qui
-        imp.setInDb(false);
-        imp.setId(null);
-        imp.setDtmin(null);
-        imp.setDtmax(null);
-        // imp.setUltagg(null); // questa e' anche la lastModified del file, quindi non la azzero
-      }
-    }
+      if ( !bFound)
+        p_liFiles.add(dadb);
+    });
+    //    for (CsvImpFile imp : p_liFiles) {
+    //      boolean bFound = false;
+    //      for (CsvImpFile dbf : liDb) {
+    //        if (imp.equals(dbf)) {
+    //          bFound = true;
+    //          imp.setInDb(true);
+    //          imp.setId(dbf.getId());
+    //          imp.setSize(dbf.getSize());
+    //          imp.setQtarecs(dbf.getQtarecs());
+    //          imp.setDtmin(dbf.getDtmin());
+    //          imp.setDtmax(dbf.getDtmax());
+    //          LocalDateTime dbUltagg = dbf.getUltagg();
+    //          if (null != dbUltagg)
+    //            imp.setUltagg(dbUltagg);
+    //          break;
+    //        }
+    //      }
+    //      if ( !bFound) {
+    //        // la setInFileSystem e' stata fatta nella assignPath, quindi non serve farla qui
+    //        imp.setInDb(false);
+    //        imp.setId(null);
+    //        imp.setDtmin(null);
+    //        imp.setDtmax(null);
+    //        // imp.setUltagg(null); // questa e' anche la lastModified del file, quindi non la azzero
+    //      }
+    //    }
     return p_liFiles;
   }
 
@@ -146,10 +160,10 @@ public class CsvFileContainer {
    *          oggetto CsvImpFile da salvare nel DB
    */
   public void saveDb(CsvImpFile impf) {
-    if (null == sqlGest) 
+    if (null == sqlGest)
       sqlGest = model.getSqlgest();
     impf.setUltagg(LocalDateTime.now());
-    impf.salvaFileSuDb((SqlGest) sqlGest);  // ???
+    impf.salvaFileSuDb((SqlGest) sqlGest); // ???
     // int qta = 0;
     //    try {
     //      CsvImpFile tmp = (CsvImpFile) impf.clone();

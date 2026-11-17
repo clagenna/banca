@@ -123,6 +123,15 @@ public class TreeitemCodStat extends TreeCodStat {
     return exp;
   }
 
+  /**
+   * Cerca un CodStat nel TreeItem<CodStat> passato come parametro
+   *
+   * @param treeI
+   *          TreeItem<CodStat> in cui cercare
+   * @param cds
+   *          CodStat da cercare
+   * @return TreeItem<CodStat> trovato o null se non trovato
+   */ 
   private TreeItem<CodStat> treeFind(TreeItem<CodStat> treeI, CodStat cds) {
     CodStat no = treeI.getValue();
     if (no.equals(cds))
@@ -136,6 +145,17 @@ public class TreeitemCodStat extends TreeCodStat {
     return ret;
   }
 
+  /**
+   * Espande tutti i nodi padre del TreeItem<CodStat> passato come parametro fino a trovare
+   * il CodStat come foglia. Se lo trova, espande tutti i nodi
+   * genitori fino alla radice.
+   *
+   * @param treeItem
+   *          TreeItem<CodStat> in cui cercare
+   * @param cdsCurr
+   *          CodStat da cercare
+   * @return true se trovato e espanso, false altrimenti
+   */
   private boolean expandNodes(TreeItem<CodStat> treeItem, CodStat cdsCurr) {
     if (null == cdsCurr || !cdsCurr.isValid())
       return false;

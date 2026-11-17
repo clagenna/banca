@@ -455,6 +455,10 @@ public class CsvImpFile implements Cloneable {
    *          path base della radice dei file
    */
   public void garbleName(Path p_based) {
+    if ( ! inFileSystem ) {
+      s_log.info("Non rinomino il file \"{}\" perché non esiste nel filesystem", getFileName());
+      return;
+    }
     String fileName = getFileName();
     String szOld = String.format("%s\\%s\\%s", p_based.toString(), relDir, fileName);
     String szNew = String.format("%s\\%s\\XEliminato_%s", p_based.toString(), relDir, fileName);
@@ -464,6 +468,37 @@ public class CsvImpFile implements Cloneable {
     } catch (IOException e) {
       s_log.error("Non riesco a rinominare \"{}\" in \"{}\"", fileName, szNew);
     }
+  }
+
+  /**
+   * Merge delle informazioni di un altro CsvImpFile in questo, solo se le info
+   * di questo sono vuote/null.
+   *
+   * @param altro
+   *          altro CsvImpFile da cui prendere le info
+   */
+  public void mergeInfoFrom(CsvImpFile altro) {
+    if (null == altro)
+      return;
+    if ( !Utils.isValue(getFileName()) && Utils.isValue(altro.getFileName()))
+      setFileName(altro.getFileName());
+    if ( !Utils.isValue(getRelDir()) && Utils.isValue(altro.getRelDir()))
+      setRelDir(altro.getRelDir());
+    if ( !Utils.isValue(getCardHold()) && Utils.isValue(altro.getCardHold()))
+      setCardHold(altro.getCardHold());
+    if ( !hasTipoBanca() && altro.hasTipoBanca())
+      setTipoBanca(altro.getTipoBanca());
+    setSize(altro.getSize());
+    setInDb(altro.isInDb());
+    setId(altro.getId());
+    setSize(altro.getSize());
+    setQtarecs(altro.getQtarecs());
+    if ( !Utils.isValue(getDtmin()) && Utils.isValue(altro.getDtmin()))
+      setDtmin(altro.getDtmin());
+    if ( !Utils.isValue(getDtmax()) && Utils.isValue(altro.getDtmax()))
+      setDtmax(altro.getDtmax());
+    if ( !Utils.isValue(getUltagg()) && Utils.isValue(altro.getUltagg()))
+      setUltagg(altro.getUltagg());
   }
 
 }

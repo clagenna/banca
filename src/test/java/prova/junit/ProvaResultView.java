@@ -104,8 +104,10 @@ public class ProvaResultView extends Application implements Initializable, IStar
 
   private CodStat              m_codStatSel;
   private Path                 m_CSVfile;
+  @SuppressWarnings("unused")
   private TableViewFillerBanca m_tbvf;
   private String               m_qry;
+  @SuppressWarnings("unused")
   private boolean              bSemaf;
 
   public ProvaResultView() {

@@ -56,6 +56,8 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   private IStartApp     controller;
   @Getter @Setter
   private DataModel     model;
+  @Getter @Setter
+  private Parameters   params;
 
   private List<ResultView> m_liResViews;
   private ViewContanti     m_viewContanti;
@@ -76,6 +78,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
     doSomeDebugThings();
     setPrimaryStage(p_primaryStage);
     MessageDialog.setStage(p_primaryStage); // per i futuri messaggi di dialogo
+    params = getParameters(); // per i parametri di lancio, es. --props=<file propreies>
     LoadBancaMainApp.inst = this;
     initApp(null);
     URL url = getClass().getResource(LoadBancaController.CSZ_FXMLNAME);

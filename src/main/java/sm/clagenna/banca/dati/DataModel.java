@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.application.Application.Parameters;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
@@ -115,7 +116,14 @@ public class DataModel implements IStartApp, PropertyChangeListener {
 
   @Override
   public void initApp(AppProperties p_props) {
-
+    Parameters params = LoadBancaMainApp.getInst().getParams();
+    if (params != null) {
+      String szProps = params.getNamed().get("props");
+      if (Utils.isValue(szProps)) {
+        propsFile = szProps;
+        s_log.info("Parametri di lancio: props={}", propsFile);
+      }
+    }
     openProperties();
     openDb();
 

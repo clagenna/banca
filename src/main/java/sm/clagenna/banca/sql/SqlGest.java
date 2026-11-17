@@ -513,6 +513,11 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
           csvImpf.setId(res.getInt(ConstsSQL.CsvImpFile_ColNo_id));
           String szFilNam = res.getString(ConstsSQL.CsvImpFile_ColNo_filename);
           String szRelDir = res.getString(ConstsSQL.CsvImpFile_ColNo_reldir);
+//          if ( Files.exists(Paths.get(szFilNam), java.nio.file.LinkOption.NOFOLLOW_LINKS)) {
+//            csvImpf.setExists(true);
+//          } else {
+//            csvImpf.setExists(false);
+//          }
           csvImpf.assignPath(Paths.get(szRelDir), Paths.get(szFilNam));
           csvImpf.setInDb(true);
           // mi fido di quello che mi restituisce il file sistem
@@ -522,12 +527,15 @@ public abstract class SqlGest implements ISQLGest, PropertyChangeListener {
             csvImpf.setSize(res.getInt(ConstsSQL.CsvImpFile_ColNo_size));
           if ( !Utils.isValue(csvImpf.getQtarecs()))
             csvImpf.setQtarecs(res.getInt(ConstsSQL.CsvImpFile_ColNo_qtarecs));
-          if ( !Utils.isValue(csvImpf.getDtmin()))
-            csvImpf.setDtmin(ParseData.parseData(res.getString(ConstsSQL.CsvImpFile_ColNo_dtmin)));
-          if ( !Utils.isValue(csvImpf.getDtmax()))
-            csvImpf.setDtmax(ParseData.parseData(res.getString(ConstsSQL.CsvImpFile_ColNo_dtmax)));
-          if ( !Utils.isValue(csvImpf.getUltagg()))
-            csvImpf.setUltagg(ParseData.parseData(res.getString(ConstsSQL.CsvImpFile_ColNo_ultagg)));
+          String szDtmin = res.getString(ConstsSQL.CsvImpFile_ColNo_dtmin);
+          if ( !Utils.isValue(csvImpf.getDtmin()) && Utils.isValue(szDtmin))
+            csvImpf.setDtmin(ParseData.parseData(szDtmin));
+          String szDtmax = res.getString(ConstsSQL.CsvImpFile_ColNo_dtmax);
+          if ( !Utils.isValue(csvImpf.getDtmax()) && Utils.isValue(szDtmax))
+            csvImpf.setDtmax(ParseData.parseData(szDtmax));
+          String szUltagg = res.getString(ConstsSQL.CsvImpFile_ColNo_ultagg);
+          if ( !Utils.isValue(csvImpf.getUltagg()) && Utils.isValue(szUltagg))
+            csvImpf.setUltagg(ParseData.parseData(szUltagg));
           liDbFiles.add(csvImpf);
         }
       }

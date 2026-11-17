@@ -9,11 +9,13 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.test.skip>true</maven.test.skip>
 		<mainClassName>sm.clagenna.banca.javafx.LauncherBanca</mainClassName>
+		<gdrive.dir>F:/Google Drive/zips/Banca_Install</gdrive.dir>
 		<compiler.plugin>3.12.1</compiler.plugin>
 		<java.version>25</java.version>
 		<javafx.version>25.0.5</javafx.version>
 		<stdc.version>0.10-SNAPSHOT</stdc.version>
 		<launch4j.version>2.6.0</launch4j.version>
+		<antrun.version>3.1.0</antrun.version>
 		<lombok.version>1.18.48</lombok.version>
 		<testfx.version>4.0.18</testfx.version>
 		<junit.version>6.1.3</junit.version>
@@ -45,7 +47,7 @@
 			<artifactId>opennlp-tools</artifactId>
 			<version>1.9.3</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>
@@ -64,9 +66,7 @@
 			<version>${javafx.version}</version>
 		</dependency>
 
-		
-		
-		
+
 		<!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -91,7 +91,7 @@
 			<groupId>org.testfx</groupId>
 			<artifactId>testfx-core</artifactId>
 			<!-- Usa l'ultima versione stabile o allineata a junit5 -->
-			<version>4.0.18</version> 
+			<version>4.0.18</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- TestFX JUnit 5 -->
@@ -102,7 +102,7 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<finalName>${project.name}</finalName>
 		<plugins>
@@ -221,14 +221,14 @@
 				</configuration>
 			</plugin>
 			<!-- ho messo nelle properties maven.test.skip=true  -->
-<!--			<plugin>-->
-<!--				<groupId>org.apache.maven.plugins</groupId>-->
-<!--				<artifactId>maven-surefire-plugin</artifactId>-->
-<!--				<version>2.15</version>-->
-<!--				<configuration>-->
-<!--					<skip>true</skip>-->
-<!--				</configuration>-->
-<!--			</plugin>-->
+			<!--			<plugin>-->
+			<!--				<groupId>org.apache.maven.plugins</groupId>-->
+			<!--				<artifactId>maven-surefire-plugin</artifactId>-->
+			<!--				<version>2.15</version>-->
+			<!--				<configuration>-->
+			<!--					<skip>true</skip>-->
+			<!--				</configuration>-->
+			<!--			</plugin>-->
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -279,12 +279,14 @@
 						</goals>
 						<configuration>
 							<!-- "console" per vedere l'output in debug -->
-							<headerType>gui</headerType>          
+							<headerType>gui</headerType>
 							<outfile>target/Banca.exe</outfile>
-							<jar>target/${project.artifactId}-${project.version}-shaded.jar</jar>
+							<jar>
+								target/${project.artifactId}-${project.version}-shaded.jar</jar>
 							<!-- il JAR viene incorporato nell'exe -->
-							<dontWrapJar>false</dontWrapJar>      
-							<icon>src/main/resources/sm/clagenna/banca/javafx/banca-100.ico</icon>
+							<dontWrapJar>false</dontWrapJar>
+							<icon>
+								src/main/resources/sm/clagenna/banca/javafx/banca-100.ico</icon>
 							<errTitle>Banca</errTitle>
 							<classPath>
 								<mainClass>${mainClassName}</mainClass>
@@ -295,18 +297,92 @@
 								<initialHeapSize>128</initialHeapSize>
 								<maxHeapSize>2048</maxHeapSize>
 								<opts>
-									<!-- opt> - -module-path "${env.JAVAFX_HOME}\lib"</! - -opt --> 
-									<!-- opt> - -add-modules javafx.base,javafx.controls,javafx.fxml,javafx.media,javafx.graphics,javafx.web</! - -opt --> 
+									<!-- opt> - -module-path
+									"${env.JAVAFX_HOME}\lib"</! - -opt -->
+									<!-- opt> - -add-modules
+									javafx.base,javafx.controls,javafx.fxml,javafx.media,javafx.graphics,javafx.web</!
+									- -opt -->
 									<opt>--enable-native-access=ALL-UNNAMED</opt>
-									<opt>--enable-native-access=javafx.graphics</opt> 
-									<opt>--enable-native-access=javafx.web</opt> 
-									<opt>--enable-native-access=org.xerial.sqlitejdbc</opt>
+									<opt>--enable-native-access=javafx.graphics</opt>
+									<opt>--enable-native-access=javafx.web</opt>
+									<opt>
+										--enable-native-access=org.xerial.sqlitejdbc</opt>
 								</opts>
 							</jre>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>${antrun.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<!-- Genera il carattere ESC (\u001b) a runtime
+								bypassando il parser XML -->
+								<!--								<loadresource property="esc">-->
+								<!--									<string value="\u001b" />-->
+								<!--									<filterchain>-->
+								<!--										<unescapeunicode />-->
+								<!--									</filterchain>-->
+								<!--								</loadresource>-->
+								<!-- Java Properties decodifica nativamente
+								\u001b nel carattere ESC -->
+								<loadproperties>
+									<string value="esc=\u001b" />
+								</loadproperties>
+
+								<copy file="target/${project.artifactId}.exe"
+									toDir="${gdrive.dir}" overwrite="true" />
+								<echo message="." />
+								<echo message="." />
+
+								<!--Effetto / Colore	Codice Testo	Codice Sfondo	Esempio d'uso -->
+								<!--Verde brillante	        92	102		${esc}[92mTesto${esc}[0m -->
+								<!--Giallo brillante	    93	103		${esc}[93mTesto${esc}[0m -->
+								<!--Rosso brillante	        91  101  	${esc}[91mTesto${esc}[0m -->
+								<!--Ciano brillante	        96  106	    ${esc}[96mTesto${esc}[0m -->
+								<!--Grassetto + Sfondo Blu	1;37;44	—	${esc}[1;37;44mTesto${esc}[0m -->
+								<!--Reset totale	        0	—	${esc}[0m-->
+
+								<echo
+									message="${esc}[1;36m [FATTO] Copiato ${project.artifactId}.exe	su=${gdrive.dir} !${esc}[0m" />
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>${antrun.version}</version>
+				<executions>
+					<execution>
+						<id>post-build-echo</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>cmd.exe</executable>
+							<arguments>
+								<argument>/c</argument>
+								<argument>echo Copiato
+									${project.artifactId}.exe" su="${gdrive.dir}
+									!</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>

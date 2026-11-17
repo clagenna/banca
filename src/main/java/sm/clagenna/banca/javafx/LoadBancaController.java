@@ -72,7 +72,6 @@ import sm.clagenna.banca.sql.SqlGest;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.javafx.MessageDialog;
-import sm.clagenna.stdcla.sql.DBConn;
 import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ILog4jReader;
 import sm.clagenna.stdcla.utils.Log4jRow;
@@ -141,6 +140,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private AppProperties props;
   @Getter @Setter
   private String        styRowZeroRecs;
+  private String        styNoFileOnDir;
   // private double endProgressNo;
   private List<Log4jRow> m_liMsgs;
 
@@ -159,7 +159,9 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     model = DataModel.getInst();
     props = model.getProps();
     levelMin = Level.INFO;
+    // per i colori vedi: https://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html
     styRowZeroRecs = "gold";
+    styNoFileOnDir = "pink";
     initApp(props);
   }
 
@@ -276,6 +278,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         String cssForegSty = "-fx-text-fill: black;";
         StringBuilder cssBackgSty = new StringBuilder();
         var idf = item.getId();
+        var pres = item.isInFileSystem();
         if (null == idf && !isSelected()) {
           cssBackgSty //
               .append(cssForegSty) //
@@ -283,7 +286,14 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
               .append(styRowZeroRecs) //
               .append(";");
           setStyle(cssBackgSty.toString());
-        } else
+        } else if (!pres && !isSelected()) {
+            cssBackgSty //
+            .append(cssForegSty) //
+            .append("-fx-background-color: ") //
+            .append(styNoFileOnDir) //
+            .append(";");
+            setStyle(cssBackgSty.toString());
+          } else
           setStyle("");
       }
 
@@ -669,7 +679,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   Ctrl-R  Rescan Dirs
   Ctrl-M  Check Presenza Files
   Ctrl-Shft-I Import Sels Files
-  
+
   Ctrl-O  Opzioni
   Ctrl-Alt-S  Mosta Sovrapposizioni
   Ctrl-D  Mosta Dati
