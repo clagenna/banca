@@ -74,9 +74,16 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
   // FIXTO gestire (Shift/Cntrl) + Doppio Click per aggiungere un codstat figlio 
   // FIXTO ??? aggiungere tabella del codici statistici alimentati da CodStat2.properties (per fare che'?)
   // FIXME Proponi un checkbox per permette di filtrare su click di riga
+  
+  // FIXTO Alessandro: Se faccio doppio-click nella riga evidenziata, entra in modalità modifica ma non si vede nulla. Non ti permette di chiudere la finestra
+  // FIXME Alessandro: Database multipli: Il programma entra sempre con l'ultimo database caricato precedentemente ma dovrebbe esserci un opzione per poter cambiare database (es. Database Ale, Comune, Tizio, Caio).
+  // FIXME Alessandro: Database Unificati: se volessi vedere il riepilogo delle voci di costo di più database, potrebbe essere utile avere un DB che unifica tutti i precedenti. Da valutare cosa succede quando hai cod. stat. uguali e diversi
+  // FIXME Alessandro: Spostamento cod. stat. ramificati: se provo a spostare un cod. stat. con figli in una posizione che non è permesso, il programma deve avvisarmi che non posso farlo (es. cod. stat. in livello 4, 5 ecc..)
+  // FIXME Alessandro: Variante: se posso però spostare un livello padre nel rispetto dei requisiti, deve trasferirmi anche i figli.
+  
   private static final Logger s_log = LogManager.getLogger(CodStatView.class);
 
-  public static final String CSZ_FXMLNAME             = "CodStatView.fxml";
+  public static final String CSZ_FXMLNAME = "CodStatView.fxml";
 
   @FXML
   private TextField                        txFileCodStat;
@@ -199,7 +206,6 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
         return;
       if (/* evt.isPrimaryButtonDown() && */ evt.getClickCount() == 2) {
         CodStat cds = row.getValue();
-        System.out.println("Doppio click su:" + cds.getCodice());
         // se è premuto Shift aggiungo un figlio, altrimenti modifico il codice Stat selezionato
         treeView_modTree( ! (evt.isShiftDown() || evt.isControlDown()), cds);
       } else if (evt.getClickCount() == 1) {
@@ -345,6 +351,10 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
    *          selezionato
    */
   private void treeView_modTree(boolean bModif, CodStat cds) {
+    if (null == cds || !cds.isValid()) {
+      MessageDialog.messageDialog(AlertType.WARNING, "Non ho un codice Stat valido da modificare");
+      return;
+    }
     URL url = getClass().getResource(ModTreeCodStat.CSZ_FXMLNAME);
     if (url == null)
       url = getClass().getClassLoader().getResource(ModTreeCodStat.CSZ_FXMLNAME);
@@ -369,9 +379,10 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
     stageModCodStat.setX(20.);
     stageModCodStat.setY(20.);
     JFXUtils.readPosStage(stageModCodStat, mainProps, Consts.PROP_POSVIEW_modcodstat);
-    TreeItem<CodStat> ticds = treeview.getSelectionModel().getSelectedItem();
-    if (null == cds && null != ticds)
-      cds = ticds.getValue();
+    // assumo che il codice Stat selezionato sia valido, altrimenti non avrei potuto aprire la finestra di modifica
+    // TreeItem<CodStat> ticds = treeview.getSelectionModel().getSelectedItem();
+    //    if (null == cds && null != ticds)
+    //      cds = ticds.getValue();
     CodStat cdsLavoro = null;
     try {
       cdsLavoro = null != cds ? (CodStat) cds.clone() : null;

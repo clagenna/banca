@@ -398,7 +398,6 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
     myScene.getStylesheets().add(url.toExternalForm());
   }
 
-  // FIXME non viene salvato la dimensione delle colonne della tableView
   @Override
   public void closeApp(AppProperties p_props) {
     m_appmain.removeResView(this);

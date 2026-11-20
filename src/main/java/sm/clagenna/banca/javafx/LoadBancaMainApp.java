@@ -130,6 +130,8 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   public void initApp(AppProperties p_props) {
     try {
       model = new DataModel();
+      model.setParams(params);
+      model.setMainApp(this);
       model.initApp(props);
       props = model.getProps();
       skin = props.getProperty(AppProperties.CSZ_PROP_SKIN);

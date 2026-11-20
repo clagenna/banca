@@ -25,5 +25,6 @@ open module banca {
   requires org.apache.opennlp.tools;
   requires org.apache.logging.log4j;
   requires java.base;
+  requires jdk.internal.le;
  
 }

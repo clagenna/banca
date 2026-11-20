@@ -26,7 +26,6 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.csv.CsvFileContainer;
 import sm.clagenna.banca.javafx.EColsTableView;
-import sm.clagenna.banca.javafx.LoadBancaMainApp;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
 import sm.clagenna.banca.sql.SqlGest;
@@ -47,6 +46,8 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   private static boolean   junit = false;
 
   private PropertyChangeSupport propsChange;
+  private Parameters            params;
+  @Getter @Setter
   private String                propsFile;
   private AppProperties         props;
   private DBConn                dbConn;
@@ -78,6 +79,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   private boolean              rilanciaApp;
   private ScartaDescr          scartaDescr;
   private List<EColsTableView> excludeCols;
+  private IStartApp            mainApp;
 
   public DataModel() {
     if (null != inst) {
@@ -116,14 +118,16 @@ public class DataModel implements IStartApp, PropertyChangeListener {
 
   @Override
   public void initApp(AppProperties p_props) {
-    Parameters params = LoadBancaMainApp.getInst().getParams();
-    if (params != null) {
-      String szProps = params.getNamed().get("props");
-      if (Utils.isValue(szProps)) {
-        propsFile = szProps;
-        s_log.info("Parametri di lancio: props={}", propsFile);
-      }
+    if (null == propsFile) {
+      if (params != null) {
+        String szProps = params.getNamed().get("props");
+        if (Utils.isValue(szProps)) {
+          propsFile = szProps;
+        }
+      } else
+        propsFile = Consts.CSZ_MAIN_PROPS;
     }
+    s_log.info("Parametri di lancio: props={}", propsFile);
     openProperties();
     openDb();
 
@@ -191,7 +195,8 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     } catch (Exception e) {
       String szMsg = String.format("Errore apertura DB, error=%s", e.getMessage());
       s_log.error(szMsg, e);
-      String szM2 = szMsg + "<br>Controlla parametri del DataBase in menu Opzioni &#x2192; Database<br/> e <b>ri-lancia</b> l'applicazione.";
+      String szM2 = szMsg
+          + "<br>Controlla parametri del DataBase in menu Opzioni &#x2192; Database<br/> e <b>ri-lancia</b> l'applicazione.";
       rilanciaApp = true;
       Platform.runLater(() -> MessageDialog.messageDialog(AlertType.ERROR, szM2));
       //      Platform.exit();
@@ -362,7 +367,6 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     if (null == skin)
       skin = Consts.CSZ_MAIN_APP_CSS;
     String skinCss = String.format("%s.css", skin);
-    LoadBancaMainApp mainApp = LoadBancaMainApp.getInst();
     mainCSS = mainApp.getClass().getResource(skinCss);
     if (null == mainCSS)
       mainCSS = mainApp.getClass().getClassLoader().getResource(skinCss);

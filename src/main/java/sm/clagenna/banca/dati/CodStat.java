@@ -58,6 +58,8 @@ public class CodStat implements Comparable<CodStat>, Cloneable {
   }
 
   public void assign(CodStat p_cds) {
+    if ( null == p_cds)
+      return;
     setIdCodStat(p_cds.idCodStat);
     assign(p_cds.cod1, p_cds.cod2, p_cds.cod3);
     setDescr(p_cds.descr);
