@@ -57,7 +57,7 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   @Getter @Setter
   private DataModel     model;
   @Getter @Setter
-  private Parameters   params;
+  private Parameters    params;
 
   private List<ResultView> m_liResViews;
   private ViewContanti     m_viewContanti;
@@ -155,7 +155,6 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
 
   @Override
   public void closeApp(AppProperties prop) {
-    // TODO salva le updates rimaste in sospeso
     model.firePropertyChange(Consts.EVT_APP_CLOSE, null, prop);
     if (model != null)
       model.closeApp(prop);
@@ -237,12 +236,27 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
         //        s_log.warn("Cambio di DB, ora sono su {}", evt.getNewValue());
         //        scegliDB();
         break;
+
+      case Consts.EVT_CLOSE_WIN:
+        forceClose();
+        break;
+
     }
   }
 
   @Override
   public void changeSkin() {
     // nothing to do, skin is set in the model and used in the scene controller
+  }
+
+  @Override
+  public void forceClose() {
+    if (model != null && props == null) 
+      props = model.getProps();
+    JFXUtils.savePosStage(primaryStage, props, "frame");
+    props.setBooleanProperty(PROP_CHECK_CONV, bCheckConvDb);
+    model.closeApp(props);
+    props.salvaSuProperties();
   }
 
 }

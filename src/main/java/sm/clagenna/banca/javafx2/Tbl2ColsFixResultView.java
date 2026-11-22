@@ -384,4 +384,9 @@ public class Tbl2ColsFixResultView implements Initializable, IStartApp {
 
   }
 
+  @Override
+  public void forceClose() {
+    // nothing to do
+  }
+
 }

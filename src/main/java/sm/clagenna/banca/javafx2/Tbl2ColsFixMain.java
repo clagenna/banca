@@ -109,4 +109,10 @@ public class Tbl2ColsFixMain extends Application implements IStartApp {
     // nothing to do 
   }
 
+  @Override
+  public void forceClose() {
+    // nothing to do 
+    
+  }
+
 }

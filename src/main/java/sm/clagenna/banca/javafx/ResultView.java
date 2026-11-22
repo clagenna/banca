@@ -902,6 +902,10 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
         closeApp(mainProps);
         break;
 
+      case Consts.EVT_CLOSE_WIN:
+        forceClose();
+        break;
+
     }
   }
 
@@ -1089,6 +1093,17 @@ public class ResultView implements Initializable, IStartApp, PropertyChangeListe
       precAvere = currAvere;
       if (cssBackgSty.length() > 0)
         tableRow.setStyle(cssBackgSty.toString());
+    }
+  }
+
+  @Override
+  public void forceClose() {
+    if (null == lstage)
+      return;
+    if (Platform.isFxApplicationThread()) {
+      lstage.close();
+    } else {
+      Platform.runLater(lstage::close);
     }
   }
 

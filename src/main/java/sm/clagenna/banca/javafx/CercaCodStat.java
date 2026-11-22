@@ -185,8 +185,13 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
 
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
-    //
+    String szEvt = evt.getPropertyName();
+    switch (szEvt) {
 
+      case Consts.EVT_CLOSE_WIN:
+        forceClose();
+        break;
+    }
   }
 
   public void setStage(Stage st) {
@@ -195,6 +200,18 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
 
   public Stage getStage() {
     return primStage;
+  }
+
+  @Override
+  public void forceClose() {
+    Stage stage = getStage();
+    if (null == stage)
+      return;
+    if (Platform.isFxApplicationThread()) {
+      stage.close();
+    } else {
+      Platform.runLater(stage::close);
+    }
   }
 
 }

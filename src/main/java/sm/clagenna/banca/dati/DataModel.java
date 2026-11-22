@@ -179,10 +179,19 @@ public class DataModel implements IStartApp, PropertyChangeListener {
     } catch (Exception e) {
       s_log.error("Errore in  initApp.openProperties(): {}", e.getMessage(), e);
       Platform.exit();
+      System.exit(1957);
     }
   }
 
   private void openDb() {
+    if (rilanciaApp) {
+      String szMsg = "Sono in attesa del rilancio del applicativo per cambio di DB !";
+      s_log.warn(szMsg);
+      String szM2 = szMsg
+          + "<br>Controlla parametri del DataBase in menu Opzioni &#x2192; Database<br/> e <b>ri-lancia</b> l'applicazione.";
+      Platform.runLater(() -> MessageDialog.messageDialog(AlertType.ERROR, szM2));
+      return;
+    }
     String szDbType;
     try {
       szDbType = props.getProperty(AppProperties.CSZ_PROP_DB_Type);
@@ -192,15 +201,16 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       dbConn.readProperties(props);
       dbConn.doConn();
       dbConn.setShowStatement(props.getBooleanProperty(Consts.PROP_DEBUG_QRY, false));
+
     } catch (Exception e) {
       String szMsg = String.format("Errore apertura DB, error=%s", e.getMessage());
       s_log.error(szMsg, e);
       String szM2 = szMsg
           + "<br>Controlla parametri del DataBase in menu Opzioni &#x2192; Database<br/> e <b>ri-lancia</b> l'applicazione.";
-      rilanciaApp = true;
       Platform.runLater(() -> MessageDialog.messageDialog(AlertType.ERROR, szM2));
       //      Platform.exit();
       //      System.exit(1957);
+      return;
     }
     sqlgest = SqlGestFactory.get(dbConn.getServerId());
     sqlgest.setDbconn(dbConn);
@@ -264,6 +274,8 @@ public class DataModel implements IStartApp, PropertyChangeListener {
       case Consts.EVT_DBCHANGE:
         s_log.warn("Cambio di DB, ora sono su {}", evt.getNewValue());
         openDb();
+        // sono gia dentro l'evento di cambio DB, inutile rilanciare lo stesso evento
+        // firePropertyChange(Consts.EVT_DBCHANGE, evt.getOldValue(), evt.getNewValue());
         break;
 
       //      case EVT_FILECODSTATS:
@@ -407,5 +419,10 @@ public class DataModel implements IStartApp, PropertyChangeListener {
         s_log.info("Backup del DB in {}", pth.toString());
     }
     return pth;
+  }
+
+  @Override
+  public void forceClose() {
+    // nothing to do, but this method is required by the IStartApp interface
   }
 }

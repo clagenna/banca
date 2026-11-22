@@ -1,5 +1,7 @@
 package sm.clagenna.banca.javafx;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.URL;
 import java.util.List;
 import java.util.Locale;
@@ -27,6 +29,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.dati.Consts;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.RigaBanca;
 import sm.clagenna.banca.sql.ESqlFiltri;
@@ -39,7 +42,7 @@ import sm.clagenna.stdcla.utils.AppProperties;
 import sm.clagenna.stdcla.utils.ParseData;
 import sm.clagenna.stdcla.utils.Utils;
 
-public class ViewContanti implements Initializable, IStartApp {
+public class ViewContanti implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log                  = LogManager.getLogger(ViewContanti.class);
   public static final String  CSZ_FXMLNAME           = "ViewContanti.fxml";
   private static final String CSZ_PROP_POSVIEWCONT_X = "ViewCont.x";
@@ -106,6 +109,7 @@ public class ViewContanti implements Initializable, IStartApp {
   @Override
   public void initApp(AppProperties p_props) {
     model = DataModel.getInst();
+    model.addPropertyChangeListener(this);
     m_appmain = LoadBancaMainApp.getInst();
     m_appmain.addViewContanti(this);
     contante = new RigaBanca(CSZ_Contanti);
@@ -581,11 +585,35 @@ public class ViewContanti implements Initializable, IStartApp {
     p_props.setProperty(CSZ_PROP_POSVIEWCONT_Y, (int) py);
     p_props.setProperty(CSZ_PROP_DIMVIEWCONT_X, (int) dx);
     p_props.setProperty(CSZ_PROP_DIMVIEWCONT_Y, (int) dy);
+    
+    model.removePropertyChangeListener(this);
   }
 
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     //
+
+  }
+
+  @Override
+  public void forceClose() {
+    if (null == lstage)
+      return;
+    if (Platform.isFxApplicationThread()) {
+      lstage.close();
+    } else {
+      Platform.runLater(lstage::close);
+    }
+  }
+
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    String szEvt = evt.getPropertyName();
+    switch (szEvt) {
+      case Consts.EVT_CLOSE_WIN:
+        forceClose();
+        break;
+    }
 
   }
 

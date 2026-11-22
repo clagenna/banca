@@ -42,6 +42,7 @@ import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.javafx.MessageDialog;
 import sm.clagenna.stdcla.sql.EServerId;
 import sm.clagenna.stdcla.utils.AppProperties;
+import sm.clagenna.stdcla.utils.Utils;
 
 public class ConfOpzioniController implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(ConfOpzioniController.class);
@@ -406,6 +407,15 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
 
   @FXML
   void btSalvaClick(ActionEvent event) {
+    String oldDbName = m_mainProps.getProperty(AppProperties.CSZ_PROP_DB_name);
+    if (Utils.isValueEq(oldDbName, nomeDB))
+      return;
+    if (model.isRilanciaApp()) {
+      String szMsg = "Per applicare le modifiche al DataBase devi <b>ri-lanciare</b> l'applicazione!";
+      s_log.warn(szMsg);
+      MessageDialog.messageDialog(AlertType.WARNING, szMsg);
+      return;
+    }
     m_mainProps.setProperty(AppProperties.CSZ_PROP_DB_Type, serverId.toString());
     m_mainProps.setProperty(AppProperties.CSZ_PROP_DB_name, nomeDB);
     m_mainProps.setProperty(AppProperties.CSZ_PROP_DB_Host, nomeHost);
@@ -413,14 +423,18 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
       m_mainProps.setIntProperty(AppProperties.CSZ_PROP_DB_service, service);
     m_mainProps.setProperty(AppProperties.CSZ_PROP_DB_user, userName);
     m_mainProps.setProperty(AppProperties.CSZ_PROP_DB_passwd, password);
-    s_log.info("Salvato le properties per il Data Base");
-    DataModel.getInst().firePropertyChange(Consts.EVT_DBCHANGE, "null", nomeDB);
-    if (model.isRilanciaApp()) {
-      String szMsg = "Per applicare le modifiche al DataBase devi <b>ri-lanciare</b> l'applicazione!";
-      s_log.warn(szMsg);
-      MessageDialog.messageDialog(AlertType.WARNING, szMsg);
-      Platform.runLater(() -> Platform.exit());
-    }
+    s_log.info("Salvato le properties per il Nuovo Data Base {}", nomeDB);
+
+    model.firePropertyChange(Consts.EVT_DBCHANGE, "null", nomeDB);
+    model.firePropertyChange(Consts.EVT_CLOSE_WIN, "null", nomeDB);
+    // FIXME dopo il cambio di DB, l'applicazione deve essere riavviata per applicare le modifiche
+    // boolean riavviata = AppRestartService.restartCurrentApp();
+    // boolean riavviata = AppRestartService.restartApp();
+    boolean riavviata = AppRestartService.riavvia((String[])null);
+    if ( !riavviata)
+      MessageDialog.messageDialog(AlertType.WARNING,
+          "Non sono riuscito a riavviare automaticamente l'applicazione. Chiudila e rilanciala manualmente.");
+
   }
 
   private Path settaFileIn(Path p_fi, boolean p_setTx, boolean bForce) {
@@ -456,7 +470,7 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
 
   @Override
   public void initialize(URL location, ResourceBundle resources) {
-    System.out.println("ConfOpzioniController.initialize()");
+    // System.out.println("ConfOpzioniController.initialize()");
     //
   }
 
@@ -662,7 +676,22 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
       case Consts.EVT_CHANGESKIN:
         changeSkin();
         break;
+
+      case Consts.EVT_CLOSE_WIN:
+        forceClose();
+        break;
+
     }
   }
 
+  @Override
+  public void forceClose() {
+    if (null == lstage)
+      return;
+    if (Platform.isFxApplicationThread()) {
+      lstage.close();
+    } else {
+      Platform.runLater(lstage::close);
+    }
+  }
 }

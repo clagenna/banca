@@ -70,12 +70,12 @@ import sm.clagenna.stdcla.utils.Utils;
 public class GuessCodStatView implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(GuessCodStatView.class);
 
-  public static final String  CSZ_FXMLNAME          = "GuessCodStatView.fxml";
-  private static final String PROP_POS_GCDVIEW        = "gcdstview";
-//  private static final String CSZ_PROP_POS_X        = "gcdstview.x";
-//  private static final String CSZ_PROP_POS_Y        = "gcdstview.y";
-//  private static final String CSZ_PROP_DIM_X        = "gcdstview.lx";
-//  private static final String CSZ_PROP_DIM_Y        = "gcdstview.ly";
+  public static final String  CSZ_FXMLNAME     = "GuessCodStatView.fxml";
+  private static final String PROP_POS_GCDVIEW = "gcdstview";
+  //  private static final String CSZ_PROP_POS_X        = "gcdstview.x";
+  //  private static final String CSZ_PROP_POS_Y        = "gcdstview.y";
+  //  private static final String CSZ_PROP_DIM_X        = "gcdstview.lx";
+  //  private static final String CSZ_PROP_DIM_Y        = "gcdstview.ly";
   private static final String CSZ_PROP_COL_Id       = "gcdstview.colId";
   private static final String CSZ_PROP_COL_Tipo     = "gcdstview.colTipo";
   private static final String CSZ_PROP_COL_Dtmov    = "gcdstview.colDtmov";
@@ -682,7 +682,8 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     }
 
   }
-  private void  copiaRigaSel_click(Object object) {
+
+  private void copiaRigaSel_click(Object object) {
     GuessCodStat row = tblview.getSelectionModel().getSelectedItem();
     if (null == row) {
       s_log.warn("Nessuna riga selezionata per copiare");
@@ -700,9 +701,9 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
     sb.append(row.getDescrcds()).append("\t");
     sb.append(row.isAssigned());
     String sz = sb.toString();
-    Utils.copyToClipboard(sz);  
+    Utils.copyToClipboard(sz);
   }
-  
+
   private void riga_dblclick() {
     System.out.println("GuessCodStatView.riga_dblclick()");
   }
@@ -818,11 +819,23 @@ public class GuessCodStatView implements Initializable, IStartApp, PropertyChang
         buildTableView();
         break;
 
-      default:
+      case Consts.EVT_CLOSE_WIN:
+        forceClose();
         break;
 
+      default:
+        break;
     }
-
   }
 
+  @Override
+  public void forceClose() {
+    if (null == lstage)
+      return;
+    if (Platform.isFxApplicationThread()) {
+      lstage.close();
+    } else {
+      Platform.runLater(lstage::close);
+    }
+  }
 }

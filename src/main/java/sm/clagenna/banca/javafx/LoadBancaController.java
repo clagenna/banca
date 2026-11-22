@@ -286,14 +286,14 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
               .append(styRowZeroRecs) //
               .append(";");
           setStyle(cssBackgSty.toString());
-        } else if (!pres && !isSelected()) {
-            cssBackgSty //
-            .append(cssForegSty) //
-            .append("-fx-background-color: ") //
-            .append(styNoFileOnDir) //
-            .append(";");
-            setStyle(cssBackgSty.toString());
-          } else
+        } else if ( !pres && !isSelected()) {
+          cssBackgSty //
+              .append(cssForegSty) //
+              .append("-fx-background-color: ") //
+              .append(styNoFileOnDir) //
+              .append(";");
+          setStyle(cssBackgSty.toString());
+        } else
           setStyle("");
       }
 
@@ -679,7 +679,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   Ctrl-R  Rescan Dirs
   Ctrl-M  Check Presenza Files
   Ctrl-Shft-I Import Sels Files
-
+  
   Ctrl-O  Opzioni
   Ctrl-Alt-S  Mosta Sovrapposizioni
   Ctrl-D  Mosta Dati
@@ -1110,6 +1110,12 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         closeApp(props);
         break;
 
+      case Consts.EVT_DBCHANGE:
+        impostaTitolo();
+        break;
+      case Consts.EVT_CLOSE_WIN:
+        forceClose();
+      break;
     }
   }
 
@@ -1154,6 +1160,18 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     // if ( rig.getLevel().isInRange( Level.FATAL, levelMin )) // isLessSpecificThan(levelMin))
     if (rig.getLevel().intLevel() <= levelMin.intLevel())
       tblLogs.getItems().add(rig);
+  }
+
+  @Override
+  public void forceClose() {
+    cntrResultView = null;
+    cntrCodStatView = null;
+    cntrGuessCodStatView = null;
+    cntrlConfOpz = null;
+    cntrViewContanti = null;
+    cntrViewSovrapp = null;
+    closeApp(props);
+    // Il salvataggio delle properties viene fatto dal mainApp
   }
 
 }

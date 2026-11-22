@@ -481,4 +481,9 @@ public class ProvaResultView extends Application implements Initializable, IStar
     Application.launch(args);
   }
 
+  @Override
+  public void forceClose() {
+    // nothing to do, this is a test class
+  }
+
 }

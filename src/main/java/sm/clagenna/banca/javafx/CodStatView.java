@@ -851,6 +851,10 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
 
       case Consts.EVT_DBCODSTAT_CHANGED:
         break;
+        
+      case Consts.EVT_CLOSE_WIN:
+        forceClose();
+        break;
     }
   }
 
@@ -869,6 +873,17 @@ public class CodStatView implements Initializable, IStartApp, PropertyChangeList
       stageModCodStat.close();
     modTreeView = null;
     stageModCodStat = null;
+  }
+
+  @Override
+  public void forceClose() {
+    if (null == lstage)
+      return;
+    if (Platform.isFxApplicationThread()) {
+      lstage.close();
+    } else {
+      Platform.runLater(lstage::close);
+    }
   }
 
 }

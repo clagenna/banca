@@ -1,5 +1,7 @@
 package sm.clagenna.banca.javafx;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -10,6 +12,7 @@ import java.util.ResourceBundle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
@@ -20,6 +23,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import lombok.Getter;
 import lombok.Setter;
+import sm.clagenna.banca.dati.Consts;
 import sm.clagenna.banca.dati.DataModel;
 import sm.clagenna.banca.dati.csv.CsvFileContainer;
 import sm.clagenna.banca.dati.csv.CsvImpFile;
@@ -27,7 +31,7 @@ import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
 import sm.clagenna.stdcla.utils.AppProperties;
 
-public class SovrapposView implements Initializable, IStartApp {
+public class SovrapposView implements Initializable, IStartApp, PropertyChangeListener {
   private static final Logger s_log = LogManager.getLogger(SovrapposView.class);
 
   private static DateTimeFormatter s_fmt_ldt             = DateTimeFormatter.ofPattern("dd/MM/YY");
@@ -45,23 +49,23 @@ public class SovrapposView implements Initializable, IStartApp {
   private Stage            lstage;
   private LoadBancaMainApp m_appmain;
   private AppProperties    m_mainProps;
-  private DataModel       model;
+  private DataModel        model;
 
   private List<CsvImpFile> liFil;
-  private LocalDateTime dtMin;
-  private LocalDateTime dtMax;
-  private int           posDtMin;
-  private int           posDtMax;
-  private int           win_he;
-  private int           top_pad;
-  private int           bottom_pad;
-  private int           left_pad;
-  private int           win_wi;
-  private int           right_pad;
-  private int           TIC_MIN;
-  private int           TIC_MAX;
-  private double        dlt_x;
-  private double        pyRuller;
+  private LocalDateTime    dtMin;
+  private LocalDateTime    dtMax;
+  private int              posDtMin;
+  private int              posDtMax;
+  private int              win_he;
+  private int              top_pad;
+  private int              bottom_pad;
+  private int              left_pad;
+  private int              win_wi;
+  private int              right_pad;
+  private int              TIC_MIN;
+  private int              TIC_MAX;
+  private double           dlt_x;
+  private double           pyRuller;
 
   public SovrapposView() {
     //
@@ -78,6 +82,7 @@ public class SovrapposView implements Initializable, IStartApp {
     m_appmain = LoadBancaMainApp.getInst();
     m_mainProps = m_appmain.getProps();
     model = DataModel.getInst();
+    model.addPropertyChangeListener(this);
     impostaForma(m_mainProps);
     if (lstage != null)
       lstage.setOnCloseRequest(_ -> {
@@ -105,14 +110,14 @@ public class SovrapposView implements Initializable, IStartApp {
     int dx = p_props.getIntProperty(CSZ_PROP_DIMRESVIEW_X);
     int dy = p_props.getIntProperty(CSZ_PROP_DIMRESVIEW_Y);
     var mm = JFXUtils.getScreenMinMax(px, py, dx, dy);
-    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() *mm.posY() != 0) {
+    if (mm.poxX() != -1 && mm.posY() != -1 && mm.poxX() * mm.posY() != 0) {
       lstage.setX(mm.poxX());
       lstage.setY(mm.posY());
       lstage.setWidth(mm.width());
       lstage.setHeight(mm.height());
     }
     changeSkin();
-   }
+  }
 
   private Object resized() {
     win_he = (int) lstage.getHeight();
@@ -159,15 +164,15 @@ public class SovrapposView implements Initializable, IStartApp {
     Line tickLine1 = new Line(px1, pyRuller, px1, py - TIC_MAX);
     tickLine1.setStroke(strk);
     tickLine1.getStrokeDashArray().addAll(5d, 15d);
-    
+
     Line tickLine2 = new Line(px2, pyRuller, px2, py - TIC_MAX);
     tickLine2.setStroke(strk);
     tickLine2.getStrokeDashArray().addAll(3d, 8d);
-    
+
     Line tickLine = new Line(px1, py, px2, py);
     tickLine.setStroke(oriz);
     tickLine.setStrokeWidth(5.);
-    
+
     pane.getChildren().addAll(tickLine1, tickLine2, tickLine);
 
     Text lab = new Text(px1, py + 15, pif.getFileName());
@@ -248,7 +253,8 @@ public class SovrapposView implements Initializable, IStartApp {
     p_props.setProperty(CSZ_PROP_DIMRESVIEW_X, (int) dx);
     p_props.setProperty(CSZ_PROP_DIMRESVIEW_Y, (int) dy);
     
-    
+    model.removePropertyChangeListener(this);
+
   }
 
   public int setImpFileStart(CsvImpFile imf) {
@@ -270,6 +276,28 @@ public class SovrapposView implements Initializable, IStartApp {
     posDtMin = getDtPos(dtMin);
     posDtMax = getDtPos(dtMax);
     return liFil.size();
+  }
+
+  @Override
+  public void forceClose() {
+    if (null == lstage)
+      return;
+    if (Platform.isFxApplicationThread()) {
+      lstage.close();
+    } else {
+      Platform.runLater(lstage::close);
+    }
+  }
+
+  @Override
+  public void propertyChange(PropertyChangeEvent evt) {
+    String szEvt = evt.getPropertyName();
+    switch (szEvt) {
+      case Consts.EVT_CLOSE_WIN:
+        forceClose();
+        break;
+    }
+
   }
 
 }

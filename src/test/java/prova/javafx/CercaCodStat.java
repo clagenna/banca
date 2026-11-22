@@ -29,9 +29,9 @@ import sm.clagenna.stdcla.utils.Utils;
 
 public class CercaCodStat implements Initializable, IStartApp, PropertyChangeListener {
 
-  private static final String           KEY_POS = "cercacdst";
+  private static final String          KEY_POS = "cercacdst";
   @FXML
-  private TextField                     txParola;
+  private TextField                    txParola;
   @FXML
   private TableView<CodStat>           tblCodstat;
   @FXML
@@ -39,10 +39,10 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   @FXML
   private TableColumn<CodStat, String> colDescr;
 
-  private AppProperties  props;
-  private DataModel dataCntrl;
+  private AppProperties props;
+  private DataModel     model;
   private TreeCodStat   treeData;
-  private Stage          primStage;
+  private Stage         primStage;
 
   public CercaCodStat() {
     //
@@ -51,8 +51,8 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   @Override
   public void initialize(URL location, ResourceBundle resources) {
     System.out.println("CercaCodStat.initialize()");
-    dataCntrl = DataModel.getInst();
-    treeData = dataCntrl.getCodStatData();
+    model = DataModel.getInst();
+    treeData = model.getCodStatData();
 
     if (null == primStage) {
       Scene scene = txParola.getScene();
@@ -64,8 +64,10 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
 
   @Override
   public void initApp(AppProperties p_props) {
-    System.out.println("CercaCodStat.initApp()");
-    props = p_props;
+    // System.out.println("CercaCodStat.initApp()");
+    model = DataModel.getInst();
+    model.addPropertyChangeListener(this);
+    props = model.getProps();
     if (null == primStage) {
       Scene scene = txParola.getScene();
       if (null != scene)
@@ -97,7 +99,7 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
   }
 
   private Object rowSelecion(ObservableValue<? extends CodStat> ob, CodStat ov, CodStat nv) {
-    dataCntrl.firePropertyChange(Consts.EVT_SELCODSTAT, ov, nv);
+    model.firePropertyChange(Consts.EVT_SELCODSTAT, ov, nv);
     return null;
   }
 
@@ -138,13 +140,18 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
 
   @Override
   public void closeApp(AppProperties p_props) {
-    //
+    model.removePropertyChangeListener(this);
 
   }
 
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
-    //
+    String szEvt = evt.getPropertyName();
+    switch (szEvt) {
+      case Consts.EVT_CLOSE_WIN:
+        forceClose();
+        break;
+    }
 
   }
 
@@ -154,6 +161,18 @@ public class CercaCodStat implements Initializable, IStartApp, PropertyChangeLis
 
   public Stage getStage() {
     return primStage;
+  }
+
+  @Override
+  public void forceClose() {
+    Stage stage = getStage();
+    if (null == stage)
+      return;
+    if (Platform.isFxApplicationThread()) {
+      stage.close();
+    } else {
+      Platform.runLater(stage::close);
+    }
   }
 
 }

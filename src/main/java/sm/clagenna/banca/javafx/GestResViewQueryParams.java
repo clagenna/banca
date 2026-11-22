@@ -266,4 +266,10 @@ public class GestResViewQueryParams implements IStartApp {
 
   }
 
+  @Override
+  public void forceClose() {
+    // nothing to do
+    
+  }
+
 }

@@ -103,6 +103,7 @@ public class Consts {
    * Eventi
    */
   public static final String EVT_APP_CLOSE           = "closeApp";
+  public static final String EVT_CLOSE_WIN           = "closeWin";
   public static final String EVT_DBCHANGE            = "dbchange";
   public static final String EVT_SIZEDTS             = "sizedts";
   public static final String EVT_DTSROW              = "dtsrow";

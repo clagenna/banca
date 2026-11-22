@@ -320,4 +320,9 @@ public class ModTreeCodStat implements Initializable, IStartApp {
     JFXUtils.savePosStage(lstage, p_props, Consts.PROP_POSVIEW_modcodstat);
   }
 
+  @Override
+  public void forceClose() {
+    // nothing to do, the stage is closed by the caller
+  }
+
 }
