@@ -76,6 +76,8 @@ public class LoadBancaMainApp extends Application implements IStartApp, Property
   @Override
   public void start(Stage p_primaryStage) throws Exception {
     doSomeDebugThings();
+    // le start options hanno delle properties che vanno lette 
+    AppProperties.setSingleton(false);
     setPrimaryStage(p_primaryStage);
     MessageDialog.setStage(p_primaryStage); // per i futuri messaggi di dialogo
     params = getParameters(); // per i parametri di lancio, es. --props=<file propreies>

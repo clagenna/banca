@@ -95,6 +95,12 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
   private Button    btCercaDir;
   @FXML
   private Button    btConvCSV;
+  @FXML
+  private Button    btMostraDati;
+  @FXML
+  private Button    btMostraCodStat;
+  @FXML
+  private Label     lbStartUpConfig;
 
   // ----------------- Split Pane con DataView ----------------
   @FXML
@@ -180,7 +186,8 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
     impostaTitolo();
     // vedi: https://stackoverflow.com/questions/27160951/javafx-open-another-fxml-in-the-another-window-with-button
     getStage().onCloseRequestProperty().setValue(_ -> Platform.exit());
-
+    
+    lbStartUpConfig.setText(model.getStartOptz().getCurrStrtOptz().getName());
     initSplitPos(props);
     initTblFilesCSV();
     initTblLogs();
@@ -1115,7 +1122,7 @@ public class LoadBancaController implements Initializable, ILog4jReader, IStartA
         break;
       case Consts.EVT_CLOSE_WIN:
         forceClose();
-      break;
+        break;
     }
   }
 

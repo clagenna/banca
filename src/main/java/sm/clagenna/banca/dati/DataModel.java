@@ -25,6 +25,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.csv.CsvFileContainer;
+import sm.clagenna.banca.dati.strt.StartOptions;
 import sm.clagenna.banca.javafx.EColsTableView;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.banca.sql.ISQLGest;
@@ -45,6 +46,7 @@ public class DataModel implements IStartApp, PropertyChangeListener {
   @Getter @Setter
   private static boolean   junit = false;
 
+  private StartOptions          startOptz;
   private PropertyChangeSupport propsChange;
   private Parameters            params;
   @Getter @Setter
@@ -118,6 +120,9 @@ public class DataModel implements IStartApp, PropertyChangeListener {
 
   @Override
   public void initApp(AppProperties p_props) {
+    startOptz = new StartOptions();
+    startOptz.initApp(p_props);
+    propsFile = startOptz.getCurrStrtOptz().getPropFile().toAbsolutePath().toString();
     if (null == propsFile) {
       if (params != null) {
         String szProps = params.getNamed().get("props");

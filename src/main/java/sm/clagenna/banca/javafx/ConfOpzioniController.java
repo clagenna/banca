@@ -36,6 +36,8 @@ import lombok.Getter;
 import lombok.Setter;
 import sm.clagenna.banca.dati.Consts;
 import sm.clagenna.banca.dati.DataModel;
+import sm.clagenna.banca.dati.strt.StartOptions;
+import sm.clagenna.banca.dati.strt.StrtOpt;
 import sm.clagenna.banca.sql.ESqlFiltri;
 import sm.clagenna.stdcla.javafx.IStartApp;
 import sm.clagenna.stdcla.javafx.JFXUtils;
@@ -52,6 +54,17 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
   private static final String CSZ_PROP_POSVIEW_Y = "viewopts.y";
   private static final String CSZ_PROP_DIMVIEW_X = "viewopts.lx";
   private static final String CSZ_PROP_DIMVIEW_Y = "viewopts.ly";
+
+  @FXML
+  private TextField         txStrtOptz;
+  @FXML
+  private ComboBox<StrtOpt> cbStrtOptz;
+  @FXML
+  private Button            btStrtOptz;
+  @FXML
+  private Button            btStrtDupl;
+  @FXML
+  private Button            btStrtDele;
 
   @FXML
   private CheckBox         ckoverwrite;
@@ -147,6 +160,7 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
   @Getter @Setter
   private Scene                myScene;
   private DataModel            model;
+  private StartOptions         startOptions;
   private boolean              bSema;
   private static final boolean VERDE = true;
   private static final boolean ROSSO = false;
@@ -173,12 +187,20 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
     model = DataModel.getInst();
     m_appmain = LoadBancaMainApp.getInst();
     m_mainProps = m_appmain.getProps();
-
+    startOptions = model.getStartOptz();
+    preparaStartOptz();
     prepareFiltro();
     prepareDbVal(p_props);
     preparaExcludeCols();
     impostaForma(m_mainProps);
     model.addPropertyChangeListener(this);
+  }
+
+  private void preparaStartOptz() {
+    String szCurr = model.getStartOptz().getCurrStrtOptz().getName();
+    txStrtOptz.setText(szCurr);
+    cbStrtOptz.getItems().clear();
+    cbStrtOptz.getItems().addAll(model.getStartOptz().getLsStrtOptz());
   }
 
   private void prepareFiltro() {
@@ -430,7 +452,7 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
     // FIXME dopo il cambio di DB, l'applicazione deve essere riavviata per applicare le modifiche
     // boolean riavviata = AppRestartService.restartCurrentApp();
     // boolean riavviata = AppRestartService.restartApp();
-    boolean riavviata = AppRestartService.riavvia((String[])null);
+    boolean riavviata = AppRestartService.riavvia((String[]) null);
     if ( !riavviata)
       MessageDialog.messageDialog(AlertType.WARNING,
           "Non sono riuscito a riavviare automaticamente l'applicazione. Chiudila e rilanciala manualmente.");
@@ -654,6 +676,67 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
         visibileHost(false);
         break;
     }
+  }
+
+  @FXML
+  public void cbStrtOptzClick(ActionEvent event) {
+    System.out.println("ConfOpzioniController.cbStrtOptzClick()");
+    StrtOpt strt = cbStrtOptz.getSelectionModel().getSelectedItem();
+    if (strt.equals(startOptions.getCurrStrtOptz()))
+      return;
+    startOptions.setCurrStrtOptz(strt);
+  }
+
+  @FXML
+  public void btStrtOptzSaveClick(ActionEvent event) {
+    System.out.println("ConfOpzioniController.btStrtOptzClick()");
+    StrtOpt strt = cbStrtOptz.getSelectionModel().getSelectedItem();
+
+    if ( !Utils.isValue(strt)) {
+      String szMsg = "Devi inserire un nome valido per le opzioni di avvio!";
+      s_log.warn(szMsg);
+      MessageDialog.messageDialog(AlertType.WARNING, szMsg);
+      return;
+    }
+    if (strt.equals(startOptions.getCurrStrtOptz()))
+      return;
+    if ( !startOptions.contains(strt)) {
+      String szMsg = "L' opzione di avvio \"" + strt.getName() + "\" non esiste";
+      szMsg += "<br>Devi prima crearla con il pulsante \"Duplica\"";
+      s_log.warn(szMsg);
+      MessageDialog.messageDialog(AlertType.WARNING, szMsg);
+      return;
+    }
+    startOptions.setCurrStrtOptz(strt);
+    boolean riavviata = AppRestartService.riavvia((String[]) null);
+    if ( !riavviata)
+      MessageDialog.messageDialog(AlertType.WARNING,
+          "Non sono riuscito a riavviare automaticamente l'applicazione. Chiudila e rilanciala manualmente.");
+  }
+
+  @FXML
+  public void btStrtDuplClick(ActionEvent event) {
+    System.out.println("ConfOpzioniController.btStrtDuplClick()");
+    // ??   duplicare l'opzione di avvio corrente su questa nuova
+    //    implica duplicare anche il file di properties di avvio, se esiste, con il nuovo nome
+    String szNewOptz = txStrtOptz.getText();
+    if ( !Utils.isValue(szNewOptz) || szNewOptz.length() < 4) {
+      String szMsg = "Devi inserire un nome valido (min 4 chars) per le opzioni di avvio!";
+      s_log.warn(szMsg);
+      MessageDialog.messageDialog(AlertType.WARNING, szMsg);
+      return;
+    }
+    startOptions.duplica(szNewOptz);
+    Platform.runLater(() -> {
+      cbStrtOptz.getItems().clear();
+      cbStrtOptz.getItems().addAll(startOptions.getLsStrtOptz());
+      cbStrtOptz.getSelectionModel().select(startOptions.get(szNewOptz));
+    });
+  }
+
+  @FXML
+  public void btStrtDeleClick(ActionEvent event) {
+    System.out.println("ConfOpzioniController.btStrtDeleClick()");
   }
 
   private void visibileHost(boolean bv) {
