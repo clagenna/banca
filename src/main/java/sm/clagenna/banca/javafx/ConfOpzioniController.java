@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +25,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -61,6 +63,8 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
   private ComboBox<StrtOpt> cbStrtOptz;
   @FXML
   private Button            btStrtOptz;
+  @FXML
+  private CheckBox          ckStrtOptzOverwrite;
   @FXML
   private Button            btStrtDupl;
   @FXML
@@ -197,10 +201,24 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
   }
 
   private void preparaStartOptz() {
+    btStrtOptz.setDisable(true);
+    btStrtDupl.setDisable(true);
+    btStrtDele.setDisable(true);
     String szCurr = model.getStartOptz().getCurrStrtOptz().getName();
     txStrtOptz.setText(szCurr);
+    // lo devo poter editare per la duplicazione
+    // txStrtOptz.setEditable(false);
     cbStrtOptz.getItems().clear();
     cbStrtOptz.getItems().addAll(model.getStartOptz().getLsStrtOptz());
+    ckStrtOptzOverwrite.setSelected(true);
+
+    cbStrtOptz.setOnAction(event -> {
+      StrtOpt opt = cbStrtOptz.getValue();
+      final boolean bSel = opt != null;
+      btStrtOptz.setDisable( !bSel);
+      btStrtDupl.setDisable( !bSel);
+      btStrtDele.setDisable( !bSel);
+    });
   }
 
   private void prepareFiltro() {
@@ -726,6 +744,7 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
       MessageDialog.messageDialog(AlertType.WARNING, szMsg);
       return;
     }
+    startOptions.setOverwrite(ckStrtOptzOverwrite.isSelected());
     startOptions.duplica(szNewOptz);
     Platform.runLater(() -> {
       cbStrtOptz.getItems().clear();
@@ -737,6 +756,28 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
   @FXML
   public void btStrtDeleClick(ActionEvent event) {
     System.out.println("ConfOpzioniController.btStrtDeleClick()");
+    StrtOpt optz = cbStrtOptz.getSelectionModel().getSelectedItem();
+    if (null == optz) {
+      String szMsg = "Devi selezionare un'opzione di avvio (nel ComboBox) da eliminare!";
+      s_log.warn(szMsg);
+      MessageDialog.messageDialog(AlertType.WARNING, szMsg);
+      return;
+    }
+    if (optz.equals(startOptions.getCurrStrtOptz())) {
+      String szMsg = "Non puoi eliminare l'opzione di avvio corrente! Se vuoi eliminarla, prima seleziona un'altra opzione di avvio come corrente.";
+      s_log.warn(szMsg);
+      MessageDialog.messageDialog(AlertType.WARNING, szMsg);
+      return;
+    }
+    String szMsg = String.format("Sei sicuro di voler eliminare l'opzione di avvio :<br/>&nbsp; <b>\"%s\"</b>", optz.getName());
+    Optional<ButtonType> bOk = MessageDialog.messageDialog(AlertType.CONFIRMATION, szMsg);
+    if ( !bOk.isPresent() || bOk.get() != ButtonType.OK)
+      return;
+    startOptions.delete(optz);
+    szMsg = String.format("Eliminata l'opzione di avvio :<br/><b>\"%s\"</b>", optz.getName());
+    s_log.info(szMsg);
+    preparaStartOptz();
+    MessageDialog.messageDialog(AlertType.INFORMATION, szMsg);
   }
 
   private void visibileHost(boolean bv) {

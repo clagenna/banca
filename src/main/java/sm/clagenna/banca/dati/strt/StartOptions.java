@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -133,6 +134,7 @@ public class StartOptions implements IStartApp, PropertyChangeListener {
       return newStrt;
     }
     newStrt = new StrtOpt(szNewOptz);
+    newStrt.setOverwrite(isOverwrite());
     if (contains(newStrt)) {
       s_log.warn("duplicaOptz() opzione di avvio {} esistente!", szNewOptz);
       return newStrt;
@@ -143,6 +145,8 @@ public class StartOptions implements IStartApp, PropertyChangeListener {
     }
     // dopo la copia dei files
     lsStrtOptz.add(newStrt);
+    strtProps.setProperty(String.format(PROP_STRTOPTZ_NEXT, lsStrtOptz.size()), newStrt.getName());
+    strtProps.salvaSuProperties();
     changed = true;
     return newStrt;
   }
@@ -161,8 +165,32 @@ public class StartOptions implements IStartApp, PropertyChangeListener {
       return false;
     }
     lsStrtOptz.remove(opt);
+    saveAllOptz();
+
     changed = true;
     return true;
+  }
+
+  private void saveAllOptz() {
+    deleteAllOptz();
+    for (int i = 0; i < lsStrtOptz.size(); i++) {
+      StrtOpt strt = lsStrtOptz.get(i);
+      String sKey = String.format(PROP_STRTOPTZ_NEXT, i);
+      strtProps.setProperty(sKey, strt.getName());
+    }
+    strtProps.salvaSuProperties();
+  }
+
+  private void deleteAllOptz() {
+    Properties props = strtProps.getProperties();
+    int nErr = 0;
+    for (int i = 0; i < lsStrtOptz.size() && nErr < 5; i++) {
+      String sKey = String.format(PROP_STRTOPTZ_NEXT, i);
+      if (props.containsKey(sKey))
+        props.remove(sKey);
+      else
+        nErr++;
+    }
   }
 
   public int getLastIndex() {

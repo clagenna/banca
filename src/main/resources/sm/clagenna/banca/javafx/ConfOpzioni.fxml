@@ -8,6 +8,7 @@
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
@@ -21,15 +22,38 @@
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
                         <Label layoutX="26.0" layoutY="25.0" text="Impostarzione di Start" />
-                        <ComboBox fx:id="cbStrtOptz" layoutX="152.0" layoutY="64.0" prefHeight="25.0" prefWidth="413.0" AnchorPane.leftAnchor="152.0" AnchorPane.rightAnchor="35.0" AnchorPane.topAnchor="64.0" />
                         <TextField fx:id="txStrtOptz" layoutX="152.0" layoutY="16.0" prefHeight="39.0" prefWidth="417.0" promptText="Il nome della configurazione di partenza di default" AnchorPane.leftAnchor="152.0" AnchorPane.rightAnchor="31.0" AnchorPane.topAnchor="16.0">
                            <font>
                               <Font name="System Bold" size="18.0" />
                            </font>
+                           <tooltip>
+                              <Tooltip text="Dammi il nome della configurazione su cui duplicare quella corrente" />
+                           </tooltip>
                         </TextField>
-                        <Button fx:id="btStrtOptz" layoutX="152.0" layoutY="100.0" mnemonicParsing="false" onAction="#btStrtOptzSaveClick" text="Imposta" />
-                        <Button fx:id="btStrtDupl" layoutX="242.0" layoutY="100.0" mnemonicParsing="false" onAction="#btStrtDuplClick" text="Duplica" />
-                        <Button fx:id="btStrtDele" layoutX="352.0" layoutY="100.0" mnemonicParsing="false" onAction="#btStrtDeleClick" text="Elimina" />
+                        <ComboBox fx:id="cbStrtOptz" layoutX="152.0" layoutY="64.0" prefHeight="25.0" prefWidth="413.0" AnchorPane.leftAnchor="152.0" AnchorPane.rightAnchor="35.0" AnchorPane.topAnchor="64.0" />
+                        <Button fx:id="btStrtOptz" layoutX="152.0" layoutY="107.0" mnemonicParsing="false" onAction="#btStrtOptzSaveClick" text="Imposta">
+                           <tooltip>
+                              <Tooltip text="Imposta la conf. selezionata come nuova configurazione di start (implica il ri-avvio dell'app)" />
+                           </tooltip></Button>
+                        <Button fx:id="btStrtDele" layoutX="154.0" layoutY="173.0" mnemonicParsing="false" onAction="#btStrtDeleClick" text="Elimina" />
+                        <TitledPane animated="false" layoutX="250.0" layoutY="104.0" text="Duplicazione opzione di start">
+                          <content>
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="95.0" prefWidth="200.0">
+                                 <children>
+                                    <CheckBox fx:id="ckStrtOptzOverwrite" layoutX="21.0" layoutY="14.0" mnemonicParsing="false" text="Sovrascrivi la conf.">
+                                       <tooltip>
+                                          <Tooltip text="Sovrascrivere la nuova configurazione nel caso esista già sul disco" />
+                                       </tooltip>
+                                    </CheckBox>
+                                    <Button fx:id="btStrtDupl" layoutX="21.0" layoutY="47.0" mnemonicParsing="false" onAction="#btStrtDuplClick" text="Duplica">
+                                       <tooltip>
+                                          <Tooltip text="Duplica la conf. corrente e la chiama col nome impostato (&quot;impostazione di start&quot;)" />
+                                       </tooltip>
+                                    </Button>
+                                 </children>
+                              </AnchorPane>
+                          </content>
+                        </TitledPane>
                      </children>
                   </AnchorPane>
               </content>
