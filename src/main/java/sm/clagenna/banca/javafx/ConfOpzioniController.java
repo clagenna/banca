@@ -209,10 +209,10 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
     // lo devo poter editare per la duplicazione
     // txStrtOptz.setEditable(false);
     cbStrtOptz.getItems().clear();
-    cbStrtOptz.getItems().addAll(model.getStartOptz().getLsStrtOptz());
+    cbStrtOptz.getItems().addAll(model.getStartOptz().getListStrtOptz());
     ckStrtOptzOverwrite.setSelected(true);
 
-    cbStrtOptz.setOnAction(event -> {
+    cbStrtOptz.setOnAction(_ -> {
       StrtOpt opt = cbStrtOptz.getValue();
       final boolean bSel = opt != null;
       btStrtOptz.setDisable( !bSel);
@@ -748,7 +748,7 @@ public class ConfOpzioniController implements Initializable, IStartApp, Property
     startOptions.duplica(szNewOptz);
     Platform.runLater(() -> {
       cbStrtOptz.getItems().clear();
-      cbStrtOptz.getItems().addAll(startOptions.getLsStrtOptz());
+      cbStrtOptz.getItems().addAll(startOptions.getListStrtOptz());
       cbStrtOptz.getSelectionModel().select(startOptions.get(szNewOptz));
     });
   }

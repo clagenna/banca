@@ -19,7 +19,7 @@ public class ProvaStartOptions {
     startOptions = new StartOptions();
     startOptions.initApp(null);
     System.out.printf("\nStartOptions: currStrtOptz=%s\n", startOptions.getCurrStrtOptz().toStringEx());
-    startOptions.getLsStrtOptz().forEach(s -> System.out.printf("StartOptions: %s\n", s.toStringEx()));
+    startOptions.getListStrtOptz().forEach(s -> System.out.printf("StartOptions: %s\n", s.toStringEx()));
     startOptions.setOverwrite(true);
     creaLeggi();
     startOptions.closeApp(null);

@@ -30,6 +30,11 @@ public class StrtOpt {
   private AppProperties props;
   private EServerId     dbtip;
   // private String propFileName;
+  
+  public StrtOpt() {
+    changed = false;
+    error = false;
+  }
 
   public StrtOpt(String ptz) {
     setName(ptz);
@@ -44,7 +49,7 @@ public class StrtOpt {
       String szPropFile = Utils.capitalize(name.replaceAll(" ", "_"));
       propFile = currd.resolve(szPropFile + ".properties");
       if ( !Files.exists(propFile)) {
-        message = String.format("File %s non trovato!", propFile);
+        message = String.format("File properties X Banca app, \"%s\" non trovato!", propFile);
         s_log.warn(message);
         error = true;
       }
@@ -109,6 +114,7 @@ public class StrtOpt {
         Files.copy(from.propFile, propFile, options);
         openPropertyFile();
         copyDataBase(from);
+        cambiaStartDir(from);
       }
     } catch (Exception e) {
       error = true;
@@ -116,6 +122,29 @@ public class StrtOpt {
       s_log.error("Errore in dupl(): {}", message, e);
     }
     return !error;
+  }
+
+  private void cambiaStartDir(StrtOpt from) {
+    String szStrtDir = from.props.getProperty(AppProperties.CSZ_PROP_LASTDIR);
+    if ( !Utils.isValue(szStrtDir))
+      return;
+    Path pthStrt = Paths.get(szStrtDir);
+    Path pthPadre = pthStrt.getParent();
+    Path pthNew = pthPadre.resolve(name.replaceAll(" ", "_"));
+    if ( !Files.exists(pthNew)) {
+      try {
+        Files.createDirectory(pthNew);
+      } catch (Exception e) {
+        error = true;
+        message = e.getMessage();
+        s_log.error("Errore in cambiaStartDir(): {}", message, e);
+        return;
+      }
+    }
+    props.setProperty(AppProperties.CSZ_PROP_LASTDIR, pthNew.toAbsolutePath().toString());
+    s_log.debug("cambiaStartDir() setProperty({})={}", AppProperties.CSZ_PROP_LASTDIR, pthNew.toAbsolutePath().toString());
+    props.salvaSuProperties();
+
   }
 
   private void openPropertyFile() {
@@ -176,7 +205,7 @@ public class StrtOpt {
         dbFile.toAbsolutePath().toString());
     s_log.debug(message);
     try {
-      if ( Files.exists(dbFile) && !overwrite) {
+      if (Files.exists(dbFile) && !overwrite) {
         error = true;
         message = String.format("copyDataBase() file di destinazione %s esiste!", dbFile.toAbsolutePath().toString());
         s_log.error(message);
